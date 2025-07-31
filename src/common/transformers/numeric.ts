@@ -1,0 +1,12 @@
+/// ColumnNumericTransformer
+export class ColumnNumericTransformer {
+    to(data: number): number {
+        return data;
+    }
+    from(data: string): number {
+        if (!data) {
+            return 0;
+        }
+        return parseFloat(data);
+    }
+}

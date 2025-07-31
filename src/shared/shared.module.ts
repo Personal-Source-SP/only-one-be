@@ -1,0 +1,33 @@
+import { classes } from '@automapper/classes';
+import { AutomapperModule } from '@automapper/nestjs';
+import { HttpModule } from '@nestjs/axios';
+import { forwardRef, Global, Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AppConfigService } from './services/app-config.service';
+import { BaseHttpService } from './services/base-http.service';
+import { LoggerService } from './services/logger.service';
+import { UtilsService } from './services/utils.service';
+
+const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService];
+
+@Global()
+@Module({
+    providers,
+    imports: [
+        HttpModule.registerAsync({
+            useFactory: async (configService: AppConfigService) => ({
+                timeout: configService.getNumber('HTTP_TIMEOUT') || 3000,
+                maxRedirects: configService.getNumber('HTTP_MAX_REDIRECTS') || 50,
+            }),
+            inject: [AppConfigService],
+        }),
+        AutomapperModule.forRoot({
+            strategyInitializer: classes(),
+        }),
+        PassportModule.register({ defaultStrategy: 'jwt' }),
+    ],
+    exports: [...providers, HttpModule, AutomapperModule],
+})
+export class SharedModule {}

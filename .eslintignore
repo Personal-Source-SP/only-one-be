@@ -1,0 +1,8 @@
+data/
+docs/
+node_modules/
+scripts/
+*.html
+# ignore all html and js files
+**/*.html
+**/*.js
