@@ -21,10 +21,6 @@
         "incremental": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "paths": {
-            "@/": ["src/"],
-            "@/*": ["src/*"]
-        }
     },
     "watchOptions": {
         "watchFile": "fixedPollingInterval"

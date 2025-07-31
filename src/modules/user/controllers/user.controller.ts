@@ -1,11 +1,10 @@
 import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseController } from '@/common/base.controller';
-import { ResponseDto } from '@/common/dto/response.dto';
-import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
-
+import { BaseController } from '../../../common/base.controller';
+import { ResponseDto } from '../../../common/dto/response.dto';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ChangePasswordRequestDto, UpdateUserRequestDto } from '../dtos/requests';
 import { UserService } from '../services/user.service';
 

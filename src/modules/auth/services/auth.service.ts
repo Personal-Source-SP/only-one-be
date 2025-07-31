@@ -1,18 +1,16 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, LoggerService, Scope, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
-import { UserDto } from '@/modules/user/dtos/user.dto';
-import { UserEntity } from '@/modules/user/entities/user.entity';
-import { UserService } from '@/modules/user/services/user.service';
-import { AppConfigService } from '@/shared/services/app-config.service';
-import { LoggerService } from '@/shared/services/logger.service';
 
 import { UtilsService } from '../../../shared/services/utils.service';
 import { CreateUserRequestDto } from '../../user/dtos/requests';
 import { RefreshTokenRequestDto, SignInRequestDto } from '../dtos/requests/auth.request.dto';
 import { RefreshTokenResponseDto, SignInResponseDto } from '../dtos/responses/auth.response.dto';
+import { AppConfigService } from '../../../shared/services/app-config.service';
+import { UserDto } from '../../user/dtos/user.dto';
+import { UserEntity } from '../../user/entities/user.entity';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
