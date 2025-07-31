@@ -1,6 +1,6 @@
-# OrienTrade Backend
+# Only One Backend
 
-Backend API service for the OrienTrade Competitor Price Monitoring System.
+Backend API service for the Only One Competitor Price Monitoring System.
 
 ## Overview
 
