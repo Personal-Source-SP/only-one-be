@@ -1,44 +1,50 @@
+import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { IsEmail, IsString, MaxLength } from 'class-validator';
 
 export class SignUpRequestDto {
     @ApiProperty()
     @IsString()
-    @IsOptional()
-    @Length(1, 50)
-    firstName?: string;
+    @MaxLength(100)
+    @AutoMap()
+    firstName: string;
 
     @ApiProperty()
     @IsString()
-    @IsOptional()
-    @Length(1, 50)
-    lastName?: string;
+    @MaxLength(100)
+    @AutoMap()
+    lastName: string;
 
     @ApiProperty()
     @IsString()
+    @IsEmail()
+    @AutoMap()
     email: string;
 
     @ApiProperty()
     @IsString()
+    @AutoMap()
     password: string;
 
     @ApiProperty()
     @IsString()
-    @IsOptional()
-    phoneNumber?: string;
+    @MaxLength(100)
+    @AutoMap()
+    phoneNumber: string;
 }
+
 export class SignInRequestDto {
     @ApiProperty()
-    @IsString()
+    @IsEmail()
     email: string;
 
     @ApiProperty()
     @IsString()
     password: string;
 }
+
 export class RefreshTokenRequestDto {
-    @IsString()
-    @IsNotEmpty()
     @ApiProperty()
+    @IsString()
     refreshToken: string;
 }

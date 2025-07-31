@@ -12,11 +12,11 @@ export class SignInResponseDto {
 
     @ApiProperty()
     @AutoMap()
-    firstName?: string;
+    firstName: string;
 
     @ApiProperty()
     @AutoMap()
-    lastName?: string;
+    lastName: string;
 
     @ApiProperty()
     @AutoMap()

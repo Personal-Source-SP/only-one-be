@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateUserRequestDto {
     @ApiPropertyOptional()
@@ -19,7 +19,7 @@ export class UpdateUserRequestDto {
 
     @ApiPropertyOptional()
     @IsOptional()
-    @IsString()
+    @IsEmail()
     @AutoMap()
     email?: string;
 

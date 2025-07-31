@@ -1,12 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-
-import { JwtStrategy } from '@/shared/services/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 import { AppConfigService } from '../../shared/services/app-config.service';
-import { SharedModule } from '../../shared/shared.module';
-import { UserService } from '../user/services/user.service';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
@@ -22,10 +18,9 @@ import { AuthService } from './services/auth.service';
                 signOptions: { expiresIn: configService.jwtConfig.expire },
             }),
         }),
-        SharedModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtService, ConfigService, JwtStrategy],
+    providers: [AuthService],
     exports: [AuthService],
 })
 export class AuthModule {}

@@ -5,28 +5,34 @@ import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class LoggerService extends ConsoleLogger {
-    private readonly _logger: winston.Logger;
+    private readonly logger: winston.Logger;
 
-    constructor(private readonly _configService: AppConfigService) {
+    constructor(private readonly configService: AppConfigService) {
         super(LoggerService.name);
-        this._logger = winston.createLogger(this._configService.winstonConfig);
-        if (_configService.nodeEnv !== 'production') {
-            this._logger.debug('Logging initialized at debug level');
+        this.logger = winston.createLogger(this.configService.winstonConfig);
+
+        if (configService.nodeEnv !== 'production') {
+            this.logger.debug('Logging initialized at debug level');
         }
     }
+
     log(message: string): void {
-        this._logger.info(message);
+        this.logger.info(message);
     }
+
     info(message: string): void {
-        this._logger.info(message);
+        this.logger.info(message);
     }
+
     debug(message: string): void {
-        this._logger.debug(message);
+        this.logger.debug(message);
     }
+
     error(context?: string | HttpException): void {
-        this._logger.error(context);
+        this.logger.error(context);
     }
+
     warn(message: string): void {
-        this._logger.warn(message);
+        this.logger.warn(message);
     }
 }

@@ -1,21 +1,15 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Unique } from 'typeorm';
-
-import { AbstractEntity } from '@/common/entities';
-
-export enum UserRole {
-    ADMIN = 'admin',
-    USER = 'user',
-}
+import { AbstractEntity } from '../../../common/entities';
 
 @Entity({ name: 'users ', synchronize: true })
 @Unique(['email'])
 export class UserEntity extends AbstractEntity {
-    @Column({ length: 50, nullable: true })
+    @Column({ length: 100, nullable: true })
     @AutoMap()
     firstName: string;
 
-    @Column({ length: 50, nullable: true })
+    @Column({ length: 100, nullable: true })
     @AutoMap()
     lastName: string;
 
@@ -27,14 +21,6 @@ export class UserEntity extends AbstractEntity {
     @AutoMap()
     password: string;
 
-    @Column({
-        type: 'enum',
-        enum: UserRole,
-        default: UserRole.USER,
-    })
-    @AutoMap()
-    role: UserRole;
-
     @Column({ default: true })
     @AutoMap()
     isActive: boolean;
@@ -42,20 +28,4 @@ export class UserEntity extends AbstractEntity {
     @Column({ nullable: true })
     @AutoMap()
     phoneNumber?: string;
-
-    @Column({ default: false })
-    @AutoMap()
-    isEmailVerified: boolean;
-
-    @Column({ nullable: true })
-    @AutoMap()
-    emailVerificationToken?: string;
-
-    @Column({ nullable: true })
-    @AutoMap()
-    passwordResetToken?: string;
-
-    @Column({ nullable: true })
-    @AutoMap()
-    passwordResetExpires?: Date;
 }

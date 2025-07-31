@@ -2,9 +2,8 @@ import { createMap, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
-import { SignInResponseDto } from '../auth/dtos/auth.response.dto';
-import { CreateUserRequestDto } from './dtos/create-user.request.dto';
-import { UpdateUserRequestDto } from './dtos/update-user.request.dto';
+import { SignInResponseDto } from '../auth/dtos/responses/auth.response.dto';
+import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos/requests';
 import { UserDto } from './dtos/user.dto';
 import { UserEntity } from './entities/user.entity';
 
@@ -16,10 +15,11 @@ export class UserProfile extends AutomapperProfile {
 
     override get profile(): MappingProfile {
         return (mapper) => {
-            createMap(mapper, CreateUserRequestDto, UserEntity);
             createMap(mapper, UserEntity, UserDto);
-            createMap(mapper, UpdateUserRequestDto, UserEntity);
             createMap(mapper, UserEntity, SignInResponseDto);
+
+            createMap(mapper, CreateUserRequestDto, UserEntity);
+            createMap(mapper, UpdateUserRequestDto, UserEntity);
         };
     }
 }

@@ -14,15 +14,15 @@ for (const envName of Object.keys(process.env)) {
 
 export const connectionSource = new DataSource({
     type: 'postgres',
+    // schema: 'public',
     host: process.env.DATABASE_HOST,
     port: +process.env.DATABASE_PORT,
+    database: process.env.DATABASE_NAME,
     username: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE_NAME,
     namingStrategy: new SnakeNamingStrategy(),
     entities: ['src/**/**/*.entity{.ts,.js}'],
     migrations: ['src/migrations/*{.ts,.js}'],
-
     extra:
         process.env.DATABASE_SSL == 'true'
             ? {

@@ -1,10 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-
-import { PaginationRequestDto } from '@/common/dto/pagination-request.dto';
-
-import { UserRole } from '../entities/user.entity';
+import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateUserRequestDto {
     @ApiProperty()
@@ -20,7 +16,7 @@ export class CreateUserRequestDto {
     lastName: string;
 
     @ApiProperty()
-    @IsString()
+    @IsEmail()
     @AutoMap()
     email: string;
 
@@ -35,12 +31,4 @@ export class CreateUserRequestDto {
     @IsString()
     @AutoMap()
     phoneNumber?: string;
-}
-
-export class UserQueryRequestDto extends PaginationRequestDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsEnum(UserRole)
-    @AutoMap()
-    role?: UserRole;
 }

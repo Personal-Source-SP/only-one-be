@@ -1,4 +1,3 @@
-import 'module-alias/register';
 import 'source-map-support/register';
 
 import { ValidationPipe, VersioningType } from '@nestjs/common';

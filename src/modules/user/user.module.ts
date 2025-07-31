@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { SharedModule } from '@/shared/shared.module';
-
 import { AppConfigService } from '../../shared/services/app-config.service';
 import { UserController } from './controllers/user.controller';
 import { UserEntity } from './entities/user.entity';
@@ -20,7 +18,6 @@ import { UserProfile } from './user.profile';
                 signOptions: { expiresIn: configService.jwtConfig.expire },
             }),
         }),
-        SharedModule,
     ],
     controllers: [UserController],
     providers: [UserService, UserProfile],

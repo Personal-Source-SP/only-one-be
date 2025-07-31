@@ -3,7 +3,34 @@ import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 
 import { ResponseDto } from '../common/dto/response.dto';
 
-export const BaseApiOkResponse = <DataDto extends Type<unknown>>(dataDto: DataDto) =>
+type DataDto = Type<unknown>;
+type BaseApiOkResponseOptions = {
+    isArray: boolean;
+};
+
+const getSchemaProperty = (dataDto: DataDto, options?: BaseApiOkResponseOptions) => {
+    if (options?.isArray) {
+        return {
+            type: 'array',
+            items: {
+                $ref: getSchemaPath(dataDto),
+            },
+        };
+    }
+
+    if (['string', 'boolean', 'number'].includes(dataDto.name.toLocaleLowerCase())) {
+        return {
+            type: dataDto.name.toLocaleLowerCase(),
+        };
+    }
+
+    return {
+        type: 'object',
+        $ref: getSchemaPath(dataDto),
+    };
+};
+
+export const BaseApiOkResponse = <DataDto extends Type<unknown>>(dataDto: DataDto, options?: BaseApiOkResponseOptions) =>
     applyDecorators(
         ApiExtraModels(ResponseDto, dataDto),
         ApiOkResponse({
@@ -12,21 +39,7 @@ export const BaseApiOkResponse = <DataDto extends Type<unknown>>(dataDto: DataDt
                     { $ref: getSchemaPath(ResponseDto) },
                     {
                         properties: {
-                            data: Array.isArray(dataDto)
-                                ? {
-                                      type: 'array',
-                                      items: {
-                                          $ref: getSchemaPath(dataDto[0]),
-                                      },
-                                  }
-                                : ['string', 'boolean', 'number'].includes(dataDto.name.toLocaleLowerCase())
-                                  ? {
-                                        type: dataDto.name.toLocaleLowerCase(),
-                                    }
-                                  : {
-                                        type: 'object',
-                                        $ref: getSchemaPath(dataDto),
-                                    },
+                            data: getSchemaProperty(dataDto, options),
                         },
                     },
                 ],
