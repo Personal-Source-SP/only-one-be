@@ -1,19 +1,10 @@
 # Only One Backend
 
-Backend API service for the Only One Competitor Price Monitoring System.
+This is the backend API for the Only One System. 
 
 ## Overview
 
-This project provides the backend infrastructure for monitoring competitor product prices. It manages product and data provider configurations, orchestrates data scraping tasks (manually triggered in the MVP), stores the collected pricing data, and exposes a RESTful API for the frontend dashboard and potentially other clients.
-
-## Core Features (MVP)
-
-*   **Product Management:** CRUD operations for monitored products.
-*   **Data Provider Management:** CRUD operations for competitor websites (Data Providers), including country, currency, and designated scraping service (`provider_service`).
-*   **Target Configuration:** Define specific product targets (`DataProviderProduct`) on each data provider, including necessary configuration (`target_config`) for scraping.
-*   **Manual Scraping Trigger:** API endpoint to initiate price scraping for selected targets on demand.
-*   **Price Data Storage:** Persists scraped price information, status, metadata, and raw HTML in a PostgreSQL database.
-*   **API for Frontend:** Exposes endpoints for the dashboard to display configurations and latest pricing data.
+This backend is an aggregation of various Google services. It integrates and manages functionalities such as authentication, data storage, and communication using Google APIs, providing a unified RESTful API for client applications.
 
 ## Technology Stack
 
@@ -67,10 +58,4 @@ yarn start:dev
 
 The application should now be running, typically on `http://localhost:3000` (or the port specified in your configuration).
 
-## API
 
-(TODO: Add link to API documentation or briefly list main endpoints)
-
-## Contributing
-
-(TODO: Add guidelines for contributing if applicable)
