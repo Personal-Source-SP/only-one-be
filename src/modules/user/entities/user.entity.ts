@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 
-@Entity({ name: 'users ', synchronize: true })
+@Entity({ name: 'users ', synchronize: false })
 @Unique(['email'])
 export class UserEntity extends AbstractEntity {
     @Column({ length: 100, nullable: true })

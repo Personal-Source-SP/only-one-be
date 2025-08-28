@@ -1,9 +1,8 @@
 import { classes } from '@automapper/classes';
 import { AutomapperModule } from '@automapper/nestjs';
 import { HttpModule } from '@nestjs/axios';
-import { forwardRef, Global, Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigService } from './services/app-config.service';
 import { BaseHttpService } from './services/base-http.service';
@@ -11,7 +10,6 @@ import { LoggerService } from './services/logger.service';
 import { UtilsService } from './services/utils.service';
 
 const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService];
-
 @Global()
 @Module({
     providers,
