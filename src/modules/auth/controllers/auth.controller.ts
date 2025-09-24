@@ -23,9 +23,9 @@ export class AuthController extends BaseController {
     @Version('1')
     @BaseApiOkResponse(UserDto)
     @Post('signup')
-    public async signUp(@Body() dto: CreateUserRequestDto): Promise<ResponseDto<UserDto>> {
+    public async signUp(@Body() dto: CreateUserRequestDto): Promise<UserDto> {
         const result = await this.authService.signUp(dto);
-        return this.getResponse(Boolean(result), result);
+        return result;
     }
 
     @ApiOperation({ summary: 'Sign in' })
@@ -33,9 +33,9 @@ export class AuthController extends BaseController {
     @Version('1')
     @BaseApiOkResponse(SignInResponseDto)
     @Post('login')
-    public async signIn(@Body() dto: SignInRequestDto): Promise<ResponseDto<SignInResponseDto>> {
+    public async signIn(@Body() dto: SignInRequestDto): Promise<SignInResponseDto> {
         const result = await this.authService.login(dto);
-        return this.getResponse(Boolean(result), result);
+        return result;
     }
 
     @ApiOperation({ summary: 'Refresh token' })
@@ -45,8 +45,8 @@ export class AuthController extends BaseController {
     @UseGuards(JwtAuthGuard)
     @BaseApiOkResponse(RefreshTokenResponseDto)
     @Post('refresh-token')
-    public async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<ResponseDto<RefreshTokenResponseDto>> {
+    public async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {
         const result = await this.authService.refreshToken(dto);
-        return this.getResponse(Boolean(result), result);
+        return result;
     }
 }

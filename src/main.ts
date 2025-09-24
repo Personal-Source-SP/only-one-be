@@ -9,9 +9,10 @@ import morgan from 'morgan'; // HTTP request logger
 import { DataSource } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import { AppModule } from './app.module';
 import { AppClusterService } from './app-cluster.service';
+import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exception.filter';
+import { TransformResponseInterceptor } from './interceptors/transform-response.interceptor';
 import { AppConfigService } from './shared/services/app-config.service';
 import { LoggerService } from './shared/services/logger.service';
 import { SharedModule } from './shared/shared.module';
@@ -33,6 +34,7 @@ async function bootstrap() {
         }),
     );
 
+    // Validation pipe
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
@@ -45,25 +47,29 @@ async function bootstrap() {
         }),
     );
 
-    app.enableVersioning({
-        type: VersioningType.URI,
-    });
-
-    app.use(json({ limit: '50mb' }));
-
     const configService = app.select(SharedModule).get(AppConfigService);
 
+    // Transform response interceptor
+    app.useGlobalInterceptors(new TransformResponseInterceptor());
+
+    // Versioning
+    app.enableVersioning({ type: VersioningType.URI });
+
+    // JSON limit
+    app.use(json({ limit: configService.get('JSON_LIMIT') || '50mb' }));
+
+    // All exceptions filter
     const httpAdapter = app.get(HttpAdapterHost);
     app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
 
     if (['development', 'staging'].includes(configService.nodeEnv)) {
         const document = setupSwagger(app, configService.swaggerConfig);
-        // fs.writeFileSync('./swagger.json', JSON.stringify(document));
-        app.use('/swagger.json', (req, res) => {
+        app.use('/swagger.json', (_, res) => {
             res.json(document);
         });
     }
 
+    // Cors
     const port = configService.getNumber('PORT') || 3000;
     const host = configService.get('HOST') || '0.0.0.0';
     const origin = configService.get('ORIGIN') || '*';
@@ -76,12 +82,14 @@ async function bootstrap() {
     };
     app.use(cors(corsOptions));
 
+    // Auto migration
     if (configService.autoMigration) {
         const dataSource = new DataSource(configService.typeOrmPostgreSqlConfig as PostgresConnectionOptions);
         const connection = await dataSource.initialize();
         await connection.runMigrations();
     }
 
+    // Listen
     await app.listen(port, host);
 
     console.log(`server running on port ${host}:${port}`);

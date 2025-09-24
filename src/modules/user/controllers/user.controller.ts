@@ -2,7 +2,6 @@ import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { ResponseDto } from '../../../common/dto/response.dto';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ChangePasswordRequestDto, UpdateUserRequestDto } from '../dtos/requests';
@@ -22,12 +21,9 @@ export class UserController extends BaseController {
     @HttpCode(HttpStatus.OK)
     @BaseApiOkResponse(Boolean)
     @Put(':id')
-    public async updateUser(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() updateDto: UpdateUserRequestDto,
-    ): Promise<ResponseDto<boolean>> {
+    public async updateUser(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateUserRequestDto): Promise<boolean> {
         const result = await this.userService.updateUser(id, updateDto);
-        return this.getResponse(true, result);
+        return result;
     }
 
     @ApiOperation({ summary: 'Change password' })
@@ -35,8 +31,8 @@ export class UserController extends BaseController {
     @HttpCode(HttpStatus.OK)
     @BaseApiOkResponse(Boolean)
     @Post('change-password')
-    public async changePassword(@Body() dto: ChangePasswordRequestDto): Promise<ResponseDto<boolean>> {
+    public async changePassword(@Body() dto: ChangePasswordRequestDto): Promise<boolean> {
         const result = await this.userService.changePassword(dto);
-        return this.getResponse(true, result);
+        return result;
     }
 }
