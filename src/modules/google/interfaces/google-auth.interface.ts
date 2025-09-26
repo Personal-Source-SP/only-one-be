@@ -5,3 +5,10 @@ export interface IGoogleAuthResponse {
     scope: string;
     token_type: string;
 }
+
+export interface IGoogleApiParams {
+    q?: string;
+    fields?: string;
+    pageSize?: string;
+    pageToken?: string;
+}

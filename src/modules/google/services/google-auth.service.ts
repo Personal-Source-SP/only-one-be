@@ -9,8 +9,8 @@ import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
-import { GoogleAuthParamsEnum } from '../enums';
-import { IGoogleAuthResponse } from '../interfaces';
+import { GoogleApiType, GoogleAuthParamsType } from '../enums';
+import { IGoogleApiParams, IGoogleAuthResponse } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
@@ -35,7 +35,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         const { tokenEndpoint } = this.googleConfig;
         const { userId, code, redirectUri } = request;
 
-        const payload = this.generateParams(GoogleAuthParamsEnum.AUTHORIZE, { code, redirectUri });
+        const payload = this.generateAuthParams(GoogleAuthParamsType.AUTHORIZE, { code, redirectUri });
         const response = await this.httpService.post<IGoogleAuthResponse>(tokenEndpoint, payload.toString(), {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
@@ -89,7 +89,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
             throw new NotFoundException('No refresh token found for user');
         }
 
-        const payload = this.generateParams(GoogleAuthParamsEnum.REFRESH, { refreshToken: googleAuth.googleRefreshToken });
+        const payload = this.generateAuthParams(GoogleAuthParamsType.REFRESH, { refreshToken: googleAuth.googleRefreshToken });
         const response = await this.httpClient.post(tokenEndpoint, payload.toString(), {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
@@ -130,7 +130,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         }
 
         const token = googleAuth.googleRefreshToken || googleAuth.googleAccessToken;
-        const params = this.generateParams(GoogleAuthParamsEnum.REVOKE, { refreshToken: token });
+        const params = this.generateAuthParams(GoogleAuthParamsType.REVOKE, { refreshToken: token });
 
         const authHeaders = await this.getAuthHeaders(userId);
         const response = await this.httpClient.post(revokeEndpoint, params.toString(), {
@@ -146,7 +146,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return updated;
     }
 
-    private async getAuthHeaders(userId: string): Promise<Record<string, string>> {
+    async getAuthHeaders(userId: string): Promise<Record<string, string>> {
         const googleAuth = await this.findOneByFilter({ userId });
 
         if (!googleAuth) {
@@ -169,6 +169,16 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return { Authorization: `Bearer ${token}` };
     }
 
+    async callGoogleApi(apiType: GoogleApiType, params?: IGoogleApiParams): Promise<any> {
+        const headers = await this.getAuthHeaders(userId);
+        const response = await this.httpClient.get(url, { headers, params });
+
+        switch (apiType) {
+            case GoogleApiType.GOOGLE_DRIVE:
+                return response.data;
+        }
+    }
+
     private generateExpiresAt(expiresIn: string): Date {
         const now = Date.now();
         return new Date(now + Math.max(0, (Number(expiresIn) || 0) - 60) * 1000);
@@ -179,8 +189,8 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return expiresAt.getTime() <= now + 30 * 1000;
     }
 
-    private generateParams(
-        type: GoogleAuthParamsEnum,
+    private generateAuthParams(
+        type: GoogleAuthParamsType,
         request: {
             code?: string;
             redirectUri?: string;
@@ -191,24 +201,24 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         const { clientId, clientSecret } = this.googleConfig;
 
         switch (type) {
-            case GoogleAuthParamsEnum.AUTHORIZE:
+            case GoogleAuthParamsType.AUTHORIZE:
                 return new URLSearchParams({
                     code,
                     client_id: clientId,
                     client_secret: clientSecret,
                     redirect_uri: redirectUri,
-                    grant_type: GoogleAuthParamsEnum.AUTHORIZE,
+                    grant_type: GoogleAuthParamsType.AUTHORIZE,
                 });
 
-            case GoogleAuthParamsEnum.REFRESH:
+            case GoogleAuthParamsType.REFRESH:
                 return new URLSearchParams({
                     client_id: clientId,
                     client_secret: clientSecret,
                     refresh_token: refreshToken,
-                    grant_type: GoogleAuthParamsEnum.REFRESH,
+                    grant_type: GoogleAuthParamsType.REFRESH,
                 });
 
-            case GoogleAuthParamsEnum.REVOKE:
+            case GoogleAuthParamsType.REVOKE:
                 return new URLSearchParams({
                     token: refreshToken,
                 });
