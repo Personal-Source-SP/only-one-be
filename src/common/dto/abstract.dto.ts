@@ -7,7 +7,7 @@ import { Exclude, Expose } from 'class-transformer';
 export class AbstractDto {
     @Expose()
     @AutoMap()
-    id?: number;
+    id?: string;
 
     @Expose()
     @AutoMap()

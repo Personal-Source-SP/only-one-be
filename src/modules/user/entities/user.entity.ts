@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
+import { GoogleAuthEntity } from '../../google/entities/google-auth.entity';
 
 @Entity({ name: 'users ', synchronize: false })
 @Unique(['email'])
@@ -28,4 +29,9 @@ export class UserEntity extends AbstractEntity {
     @Column({ nullable: true })
     @AutoMap()
     phoneNumber?: string;
+
+    @OneToOne(() => GoogleAuthEntity)
+    @JoinColumn({ name: 'user_id' })
+    @AutoMap(() => GoogleAuthEntity)
+    googleAuth: Relation<GoogleAuthEntity>;
 }

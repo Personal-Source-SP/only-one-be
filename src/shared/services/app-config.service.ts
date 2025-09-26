@@ -5,6 +5,7 @@ import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
+import { IGoogleConfig, IJwtConfig } from '../interfaces/app-config.interface';
 import { SnakeNamingStrategy } from '../typeorm/strategies/snake-naming.strategy';
 
 @Injectable()
@@ -17,20 +18,21 @@ export class AppConfigService {
         for (const envName of Object.keys(process.env)) {
             process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
         }
+
         if (this.nodeEnv === 'development') {
             console.info(process.env);
         }
     }
 
-    public get(key: string): string {
+    get(key: string): string {
         return process.env[key];
     }
 
-    public getNumber(key: string): number {
+    getNumber(key: string): number {
         return Number(this.get(key));
     }
 
-    public getBoolean(key: string): boolean {
+    getBoolean(key: string): boolean {
         return Boolean(this.get(key) == 'true');
     }
 
@@ -150,7 +152,7 @@ export class AppConfigService {
         };
     }
 
-    get jwtConfig() {
+    get jwtConfig(): IJwtConfig {
         return {
             appSecret: this.get('APP_SECRET'),
             expire: this.get('JWT_EXPIRE') || '24h',
@@ -158,91 +160,13 @@ export class AppConfigService {
         };
     }
 
-    get boxrec() {
+    get googleConfig(): IGoogleConfig {
         return {
-            username: this.get('BOXREC_USERNAME') || '',
-            password: this.get('BOXREC_PASSWORD') || '',
-            sampleData: this.get('BOXREC_SAMPLE_DATA') === 'true',
-            maxGlobalId: this.getNumber('BOXREC_MAX_GLOBAL_ID') || 0,
-        };
-    }
-
-    get proxyConfig() {
-        return {
-            scrapingbee: {
-                apiKey: this.get('PROXY_SCRAPINGBEE_API') || '',
-                maxConcurrencyConnection: this.getNumber('PROXY_SCRAPINGBEE_MAX_CONNECTION') || 5,
-                syncStatusInterval: this.getNumber('PROXY_SCRAPINGBEE_SYNC_STATUS_INTERVAL') || 30,
-                ownProxy: this.get('PROXY_SCRAPINGBEE_OWN_PROXY') || '',
-            },
-            maxConcurrencyConnection: this.getNumber('HTTP_PROXY_MAX_CONCURRENCY_CONNECTION') || 5,
-            httpProxyServiceUrl: this.get('HTTP_PROXY_SERVICE_URL') || '',
-            httpProxyUrlPool: this.get('HTTP_PROXY_URL_POOL') || '',
-        };
-    }
-
-    get captcahConfig() {
-        return {
-            secondCaptcha: {
-                apiKey: this.get('CAPTCHA_2CAPTCHA_API') || '',
-            },
-        };
-    }
-
-    get queueConfig() {
-        return {
-            prefix: this.get('QUEUE_PREFIX') || '',
-        };
-    }
-
-    get workerConfig() {
-        return {
-            maxErrorLimit: this.getNumber('WORKER_MAX_ERROR_LIMIT') || 10,
-        };
-    }
-
-    get clusterConfig() {
-        return {
-            enable: this.getBoolean('NODE_CLUSTER_ENABLE'),
-            numberOfProcess: this.getNumber('NODE_CLUSTER_PROCESS'),
-        };
-    }
-
-    get cronConfig() {
-        return {
-            cron: this.getNumber('CRON') || 0,
-        };
-    }
-
-    get awsConfig() {
-        return {
-            s3: {
-                bucket: this.get('AWS_S3_BUCKET'),
-                cacheBucket: this.get('AWS_S3_CACHE_BUCKET'),
-                accessKey: this.get('AWS_S3_ACCESS_KEY'),
-                keySecret: this.get('AWS_S3_KEY_SECRET'),
-                region: this.get('AWS_S3_REGION'),
-                serverUrl: this.get('AWS_S3_SERVER_URL'),
-            },
-        };
-    }
-
-    get enableSeed() {
-        return this.getBoolean('ENABLE_SEED');
-    }
-
-    get openaiConfig() {
-        return {
-            model: this.get('OPENAI_MODEL'),
-            apiKey: this.get('OPENAI_API_KEY'),
-            baseURL: this.get('OPENAI_BASE_URL'),
-        };
-    }
-
-    get scraperConfig() {
-        return {
-            url: this.get('SCRAPER_URL'),
-            secretKey: this.get('SCRAPER_SECRET_KEY'),
+            clientId: this.get('GOOGLE_CLIENT_ID'),
+            clientSecret: this.get('GOOGLE_CLIENT_SECRET'),
+            tokenEndpoint: this.get('GOOGLE_TOKEN_ENDPOINT'),
+            revokeEndpoint: this.get('GOOGLE_REVOKE_ENDPOINT'),
+            googleDriveApiUrl: this.get('GOOGLE_DRIVE_API_URL'),
         };
     }
 }
