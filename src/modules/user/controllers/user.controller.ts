@@ -16,16 +16,6 @@ export class UserController extends BaseController {
         super();
     }
 
-    @ApiOperation({ summary: 'Update user' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @BaseApiOkResponse(Boolean)
-    @Put(':id')
-    public async updateUser(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateUserRequestDto): Promise<boolean> {
-        const result = await this.userService.updateUser(id, updateDto);
-        return result;
-    }
-
     @ApiOperation({ summary: 'Change password' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
@@ -33,6 +23,16 @@ export class UserController extends BaseController {
     @Post('change-password')
     public async changePassword(@Body() dto: ChangePasswordRequestDto): Promise<boolean> {
         const result = await this.userService.changePassword(dto);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Update user' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @BaseApiOkResponse(Boolean)
+    @Put(':id')
+    public async updateUser(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateUserRequestDto): Promise<boolean> {
+        const result = await this.userService.updateUser(id, updateDto);
         return result;
     }
 }

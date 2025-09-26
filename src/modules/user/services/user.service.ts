@@ -23,7 +23,7 @@ export class UserService extends BaseService<UserEntity> {
     }
 
     async createUser(user: CreateUserRequestDto): Promise<UserDto> {
-        const existingUser = await this.findOneByFilter({ email: user.email });
+        const existingUser = await this.exists({ email: user.email });
         if (existingUser) throw new ConflictException('Email already exists');
 
         const userEntity = this.mapper.map(user, CreateUserRequestDto, UserEntity);
@@ -43,7 +43,7 @@ export class UserService extends BaseService<UserEntity> {
         if (!existingUser) throw new NotFoundException('User not found');
 
         if (user.email && user.email !== existingUser.email) {
-            const emailExists = await this.findOneByFilter({ email: user.email, id: Not(id) });
+            const emailExists = await this.exists({ email: user.email, id: Not(id) });
             if (emailExists) throw new ConflictException('Email already in use');
         }
 
