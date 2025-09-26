@@ -1,7 +1,8 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, OneToOne, Relation, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { UserEntity } from '../../user/entities/user.entity';
+import { GoogleDriveFileEntity } from './google-drive-file.entity';
 
 @Entity({ name: 'google_auths', synchronize: false })
 @Unique(['userId'])
@@ -38,4 +39,9 @@ export class GoogleAuthEntity extends AbstractEntity {
     @JoinColumn({ name: 'user_id' })
     @AutoMap(() => UserEntity)
     user: Relation<UserEntity>;
+
+    @OneToMany(() => GoogleDriveFileEntity, (googleDriveFile) => googleDriveFile.googleAuth)
+    @JoinColumn({ name: 'google_auth_id' })
+    @AutoMap(() => [GoogleDriveFileEntity])
+    googleDriveFiles?: Relation<GoogleDriveFileEntity[]>;
 }

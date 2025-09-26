@@ -1,13 +1,15 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
-import { UserEntity } from '../../user/entities/user.entity';
+import { GoogleAuthEntity } from './google-auth.entity';
 
 @Entity({ name: 'google_drive_files', synchronize: false })
-@Index(['googleDriveId'], { unique: true })
-@Index(['userId'])
 export class GoogleDriveFileEntity extends AbstractEntity {
-    @Column({ name: 'google_drive_id', length: 100 })
+    @Column({ type: 'uuid' })
+    @AutoMap()
+    googleAuthId: string;
+
+    @Column()
     @AutoMap()
     googleDriveId: string;
 
@@ -17,54 +19,46 @@ export class GoogleDriveFileEntity extends AbstractEntity {
 
     @Column({ length: 100, nullable: true })
     @AutoMap()
-    mimeType: string;
+    mimeType?: string;
 
     @Column({ type: 'bigint', nullable: true })
     @AutoMap()
-    size: number;
+    size?: number;
 
     @Column({ length: 1000, nullable: true })
     @AutoMap()
-    webViewLink: string;
+    webViewLink?: string;
 
     @Column({ length: 1000, nullable: true })
     @AutoMap()
-    webContentLink: string;
+    webContentLink?: string;
 
     @Column({ length: 1000, nullable: true })
     @AutoMap()
-    thumbnailLink: string;
+    thumbnailLink?: string;
 
     @Column({ length: 100, nullable: true })
     @AutoMap()
-    parentFolderId: string;
+    parentFolderId?: string;
 
     @Column({ type: 'timestamp', nullable: true })
     @AutoMap()
-    lastModified: Date;
+    lastModified?: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ nullable: true })
     @AutoMap()
-    lastViewedByMe: Date;
+    isTrashed?: boolean;
 
-    @Column({ default: false })
+    @Column({ nullable: true })
     @AutoMap()
-    isTrashed: boolean;
-
-    @Column({ default: false })
-    @AutoMap()
-    isStarred: boolean;
-
-    @Column({ length: 36 })
-    @AutoMap()
-    userId: string;
-
-    @ManyToOne(() => UserEntity, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    @AutoMap()
-    user: UserEntity;
+    isStarred?: boolean;
 
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
-    metadata: Record<string, any>;
+    metadata?: Record<string, any>;
+
+    @ManyToOne(() => GoogleAuthEntity, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'google_auth_id' })
+    @AutoMap(() => GoogleAuthEntity)
+    googleAuth: GoogleAuthEntity;
 }

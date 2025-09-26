@@ -1,106 +1,49 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
-import { GoogleDriveFileResponseDto } from '../dtos/responses/google-drive-file.response.dto';
-import { PaginatedFilesResponseDto } from '../dtos/responses/paginated-files.response.dto';
+import { BaseService } from '../../../common/base.service';
+import { LoggerService } from '../../../shared/services/logger.service';
+import { GoogleDriveFileDto } from '../dtos/google-drive-file.dto';
+import { GoogleDriveFilePaginationRequestDto } from '../dtos/requests';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 
 @Injectable()
-export class GoogleDriveService {
+export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     constructor(
+        private readonly loggerService: LoggerService,
+
+        @InjectMapper() private readonly mapper: Mapper,
+
         @InjectRepository(GoogleDriveFileEntity)
         private readonly googleDriveFileRepository: Repository<GoogleDriveFileEntity>,
-    ) {}
-
-    async getUserFiles(
-        userId: string,
-        page: number = 1,
-        limit: number = 20,
-        filters?: {
-            mimeType?: string;
-            starredOnly?: boolean;
-            trashedOnly?: boolean;
-        },
-    ): Promise<PaginatedFilesResponseDto> {
-        const whereConditions: any = { userId };
-
-        if (filters?.mimeType) {
-            whereConditions.mimeType = filters.mimeType;
-        }
-
-        if (filters?.starredOnly) {
-            whereConditions.isStarred = true;
-        }
-
-        if (filters?.trashedOnly) {
-            whereConditions.isTrashed = true;
-        }
-
-        const [files, total] = await this.googleDriveFileRepository.findAndCount({
-            where: whereConditions,
-            skip: (page - 1) * limit,
-            take: limit,
-            order: { lastModified: 'DESC' },
-        });
-
-        const responseFiles = files.map((file) => ({
-            id: file.id,
-            googleDriveId: file.googleDriveId,
-            name: file.name,
-            mimeType: file.mimeType,
-            size: file.size,
-            webViewLink: file.webViewLink,
-            webContentLink: file.webContentLink,
-            thumbnailLink: file.thumbnailLink,
-            parentFolderId: file.parentFolderId,
-            lastModified: file.lastModified,
-            lastViewedByMe: file.lastViewedByMe,
-            isTrashed: file.isTrashed,
-            isStarred: file.isStarred,
-            createdAt: file.createdAt,
-            updatedAt: file.updatedAt,
-        }));
-
-        const totalPages = Math.ceil(total / limit);
-        const hasNext = page < totalPages;
-        const hasPrev = page > 1;
-
-        return {
-            files: responseFiles,
-            total,
-            page,
-            limit,
-            totalPages,
-            hasNext,
-            hasPrev,
-        };
+    ) {
+        super(googleDriveFileRepository);
     }
 
-    async getFileById(userId: string, fileId: string): Promise<GoogleDriveFileResponseDto> {
-        const file = await this.googleDriveFileRepository.findOne({
-            where: { id: fileId, userId },
-        });
+    async getUserFilesPagination(
+        query: GoogleDriveFilePaginationRequestDto,
+        globalConfig: PaginateConfig<GoogleDriveFileEntity>,
+    ): Promise<Paginated<GoogleDriveFileDto>> {
+        try {
+            const baseRelations = Array.isArray(globalConfig.relations) ? (globalConfig.relations as string[]) : [];
+            const paginatedResult: Paginated<GoogleDriveFileEntity> = await this.getPaginationWithCustomQuery(
+                query as unknown as PaginateQuery,
+                this.googleDriveFileRepository,
+                {
+                    ...globalConfig,
+                    relations: baseRelations,
+                },
+            );
 
-        if (!file) {
-            throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+            const data = this.mapper.mapArray(paginatedResult.data, GoogleDriveFileEntity, GoogleDriveFileDto);
+
+            return { ...paginatedResult, data } as Paginated<GoogleDriveFileDto>;
+        } catch (error) {
+            this.loggerService.error(`Error in getUserFiles: ${error}`);
+            throw error;
         }
-
-        return {
-            id: file.id,
-            googleDriveId: file.googleDriveId,
-            name: file.name,
-            mimeType: file.mimeType,
-            size: file.size,
-            webViewLink: file.webViewLink,
-            webContentLink: file.webContentLink,
-            thumbnailLink: file.thumbnailLink,
-            parentFolderId: file.parentFolderId,
-            lastModified: file.lastModified,
-            lastViewedByMe: file.lastViewedByMe,
-            isTrashed: file.isTrashed,
-            isStarred: file.isStarred,
-            createdAt: file.createdAt,
-            updatedAt: file.updatedAt,
-        };
     }
 }
