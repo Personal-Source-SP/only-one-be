@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { GoogleAuthEntity } from './google-auth.entity';
+import { GoogleDriveFolderEntity } from './google-drive-folder.entity';
 
 @Entity({ name: 'google_drive_files', synchronize: false })
 export class GoogleDriveFileEntity extends AbstractEntity {
@@ -41,6 +42,10 @@ export class GoogleDriveFileEntity extends AbstractEntity {
     @AutoMap()
     parentFolderId?: string;
 
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    googleDriveFolderId?: string;
+
     @Column({ type: 'timestamp', nullable: true })
     @AutoMap()
     lastModified?: Date;
@@ -61,4 +66,9 @@ export class GoogleDriveFileEntity extends AbstractEntity {
     @JoinColumn({ name: 'google_auth_id' })
     @AutoMap(() => GoogleAuthEntity)
     googleAuth: GoogleAuthEntity;
+
+    @ManyToOne(() => GoogleDriveFolderEntity, { onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'google_drive_folder_id' })
+    @AutoMap(() => GoogleDriveFolderEntity)
+    googleDriveFolder?: GoogleDriveFolderEntity;
 }

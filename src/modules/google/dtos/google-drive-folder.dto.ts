@@ -2,9 +2,8 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { GoogleAuthDto } from './google-auth.dto';
-import { GoogleDriveFolderDto } from './google-drive-folder.dto';
 
-export class GoogleDriveFileDto extends AbstractDto {
+export class GoogleDriveFolderDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     googleAuthId: string;
@@ -19,31 +18,7 @@ export class GoogleDriveFileDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    mimeType?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    size?: number;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    webViewLink?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    webContentLink?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    thumbnailLink?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
     parentFolderId?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    googleDriveFolderId?: string;
 
     @ApiResponseProperty()
     @AutoMap()
@@ -58,14 +33,6 @@ export class GoogleDriveFileDto extends AbstractDto {
     isStarred?: boolean;
 
     @ApiResponseProperty()
-    @AutoMap()
-    metadata?: Record<string, any>;
-
-    @ApiResponseProperty()
     @AutoMap(() => GoogleAuthDto)
     googleAuth: GoogleAuthDto;
-
-    @ApiResponseProperty()
-    @AutoMap(() => GoogleDriveFolderDto)
-    googleDriveFolder: GoogleDriveFolderDto;
 }

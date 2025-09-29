@@ -27,3 +27,18 @@ export class GoogleDriveFilePaginationRequestDto extends BasePaginationRequestDt
     @Type(() => FilterGoogleDriveFilePaginationDto)
     filter?: FilterGoogleDriveFilePaginationDto;
 }
+
+export class FilterGoogleDriveFolderPaginationDto {
+    @ApiPropertyOptional({ description: 'Filter by name' })
+    @IsOptional()
+    @IsString()
+    name?: string;
+}
+
+export class GoogleDriveFolderPaginationRequestDto extends BasePaginationRequestDto<FilterGoogleDriveFolderPaginationDto> {
+    @ApiPropertyOptional()
+    @IsOptional()
+    @ValidateNested({ always: true })
+    @Type(() => FilterGoogleDriveFolderPaginationDto)
+    filter?: FilterGoogleDriveFolderPaginationDto;
+}

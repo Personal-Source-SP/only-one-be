@@ -21,7 +21,7 @@ export class SettingController extends BaseController {
     @Version('1')
     @Get()
     @ApiOkResponse({ type: [SettingDto] })
-    public async list(): Promise<SettingDto[]> {
+    public async findAllSettings(): Promise<SettingDto[]> {
         const result = await this.settingService.findAllSettings();
         return result;
     }
