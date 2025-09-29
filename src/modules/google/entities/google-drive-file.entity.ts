@@ -1,7 +1,8 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { GoogleAuthEntity } from './google-auth.entity';
+import { GoogleDriveFileTagEntity } from './google-drive-file-tag.entity';
 import { GoogleDriveFolderEntity } from './google-drive-folder.entity';
 
 @Entity({ name: 'google_drive_files', synchronize: false })
@@ -71,4 +72,8 @@ export class GoogleDriveFileEntity extends AbstractEntity {
     @JoinColumn({ name: 'google_drive_folder_id' })
     @AutoMap(() => GoogleDriveFolderEntity)
     googleDriveFolder?: GoogleDriveFolderEntity;
+
+    @OneToMany(() => GoogleDriveFileTagEntity, (fileTag) => fileTag.googleDriveFile)
+    @AutoMap(() => [GoogleDriveFileTagEntity])
+    fileTags?: GoogleDriveFileTagEntity[];
 }

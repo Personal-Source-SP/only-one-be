@@ -194,7 +194,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
             const files = data?.files;
             if (files?.length) {
-                for (const f of files) {
+                const entities = files.map((f) => {
                     const folderEntity = this.googleDriveFolderRepository.create({
                         name: f.name,
                         googleDriveId: f.id,
@@ -204,8 +204,10 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                         isStarred: Boolean(f.starred),
                         googleAuthId: googleAuth.id,
                     });
-                    savedFolderEntities.push(folderEntity);
-                }
+                    return folderEntity;
+                });
+
+                savedFolderEntities.push(...entities);
             }
 
             nextPageToken = data?.nextPageToken;

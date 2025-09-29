@@ -8,6 +8,10 @@ import { GoogleAuthEntity } from './entities/google-auth.entity';
 import { GoogleDriveFolderEntity } from './entities/google-drive-folder.entity';
 import { GoogleDriveFileDto } from './dtos/google-drive-file.dto';
 import { GoogleDriveFileEntity } from './entities/google-drive-file.entity';
+import { GoogleDriveFileTagEntity } from './entities/google-drive-file-tag.entity';
+import { GoogleDriveFileTagDto } from './dtos/google-drive-file-tag.dto';
+import { FileTagEntity } from './entities/file-tag.entity';
+import { FileTagDto } from './dtos/file-tag.dto';
 
 @Injectable()
 export class GoogleProfile extends AutomapperProfile {
@@ -20,6 +24,8 @@ export class GoogleProfile extends AutomapperProfile {
             this.registerGoogleAuthMappings(mapper);
             this.registerGoogleFolderMappings(mapper);
             this.registerGoogleFileMappings(mapper);
+            this.registerGoogleFileTagMappings(mapper);
+            this.registerFileTagMappings(mapper);
         };
     }
 
@@ -33,5 +39,13 @@ export class GoogleProfile extends AutomapperProfile {
 
     private registerGoogleFileMappings(mapper: Mapper): void {
         createMap(mapper, GoogleDriveFileEntity, GoogleDriveFileDto);
+    }
+
+    private registerGoogleFileTagMappings(mapper: Mapper): void {
+        createMap(mapper, GoogleDriveFileTagEntity, GoogleDriveFileTagDto);
+    }
+
+    private registerFileTagMappings(mapper: Mapper): void {
+        createMap(mapper, FileTagEntity, FileTagDto);
     }
 }
