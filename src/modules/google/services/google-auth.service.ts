@@ -11,7 +11,7 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
 import { GoogleApiType, GoogleApiUrl, GoogleAuthParamsType } from '../enums';
-import { IGoogleApiParams, IGoogleApiResponse, IGoogleAuthResponse, IGoogleDriveFile } from '../interfaces';
+import { IGoogleApiParams, IGoogleApiResponse, IGoogleAuthResponse } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
@@ -32,9 +32,9 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         this.googleConfig = this.appConfigService.googleConfig;
     }
 
-    async authorizeUser(request: GoogleAuthRequestDto): Promise<string> {
+    async authorizeUser(request: GoogleAuthRequestDto, userId: string): Promise<string> {
+        const { code, redirectUri } = request;
         const { tokenEndpoint } = this.googleConfig;
-        const { userId, code, redirectUri } = request;
 
         const payload = this.generateAuthParams(GoogleAuthParamsType.AUTHORIZE, { code, redirectUri });
         const response = await this.httpService.post<IGoogleAuthResponse>(tokenEndpoint, payload.toString(), {
@@ -54,7 +54,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         const googleExpiresAt = this.generateExpiresAt(expires_in);
 
         if (existingGoogleAuth) {
-            const updated = await this.update(existingGoogleAuth.id, {
+            await this.update(existingGoogleAuth.id, {
                 isActive: true,
                 googleExpiresAt,
                 googleScope: scope,
@@ -104,7 +104,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
 
         const googleExpiresAt = this.generateExpiresAt(expires_in);
 
-        const updated = await this.update(googleAuth.id, {
+        await this.update(googleAuth.id, {
             googleExpiresAt,
             googleScope: scope,
             googleTokenType: token_type,

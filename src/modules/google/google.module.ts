@@ -6,10 +6,11 @@ import { GoogleDriveFileEntity } from './entities/google-drive-file.entity';
 import { GoogleProfile } from './google.profile';
 import { GoogleAuthService } from './services/google-auth.service';
 import { GoogleDriveService } from './services/google-drive.service';
+import { GoogleAuthController } from './controllers/google-auth.controller';
 
-const controllers = [GoogleDriveController];
 const services = [GoogleDriveService, GoogleAuthService];
 const entities = [GoogleDriveFileEntity, GoogleAuthEntity];
+const controllers = [GoogleDriveController, GoogleAuthController];
 
 @Module({
     imports: [TypeOrmModule.forFeature(entities)],

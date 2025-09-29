@@ -9,5 +9,4 @@ export interface IGoogleConfig {
     clientSecret: string;
     tokenEndpoint: string;
     revokeEndpoint: string;
-    googleDriveApiUrl: string;
 }

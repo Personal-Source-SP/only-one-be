@@ -166,7 +166,6 @@ export class AppConfigService {
             clientSecret: this.get('GOOGLE_CLIENT_SECRET'),
             tokenEndpoint: this.get('GOOGLE_TOKEN_ENDPOINT'),
             revokeEndpoint: this.get('GOOGLE_REVOKE_ENDPOINT'),
-            googleDriveApiUrl: this.get('GOOGLE_DRIVE_API_URL'),
         };
     }
 }
