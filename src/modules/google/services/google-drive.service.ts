@@ -52,7 +52,12 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         }
     }
 
-    async syncUserFiles(userId: string): Promise<boolean> {
+    async syncFilesFromGoogleDrive(userId: string): Promise<boolean> {
+        if (!userId) {
+            this.loggerService.error(`User ID is required`);
+            throw new BadRequestException('User ID is required');
+        }
+
         const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
 
         if (!googleAuth) {
@@ -68,8 +73,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         const savedEntities: GoogleDriveFileEntity[] = [];
 
         const params: IGoogleApiParams = {
-            pageSize: '1000',
             q: 'trashed = false',
+            pageSize: MAX_RECORD_SAVE.toString(),
             fields: 'nextPageToken, files(id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,parents,modifiedTime,viewedByMeTime,trashed,starred)',
         };
 
