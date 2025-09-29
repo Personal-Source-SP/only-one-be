@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AxiosInstance } from 'axios';
+import { isEmpty } from 'lodash';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { IGoogleConfig } from '../../../shared/interfaces/app-config.interface';
@@ -9,8 +10,8 @@ import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
-import { GoogleApiType, GoogleAuthParamsType } from '../enums';
-import { IGoogleApiParams, IGoogleAuthResponse } from '../interfaces';
+import { GoogleApiType, GoogleApiUrl, GoogleAuthParamsType } from '../enums';
+import { IGoogleApiParams, IGoogleApiResponse, IGoogleAuthResponse, IGoogleDriveFile } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
@@ -169,13 +170,43 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return { Authorization: `Bearer ${token}` };
     }
 
-    async callGoogleApi(apiType: GoogleApiType, params?: IGoogleApiParams): Promise<any> {
+    async callGoogleApi<T>(apiType: GoogleApiType, userId: string, params?: IGoogleApiParams): Promise<IGoogleApiResponse<T>> {
         const headers = await this.getAuthHeaders(userId);
-        const response = await this.httpClient.get(url, { headers, params });
+
+        let url = '';
 
         switch (apiType) {
-            case GoogleApiType.GOOGLE_DRIVE:
-                return response.data;
+            case GoogleApiType.GOOGLE_DRIVE: {
+                url = GoogleApiUrl.GOOGLE_DRIVE;
+                break;
+            }
+
+            default: {
+                this.loggerService.error(`Invalid API type: ${apiType}`);
+                throw new BadRequestException('Invalid API type');
+            }
+        }
+
+        const response = await this.httpClient.get(url, { headers, params });
+
+        if (response.status !== 200 || isEmpty(response?.data)) {
+            this.loggerService.error(`Google API call failed for user ${userId}: ${response?.data}`);
+            throw new BadRequestException('Google API call failed');
+        }
+
+        switch (apiType) {
+            case GoogleApiType.GOOGLE_DRIVE: {
+                const data = Array.isArray(response?.data?.files) ? response?.data?.files : [];
+
+                return {
+                    files: data as unknown as T[],
+                    nextPageToken: response?.data?.nextPageToken,
+                };
+            }
+
+            default: {
+                return null;
+            }
         }
     }
 

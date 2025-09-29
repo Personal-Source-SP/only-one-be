@@ -1,23 +1,23 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
-import { AppConfigService } from '../../../shared/services/app-config.service';
 import { LoggerService } from '../../../shared/services/logger.service';
+import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
 import { GoogleDriveFileDto } from '../dtos/google-drive-file.dto';
 import { GoogleDriveFilePaginationRequestDto } from '../dtos/requests';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
+import { GoogleApiType } from '../enums';
+import { IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
 import { GoogleAuthService } from './google-auth.service';
 
 @Injectable()
 export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     constructor(
         private readonly loggerService: LoggerService,
-        private readonly appConfigService: AppConfigService,
         private readonly googleAuthService: GoogleAuthService,
 
         @InjectMapper() private readonly mapper: Mapper,
@@ -52,64 +52,86 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         }
     }
 
-    public syncUserFiles = async (userId: string): Promise<{ created: number; updated: number; total: number }> => {
-        const http: AxiosInstance = axios.create({ timeout: 20000 });
-        const headers = await this.googleAuthService.getAuthHeaders(userId);
-        const driveApiUrl = this.appConfigService.googleConfig.googleDriveApiUrl || 'https://www.googleapis.com/drive/v3/files';
+    async syncUserFiles(userId: string): Promise<boolean> {
+        const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
+
+        if (!googleAuth) {
+            this.loggerService.error(`No Google auth found for user ${userId}`);
+            throw new NotFoundException('No Google auth found for user');
+        }
+
+        if (!googleAuth.isActive) {
+            this.loggerService.error(`Google auth is not active for user ${userId}`);
+            throw new BadRequestException('Google auth is not active for user');
+        }
+
+        const savedEntities: GoogleDriveFileEntity[] = [];
+
+        const params: IGoogleApiParams = {
+            pageSize: '1000',
+            q: 'trashed = false',
+            fields: 'nextPageToken, files(id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,parents,modifiedTime,viewedByMeTime,trashed,starred)',
+        };
 
         let nextPageToken: string | undefined;
-        let created = 0;
-        let updated = 0;
 
         do {
-            const params: Record<string, string> = {
-                q: 'trashed = false',
-                pageSize: '1000',
-                fields: 'nextPageToken, files(id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,parents,modifiedTime,viewedByMeTime,trashed,starred)',
-            };
-            if (nextPageToken) params.pageToken = nextPageToken;
+            if (nextPageToken) {
+                params.pageToken = nextPageToken;
+            }
 
-            const { data } = await http.get(driveApiUrl, { headers, params }).catch((err) => {
-                this.loggerService.error(`Google Drive list files error: ${err?.response?.data ?? err?.message}`);
-                throw err;
-            });
+            const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
 
-            const files: any[] = Array.isArray(data?.files) ? data.files : [];
+            const files = data?.files;
+            if (files?.length) {
+                const entities: GoogleDriveFileEntity[] = files.map((f) =>
+                    this.googleDriveFileRepository.create({
+                        name: f.name,
+                        googleDriveId: f.id,
+                        mimeType: f.mimeType,
+                        webViewLink: f.webViewLink,
+                        thumbnailLink: f.thumbnailLink,
+                        webContentLink: f.webContentLink,
+                        size: f.size ? Number(f.size) : null,
+                        parentFolderId: f.parents?.[0] || null,
+                        lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
+                        isTrashed: Boolean(f.trashed),
+                        isStarred: Boolean(f.starred),
+                        googleAuthId: googleAuth.id,
+                    }),
+                );
 
-            if (files.length > 0) {
-                const upsertPayload: Partial<GoogleDriveFileEntity>[] = files.map((f) => ({
-                    googleDriveId: f.id,
-                    name: f.name,
-                    mimeType: f.mimeType,
-                    size: f.size ? Number(f.size) : null,
-                    webViewLink: f.webViewLink,
-                    webContentLink: f.webContentLink,
-                    thumbnailLink: f.thumbnailLink,
-                    parentFolderId: Array.isArray(f.parents) && f.parents.length > 0 ? f.parents[0] : null,
-                    lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
-                    lastViewedByMe: f.viewedByMeTime ? new Date(f.viewedByMeTime) : null,
-                    isTrashed: Boolean(f.trashed),
-                    isStarred: Boolean(f.starred),
-                    userId,
-                    metadata: f,
-                }));
-
-                const result = await this.googleDriveFileRepository.upsert(upsertPayload, {
-                    conflictPaths: ['googleDriveId'],
-                    skipUpdateIfNoValuesChanged: true,
-                });
-
-                // TypeORM returns identifiers for inserts and number of affected rows may include updates
-                // We estimate updates as affected - inserts when possible
-                const affected = Array.isArray((result as any).identifiers) ? (result as any).identifiers.length : upsertPayload.length;
-                // Not exact split; treat all as updated if already existed
-                updated += affected; // conservative count
+                savedEntities.push(...entities);
             }
 
             nextPageToken = data?.nextPageToken;
         } while (nextPageToken);
 
-        const total = await this.googleDriveFileRepository.count({ where: { userId } as any });
-        return { created, updated, total };
-    };
+        if (!savedEntities?.length) {
+            this.loggerService.error(`No files found for user ${userId}`);
+            return false;
+        }
+
+        const saved = await this.saveManyRecords(this.googleDriveFileRepository, savedEntities);
+        return saved;
+    }
+
+    private async saveManyRecords<T>(repository: Repository<T>, data: T[]): Promise<boolean> {
+        if (data?.length > MAX_RECORD_SAVE) {
+            let index = 0;
+
+            while (index < data.length) {
+                const stockReportEntities = data.slice(index, index + (NUMBER_RECORD_SAVE - 1));
+
+                await repository.save(stockReportEntities);
+
+                index += NUMBER_RECORD_SAVE;
+            }
+        } else {
+            const result = await repository.save(data);
+            return !!result;
+        }
+
+        return true;
+    }
 }
