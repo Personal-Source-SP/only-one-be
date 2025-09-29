@@ -12,6 +12,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { GoogleModule } from './modules/google/google.module';
+import { SettingModule } from './modules/setting/setting.module';
 import { UserModule } from './modules/user/user.module';
 import { AppLoggerMiddleware } from './shared/middleware/app.logger.middleware';
 import { AppConfigService } from './shared/services/app-config.service';
@@ -33,6 +34,7 @@ import { SharedModule } from './shared/shared.module';
         UserModule,
         AuthModule,
         GoogleModule,
+        SettingModule,
     ],
     controllers: [AppController],
     providers: [AppService, JwtService],
