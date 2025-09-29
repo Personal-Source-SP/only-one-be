@@ -30,8 +30,7 @@ export class UserEntity extends AbstractEntity {
     @AutoMap()
     phoneNumber?: string;
 
-    @OneToOne(() => GoogleAuthEntity)
-    @JoinColumn({ name: 'user_id' })
+    @OneToOne(() => GoogleAuthEntity, (googleAuth) => googleAuth.user)
     @AutoMap(() => GoogleAuthEntity)
     googleAuth: Relation<GoogleAuthEntity>;
 }
