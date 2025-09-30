@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
+import { GoogleDriveFolderDto } from 'src/modules/google/dtos/google-drive-folder.dto';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { UserDto } from '../../user/dtos/user.dto';
 import { GoogleDriveFileDto } from './google-drive-file.dto';
@@ -40,4 +41,8 @@ export class GoogleAuthDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap(() => [GoogleDriveFileDto])
     googleDriveFiles?: GoogleDriveFileDto[];
+
+    @ApiResponseProperty()
+    @AutoMap(() => [GoogleDriveFolderDto])
+    googleDriveFolders?: GoogleDriveFolderDto[];
 }

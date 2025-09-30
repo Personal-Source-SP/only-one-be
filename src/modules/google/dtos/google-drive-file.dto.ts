@@ -62,10 +62,6 @@ export class GoogleDriveFileDto extends AbstractDto {
     metadata?: Record<string, any>;
 
     @ApiResponseProperty()
-    @AutoMap(() => GoogleAuthDto)
-    googleAuth: GoogleAuthDto;
-
-    @ApiResponseProperty()
     @AutoMap(() => GoogleDriveFolderDto)
     googleDriveFolder: GoogleDriveFolderDto;
 }

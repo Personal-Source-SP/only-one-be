@@ -6,8 +6,6 @@ import { GoogleDriveFileTagEntity } from '../entities/google-drive-file-tag.enti
 export class FileTagDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
-    @ApiResponseProperty()
-    @AutoMap()
     name: string;
 
     @ApiResponseProperty()
