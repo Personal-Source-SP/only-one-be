@@ -7,9 +7,11 @@ import { PassportModule } from '@nestjs/passport';
 import { AppConfigService } from './services/app-config.service';
 import { BaseHttpService } from './services/base-http.service';
 import { LoggerService } from './services/logger.service';
+import { PuppeteerService } from './services/puppeteer.service';
 import { UtilsService } from './services/utils.service';
 
-const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService];
+const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService];
+
 @Global()
 @Module({
     providers,
