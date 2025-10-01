@@ -5,10 +5,15 @@ import { GoogleAuthEntity } from '../../google/entities/google-auth.entity';
 
 @Entity({ name: 'users ', synchronize: false })
 @Unique(['email'])
+@Unique(['userName'])
 export class UserEntity extends AbstractEntity {
     @Column({ length: 200 })
     @AutoMap()
     email: string;
+
+    @Column({ length: 200 })
+    @AutoMap()
+    userName: string;
 
     @Column({ length: 200 })
     @AutoMap()

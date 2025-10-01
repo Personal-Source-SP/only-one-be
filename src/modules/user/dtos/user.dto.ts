@@ -6,15 +6,19 @@ import { GoogleAuthDto } from '../../google/dtos/google-auth.dto';
 export class UserDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
+    email: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    isActive: boolean;
+
+    @ApiResponseProperty()
+    @AutoMap()
     firstName?: string;
 
     @ApiResponseProperty()
     @AutoMap()
     lastName?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    email: string;
 
     @ApiResponseProperty()
     @AutoMap()

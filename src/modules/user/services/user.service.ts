@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Not, Repository } from 'typeorm';
+import { Brackets, Not, Repository } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '../../../common/base.service';
@@ -20,6 +20,17 @@ export class UserService extends BaseService<UserEntity> {
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     ) {
         super(userRepository);
+    }
+
+    async getUserLogin(email: string): Promise<UserEntity> {
+        const user = await this.userRepository
+            .createQueryBuilder('user')
+            .where(new Brackets((qb) => qb.where('user.email = :email', { email }).orWhere('user.userName = :userName', { email })))
+            .getOne();
+
+        if (!user) throw new NotFoundException('User not found');
+
+        return user;
     }
 
     async createUser(user: CreateUserRequestDto): Promise<UserDto> {

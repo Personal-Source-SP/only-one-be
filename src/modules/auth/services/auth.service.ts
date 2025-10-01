@@ -29,7 +29,7 @@ export class AuthService {
     }
 
     async login(dto: SignInRequestDto): Promise<SignInResponseDto> {
-        const user = await this.userService.findOneByFilter({ email: dto.email });
+        const user = await this.userService.getUserLogin(dto.email);
         if (!user) throw new UnauthorizedException('Invalid email or password');
 
         if (!user.isActive) throw new UnauthorizedException('User is not active');
