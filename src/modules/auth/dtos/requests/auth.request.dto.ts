@@ -35,7 +35,7 @@ export class SignUpRequestDto {
 
 export class SignInRequestDto {
     @ApiProperty()
-    @IsEmail()
+    @IsString()
     email: string;
 
     @ApiProperty()

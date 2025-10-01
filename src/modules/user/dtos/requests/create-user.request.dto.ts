@@ -4,9 +4,9 @@ import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateUserRequestDto {
     @ApiProperty()
+    @AutoMap()
     @IsString()
     @MaxLength(100)
-    @AutoMap()
     firstName: string;
 
     @ApiProperty()
@@ -19,6 +19,12 @@ export class CreateUserRequestDto {
     @IsEmail()
     @AutoMap()
     email: string;
+
+    @ApiProperty()
+    @IsString()
+    @MaxLength(100)
+    @AutoMap()
+    userName: string;
 
     @ApiProperty()
     @IsString()

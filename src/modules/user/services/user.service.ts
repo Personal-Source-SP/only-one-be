@@ -25,7 +25,7 @@ export class UserService extends BaseService<UserEntity> {
     async getUserLogin(email: string): Promise<UserEntity> {
         const user = await this.userRepository
             .createQueryBuilder('user')
-            .where(new Brackets((qb) => qb.where('user.email = :email', { email }).orWhere('user.userName = :userName', { email })))
+            .where(new Brackets((qb) => qb.orWhere('email = :email', { email }).orWhere('userName = :userName', { userName: email })))
             .getOne();
 
         if (!user) throw new NotFoundException('User not found');

@@ -1,6 +1,6 @@
+import { GoogleDriveFolderDto } from './google-drive-folder.dto';
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
-import { GoogleDriveFolderDto } from 'src/modules/google/dtos/google-drive-folder.dto';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { UserDto } from '../../user/dtos/user.dto';
 import { GoogleDriveFileDto } from './google-drive-file.dto';
