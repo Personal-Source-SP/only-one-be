@@ -23,14 +23,19 @@ export class UserService extends BaseService<UserEntity> {
     }
 
     async getUserLogin(email: string): Promise<UserEntity> {
-        const user = await this.userRepository
-            .createQueryBuilder('user')
-            .where(new Brackets((qb) => qb.orWhere('email = :email', { email }).orWhere('userName = :userName', { userName: email })))
-            .getOne();
+        try {
+            const user = await this.userRepository
+                .createQueryBuilder('user')
+                .where(new Brackets((qb) => qb.orWhere('email = :email', { email }).orWhere('user_name = :userName', { userName: email })))
+                .getOne();
 
-        if (!user) throw new NotFoundException('User not found');
+            if (!user) throw new NotFoundException('User not found');
 
-        return user;
+            return user;
+        } catch (error) {
+            this.loggerService.error(`Error getting user login: ${error.message}`);
+            throw error;
+        }
     }
 
     async createUser(user: CreateUserRequestDto): Promise<UserDto> {

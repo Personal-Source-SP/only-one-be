@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { GoogleDriveFileTagEntity } from '../entities/google-drive-file-tag.entity';
+import { GoogleDriveFileTagDto } from './google-drive-file-tag.dto';
 
 export class FileTagDto extends AbstractDto {
     @ApiResponseProperty()
@@ -9,6 +9,6 @@ export class FileTagDto extends AbstractDto {
     name: string;
 
     @ApiResponseProperty()
-    @AutoMap(() => [GoogleDriveFileTagEntity])
-    fileTags?: GoogleDriveFileTagEntity[];
+    @AutoMap(() => [GoogleDriveFileTagDto])
+    fileTags?: GoogleDriveFileTagDto[];
 }
