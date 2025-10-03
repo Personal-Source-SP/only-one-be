@@ -168,4 +168,12 @@ export class AppConfigService {
             revokeEndpoint: this.get('GOOGLE_REVOKE_ENDPOINT'),
         };
     }
+
+    get redisConfig() {
+        return {
+            host: this.get('REDIS_HOST'),
+            port: this.getNumber('REDIS_PORT'),
+            password: this.get('REDIS_PASSWORD'),
+        };
+    }
 }
