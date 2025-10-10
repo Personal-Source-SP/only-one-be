@@ -1,3 +1,5 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AxiosInstance } from 'axios';
@@ -8,6 +10,7 @@ import { IGoogleConfig } from '../../../shared/interfaces/app-config.interface';
 import { AppConfigService } from '../../../shared/services/app-config.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
+import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { GoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
 import { GoogleApiType, GoogleApiUrl, GoogleAuthParamsType } from '../enums';
@@ -23,6 +26,8 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         private readonly httpService: BaseHttpService,
         private readonly appConfigService: AppConfigService,
 
+        @InjectMapper() private readonly mapper: Mapper,
+
         @InjectRepository(GoogleAuthEntity)
         private readonly googleAuthRepository: Repository<GoogleAuthEntity>,
     ) {
@@ -30,6 +35,30 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
 
         // Initialize google config
         this.googleConfig = this.appConfigService.googleConfig;
+    }
+
+    async getGoogleAuth(userId: string): Promise<GoogleAuthDto> {
+        const googleAuth = await this.findOneByFilter({ userId });
+
+        if (!googleAuth) {
+            this.loggerService.error(`No Google auth found for user ${userId}`);
+            throw new NotFoundException('No Google auth found for user');
+        }
+
+        const expired = this.isExpiredToken(googleAuth.googleExpiresAt);
+        if (!expired) {
+            const refreshed = await this.refreshToken(userId);
+
+            if (!refreshed) {
+                this.loggerService.error(`Google refresh token failed for user ${userId}`);
+                throw new BadRequestException('Google refresh token failed');
+            }
+
+            googleAuth.googleAccessToken = refreshed;
+        }
+
+        const dto = this.mapper.map(googleAuth, GoogleAuthEntity, GoogleAuthDto);
+        return dto;
     }
 
     async authorizeUser(request: GoogleAuthRequestDto, userId: string): Promise<string> {

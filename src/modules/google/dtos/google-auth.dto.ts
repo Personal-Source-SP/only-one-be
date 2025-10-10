@@ -1,7 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { UserDto } from '../../user/dtos/user.dto';
 
 export class GoogleAuthDto extends AbstractDto {
     @ApiResponseProperty()
@@ -31,8 +30,4 @@ export class GoogleAuthDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     googleTokenType?: string;
-
-    @ApiResponseProperty()
-    @AutoMap(() => UserDto)
-    user: UserDto;
 }
