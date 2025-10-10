@@ -13,7 +13,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         const ctx = host.switchToHttp();
 
-        const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+        let status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
         let messages: string[] = [];
         let primaryMessage = 'Internal server error';
@@ -47,6 +47,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
                 default: {
                     primaryMessage = exception.message;
+                    break;
+                }
+            }
+        } else if (exception instanceof Error) {
+            const ex: any = exception as any;
+            const name = ex?.name as string | undefined;
+            const rawMessage = ex?.message as string | undefined;
+
+            switch (name) {
+                case 'TokenExpiredError':
+                case 'JsonWebTokenError':
+                case 'NotBeforeError': {
+                    status = HttpStatus.UNAUTHORIZED;
+                    primaryMessage = rawMessage || 'Unauthorized';
+                    break;
+                }
+                default: {
+                    primaryMessage = rawMessage || primaryMessage;
                     break;
                 }
             }
