@@ -5,7 +5,7 @@ import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
-import { IGoogleConfig, IJwtConfig } from '../interfaces/app-config.interface';
+import { IJwtConfig } from '../interfaces/app-config.interface';
 import { SnakeNamingStrategy } from '../typeorm/strategies/snake-naming.strategy';
 
 @Injectable()
@@ -157,15 +157,6 @@ export class AppConfigService {
             appSecret: this.get('APP_SECRET'),
             expire: this.get('JWT_EXPIRE') || '24h',
             refreshExpire: this.get('JWT_REFRESH_EXPIRE') || '30d',
-        };
-    }
-
-    get googleConfig(): IGoogleConfig {
-        return {
-            clientId: this.get('GOOGLE_CLIENT_ID'),
-            clientSecret: this.get('GOOGLE_CLIENT_SECRET'),
-            tokenEndpoint: this.get('GOOGLE_TOKEN_ENDPOINT'),
-            revokeEndpoint: this.get('GOOGLE_REVOKE_ENDPOINT'),
         };
     }
 

@@ -25,6 +25,10 @@ export class GoogleAuthDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
+    googleRefreshTokenExpiresAt?: Date;
+
+    @ApiResponseProperty()
+    @AutoMap()
     googleScope?: string;
 
     @ApiResponseProperty()
