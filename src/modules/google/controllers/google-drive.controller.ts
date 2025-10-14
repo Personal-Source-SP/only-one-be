@@ -45,10 +45,20 @@ export class GoogleDriveController extends BaseController {
         return result;
     }
 
+    @ApiOperation({ summary: 'Sync folders from google drive' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post('sync/folders')
+    @ApiOkResponse({ type: Boolean })
+    public async syncFoldersFromGoogleDrive(@User() user: PayloadDto): Promise<boolean> {
+        const result = await this.googleDriveService.syncFoldersFromGoogleDrive(user.id);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Sync files from google folder' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('sync/:folderDriveId')
+    @Post('sync/files/:folderDriveId')
     @ApiOkResponse({ type: Boolean })
     public async syncFromGoogleDrive(
         @User() user: PayloadDto,

@@ -185,33 +185,38 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
         let nextPageToken: string | undefined;
 
-        do {
-            if (nextPageToken) {
-                params.pageToken = nextPageToken;
-            }
+        try {
+            do {
+                if (nextPageToken) {
+                    params.pageToken = nextPageToken;
+                }
 
-            const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
+                const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
 
-            const files = data?.files;
-            if (files?.length) {
-                const entities = files.map((f) => {
-                    const folderEntity = this.googleDriveFolderRepository.create({
-                        name: f.name,
-                        googleDriveId: f.id,
-                        parentFolderId: f.parents?.[0] || null,
-                        lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
-                        isTrashed: Boolean(f.trashed),
-                        isStarred: Boolean(f.starred),
-                        googleAuthId: googleAuth.id,
+                const files = data?.files;
+                if (files?.length) {
+                    const entities = files.map((f) => {
+                        const folderEntity = this.googleDriveFolderRepository.create({
+                            name: f.name,
+                            googleDriveId: f.id,
+                            parentFolderId: f.parents?.[0] || null,
+                            lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
+                            isTrashed: Boolean(f.trashed),
+                            isStarred: Boolean(f.starred),
+                            googleAuthId: googleAuth.id,
+                        });
+                        return folderEntity;
                     });
-                    return folderEntity;
-                });
 
-                savedFolderEntities.push(...entities);
-            }
+                    savedFolderEntities.push(...entities);
+                }
 
-            nextPageToken = data?.nextPageToken;
-        } while (nextPageToken);
+                nextPageToken = data?.nextPageToken;
+            } while (nextPageToken);
+        } catch (error) {
+            this.loggerService.error(`Sync folders from google drive error: ${error?.message}`);
+            throw error;
+        }
 
         if (!savedFolderEntities?.length) {
             this.loggerService.error(`No folders found for user ${userId}`);

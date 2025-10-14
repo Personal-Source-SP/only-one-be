@@ -2,11 +2,10 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AxiosInstance } from 'axios';
 import { isEmpty } from 'lodash';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
-import { AppConfigService } from '../../../shared/services/app-config.service';
+import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
@@ -16,11 +15,9 @@ import { IGoogleApiParams, IGoogleApiResponse } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
-    private readonly httpClient: AxiosInstance;
-
     constructor(
         private readonly loggerService: LoggerService,
-        private readonly appConfigService: AppConfigService,
+        private readonly httpClient: BaseHttpService,
 
         @InjectMapper() private readonly mapper: Mapper,
 
@@ -127,7 +124,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
             }
         }
 
-        const response = await this.httpClient.get(url, { headers, params });
+        const response = await this.httpClient.get<any>(url, { headers, params });
 
         if (response.status !== 200 || isEmpty(response?.data)) {
             this.loggerService.error(`Google API call failed for user ${userId}: ${response?.data}`);
