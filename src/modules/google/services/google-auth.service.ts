@@ -39,7 +39,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         }
 
         const expired = this.isExpiredToken(googleAuth.googleExpiresAt);
-        if (!expired) {
+        if (expired) {
             this.loggerService.error(`Google auth expired for user ${userId}`);
             return null;
         }
