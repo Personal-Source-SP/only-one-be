@@ -50,6 +50,10 @@ export class GoogleDrivePreviewRequest {
     @IsEnum(GoogleDriveType)
     type: GoogleDriveType;
 
+    @ApiProperty()
+    @IsString()
+    googleAuthId: string;
+
     @ApiPropertyOptional()
     @IsOptional()
     @IsNumber()
@@ -77,6 +81,10 @@ export class GoogleDriveSyncRequest {
     @ApiProperty()
     @IsEnum(GoogleDriveType)
     type: GoogleDriveType;
+
+    @ApiProperty()
+    @IsString()
+    googleAuthId: string;
 
     @ApiProperty()
     @IsArray()

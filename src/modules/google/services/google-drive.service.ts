@@ -91,7 +91,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             throw new BadRequestException('User ID is required');
         }
 
-        const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
+        const googleAuth = await this.googleAuthService.findOneByFilter({ userId, id: request.googleAuthId });
         if (!googleAuth) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
             throw new NotFoundException('No Google auth found for user');
@@ -141,7 +141,12 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                     nextPageToken,
                 });
 
-                const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
+                const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>({
+                    userId,
+                    params,
+                    googleAuthId: request.googleAuthId,
+                    apiType: GoogleApiType.GOOGLE_DRIVE,
+                });
 
                 const files = data?.files;
                 if (files?.length) {

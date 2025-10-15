@@ -1,4 +1,4 @@
-import { GoogleDriveType } from '../enums';
+import { GoogleApiType, GoogleDriveType } from '../enums';
 
 export interface IGoogleAuthResponse {
     access_token: string;
@@ -23,4 +23,11 @@ export interface IGoogleApiParams {
     fields?: string;
     pageSize?: string;
     pageToken?: string;
+}
+
+export interface IGoogleApiRequest {
+    userId: string;
+    googleAuthId: string;
+    apiType: GoogleApiType;
+    params?: IGoogleApiParams;
 }

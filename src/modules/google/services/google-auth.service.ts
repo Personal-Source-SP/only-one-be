@@ -11,7 +11,7 @@ import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
 import { GoogleApiType, GoogleApiUrl } from '../enums';
-import { IGoogleApiParams, IGoogleApiResponse } from '../interfaces';
+import { IGoogleApiParams, IGoogleApiRequest, IGoogleApiResponse } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
@@ -83,8 +83,8 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return !!saved;
     }
 
-    async getAuthHeaders(userId: string): Promise<Record<string, string>> {
-        const googleAuth = await this.findOneByFilter({ userId });
+    async getAuthHeaders(userId: string, googleAuthId: string): Promise<Record<string, string>> {
+        const googleAuth = await this.findOneByFilter({ userId, id: googleAuthId });
 
         if (!googleAuth) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
@@ -107,8 +107,10 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return { Authorization: `Bearer ${token}` };
     }
 
-    async callGoogleApi<T>(apiType: GoogleApiType, userId: string, params?: IGoogleApiParams): Promise<IGoogleApiResponse<T>> {
-        const headers = await this.getAuthHeaders(userId);
+    async callGoogleApi<T>(request: IGoogleApiRequest): Promise<IGoogleApiResponse<T>> {
+        const { userId, googleAuthId, apiType, params } = request;
+
+        const headers = await this.getAuthHeaders(userId, googleAuthId);
 
         let url = '';
 
