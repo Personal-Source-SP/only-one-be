@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { GoogleDriveFileType, GoogleDriveType } from '../../enums';
 import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
@@ -64,6 +64,16 @@ export class GoogleDrivePreviewRequest {
     @IsOptional()
     @IsArray()
     fileTypes?: GoogleDriveFileType[];
+
+    @ApiPropertyOptional({ description: 'Filter by modified time from (ISO string)' })
+    @IsOptional()
+    @IsDateString()
+    modifiedTimeFrom?: string;
+
+    @ApiPropertyOptional({ description: 'Filter by modified time to (ISO string)' })
+    @IsOptional()
+    @IsDateString()
+    modifiedTimeTo?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

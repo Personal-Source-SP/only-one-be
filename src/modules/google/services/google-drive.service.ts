@@ -134,7 +134,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             throw new BadRequestException('User ID is required');
         }
 
-        const { maxResults, type, customQuery, folderId, fileTypes } = request;
+        const { maxResults, type, customQuery, folderId, fileTypes, modifiedTimeFrom, modifiedTimeTo } = request;
 
         let totalCount = 0;
         let nextPageToken: string | undefined;
@@ -147,6 +147,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                     type,
                     folderId,
                     fileTypes,
+                    modifiedTimeFrom,
+                    modifiedTimeTo,
                     customQuery,
                     nextPageToken,
                 });
@@ -204,7 +206,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     }
 
     private generateQuery(request: IGenerateParams): IGoogleApiParams {
-        const { pageSize, folderId, type, fileTypes, nextPageToken, isTrashed, isStarred, customQuery } = request;
+        const { pageSize, folderId, type, fileTypes, modifiedTimeFrom, modifiedTimeTo, nextPageToken, isTrashed, isStarred, customQuery } =
+            request;
 
         const params: IGoogleApiParams = {
             pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
@@ -259,6 +262,14 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
         if (customQuery) {
             query += ` and name contains '${customQuery}'`;
+        }
+
+        if (modifiedTimeFrom) {
+            query += ` and modifiedTime >= '${modifiedTimeFrom}'`;
+        }
+
+        if (modifiedTimeTo) {
+            query += ` and modifiedTime <= '${modifiedTimeTo}'`;
         }
 
         // Set the query and fields

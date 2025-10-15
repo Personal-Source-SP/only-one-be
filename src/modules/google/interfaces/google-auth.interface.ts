@@ -13,6 +13,8 @@ export interface IGenerateParams {
     folderId?: string;
     type?: GoogleDriveType;
     fileTypes?: GoogleDriveFileType[];
+    modifiedTimeFrom?: string; // ISO string
+    modifiedTimeTo?: string; // ISO string
     customQuery?: string;
     nextPageToken?: string;
     isTrashed?: boolean;
