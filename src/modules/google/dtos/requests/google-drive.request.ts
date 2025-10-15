@@ -74,7 +74,7 @@ export class GoogleDrivePreviewRequest {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    query?: string;
+    customQuery?: string;
 }
 
 export class GoogleDriveSyncRequest {

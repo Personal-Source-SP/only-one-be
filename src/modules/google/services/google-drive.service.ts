@@ -134,7 +134,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             throw new BadRequestException('User ID is required');
         }
 
-        const { maxResults, type, query, folderId } = request;
+        const { maxResults, type, customQuery, folderId } = request;
 
         let totalCount = 0;
         let nextPageToken: string | undefined;
@@ -145,8 +145,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             do {
                 const params = this.generateQuery({
                     type,
-                    query,
                     folderId,
+                    customQuery,
                     nextPageToken,
                 });
 
@@ -203,7 +203,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     }
 
     private generateQuery(request: IGenerateParams): IGoogleApiParams {
-        const { pageSize, folderId, type, nextPageToken, isTrashed, isStarred } = request;
+        const { pageSize, folderId, type, nextPageToken, isTrashed, isStarred, customQuery } = request;
 
         const params: IGoogleApiParams = {
             pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
@@ -253,8 +253,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             query += ' and starred = false';
         }
 
-        if (query) {
-            query += ` and name contains '${request.query}'`;
+        if (customQuery) {
+            query += ` and name contains '${customQuery}'`;
         }
 
         // Set the query and fields

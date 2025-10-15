@@ -12,7 +12,7 @@ export interface IGenerateParams {
     pageSize?: number;
     folderId?: string;
     type?: GoogleDriveType;
-    query?: string;
+    customQuery?: string;
     nextPageToken?: string;
     isTrashed?: boolean;
     isStarred?: boolean;
