@@ -58,7 +58,12 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             return { ...paginatedResult, data } as Paginated<GoogleDriveFileDto>;
         } catch (error) {
             this.loggerService.error(`Get files pagination error: ${error?.message}`);
-            throw error;
+
+            return {
+                data: [],
+                meta: null,
+                links: null,
+            };
         }
     }
 
@@ -81,7 +86,11 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             return { ...paginatedResult, data } as Paginated<GoogleDriveFolderDto>;
         } catch (error) {
             this.loggerService.error(`Get folders pagination error: ${error?.message}`);
-            throw error;
+            return {
+                data: [],
+                meta: null,
+                links: null,
+            };
         }
     }
 
