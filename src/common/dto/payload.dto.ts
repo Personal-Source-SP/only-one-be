@@ -7,11 +7,8 @@ interface BasePayloadDto {
 
 // Access token payload
 export interface PayloadDto extends BasePayloadDto {
-    tokenType: 'accessToken';
+    id: string;
+    email: string;
     lastName: string;
     firstName: string;
-
-    name?: string;
-    role?: string;
-    avatar?: string;
 }

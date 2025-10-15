@@ -9,8 +9,9 @@ import { BaseHttpService } from './services/base-http.service';
 import { LoggerService } from './services/logger.service';
 import { PuppeteerService } from './services/puppeteer.service';
 import { UtilsService } from './services/utils.service';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
-const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService];
+const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService, JwtStrategy];
 
 @Global()
 @Module({

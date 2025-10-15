@@ -1,11 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { User } from '../../../decorators/user.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { GoogleAuthRequestDto } from '../dtos/requests';
+import { GoogleAuthDto } from '../dtos/google-auth.dto';
+import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthService } from '../services/google-auth.service';
 
 @Controller('google-auth')
@@ -17,33 +18,23 @@ export class GoogleAuthController extends BaseController {
         super();
     }
 
-    @ApiOperation({ summary: 'Authorize user' })
+    @ApiOperation({ summary: 'Get Google auth' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('authorize')
-    @ApiOkResponse({ type: String })
-    public async authorizeUser(@User() user: PayloadDto, @Body() request: GoogleAuthRequestDto): Promise<string> {
-        const result = await this.googleAuthService.authorizeUser(request, user.id);
+    @Get()
+    @ApiOkResponse({ type: GoogleAuthDto })
+    public async getGoogleAuth(@User() user: PayloadDto): Promise<GoogleAuthDto> {
+        const result = await this.googleAuthService.getGoogleAuth(user.id);
         return result;
     }
 
-    @ApiOperation({ summary: 'Refresh token' })
+    @ApiOperation({ summary: 'Update Google auth' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('refresh-token')
+    @Put()
     @ApiOkResponse({ type: String })
-    public async refreshToken(@User() user: PayloadDto): Promise<string> {
-        const result = await this.googleAuthService.refreshToken(user.id);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Revoke access' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('revoke-access')
-    @ApiOkResponse({ type: Boolean })
-    public async revokeAccess(@User() user: PayloadDto): Promise<boolean> {
-        const result = await this.googleAuthService.revokeAccess(user.id);
+    public async updateGoogleAuth(@User() user: PayloadDto, @Body() request: UpdateGoogleAuthRequestDto): Promise<boolean> {
+        const result = await this.googleAuthService.updateGoogleAuth(request, user.id);
         return result;
     }
 }

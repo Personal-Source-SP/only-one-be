@@ -35,6 +35,10 @@ export class GoogleAuthEntity extends AbstractEntity {
     @AutoMap()
     googleTokenType?: string;
 
+    @Column({ nullable: true })
+    @AutoMap()
+    googleRefreshTokenExpiresAt?: Date;
+
     @OneToOne(() => UserEntity, (user) => user.googleAuth, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     @AutoMap(() => UserEntity)

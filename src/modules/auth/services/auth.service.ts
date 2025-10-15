@@ -68,7 +68,7 @@ export class AuthService {
 
     private async generateToken(user: UserEntity): Promise<RefreshTokenResponseDto> {
         const payload = {
-            userId: user.id,
+            id: user.id,
             email: user.email,
             lastName: user.lastName,
             firstName: user.firstName,

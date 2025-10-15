@@ -14,11 +14,11 @@ export class AbstractEntity extends BaseEntity {
     @AutoMap()
     updatedAt?: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at' })
+    @Column({ type: 'uuid', nullable: true })
     @AutoMap()
-    deletedAt?: Date;
+    deletedBy?: string | null;
 
-    @Column({ name: 'deleted_by' })
+    @DeleteDateColumn({ type: 'timestamp with time zone', nullable: true })
     @AutoMap()
-    deletedBy?: string;
+    deletedAt?: Date | null;
 }

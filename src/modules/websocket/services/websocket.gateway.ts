@@ -7,8 +7,6 @@ import {
     WebSocketServer,
     WsException,
 } from '@nestjs/websockets';
-import { createAdapter } from '@socket.io/redis-adapter';
-import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
 
 import { SubscribeName, WebSocketEvent } from '../enums/subscribe-name.enum';
@@ -23,21 +21,6 @@ import { WebSocketMessage, WebSocketResponse } from '../interfaces/websocket.int
     path: process.env.WEBSOCKET_PATH || '/socket.io',
     namespace: process.env.WEBSOCKET_NAMESPACE || '/',
     transports: ['websocket', 'polling'],
-    adapter: createAdapter(
-        new Redis({
-            host: process.env.REDIS_HOST,
-            port: parseInt(process.env.REDIS_PORT),
-            password: process.env.REDIS_PASSWORD,
-        }),
-        new Redis({
-            host: process.env.REDIS_HOST,
-            port: parseInt(process.env.REDIS_PORT),
-            password: process.env.REDIS_PASSWORD,
-        }),
-        {
-            key: process.env.SOCKET_IO_REDIS_KEY || 'socket.io',
-        },
-    ),
 })
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger: Logger = new Logger(WebsocketGateway.name);
