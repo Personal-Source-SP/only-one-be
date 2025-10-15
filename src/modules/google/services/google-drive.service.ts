@@ -3,7 +3,7 @@ import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
@@ -194,14 +194,26 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             this.loggerService.error(`Preview data sync error: ${error?.message}`);
         }
 
-        const totalSize = previewItems?.reduce((acc, item) => acc + (item.size || 0), 0) || 0;
+        // Filter out existing files
+        const googleDriveId = previewItems?.map((item) => item.googleDriveId);
+        const existFiles = await this.googleDriveFileRepository.find({
+            where: { googleDriveId: In(googleDriveId) },
+            select: ['googleDriveId'],
+        });
+
+        // Filter out existing files
+        const existFilesSet = new Set(existFiles.map((file) => file.googleDriveId));
+        const newFiles = previewItems?.filter((item) => !existFilesSet.has(item.googleDriveId));
+
+        const data = maxResults ? newFiles.slice(0, maxResults) : newFiles;
+        const totalSize = data?.reduce((acc, item) => acc + (item.size || 0), 0) || 0;
 
         return new GoogleDrivePreviewResponse({
+            data,
             totalSize,
             nextPageToken,
+            totalCount: data?.length || 0,
             hasMore: Boolean(nextPageToken),
-            totalCount: previewItems?.length || 0,
-            data: maxResults ? previewItems.slice(0, maxResults) : previewItems,
         });
     }
 
