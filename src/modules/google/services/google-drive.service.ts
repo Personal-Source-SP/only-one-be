@@ -177,7 +177,10 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             this.loggerService.error(`Preview data sync error: ${error?.message}`);
         }
 
+        const totalSize = previewItems?.reduce((acc, item) => acc + (item.size || 0), 0) || 0;
+
         return new GoogleDrivePreviewResponse({
+            totalSize,
             nextPageToken,
             hasMore: Boolean(nextPageToken),
             totalCount: previewItems?.length || 0,

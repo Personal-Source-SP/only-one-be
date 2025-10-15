@@ -61,6 +61,10 @@ export class GoogleDrivePreviewResponse {
     totalCount: number;
 
     @ApiResponseProperty()
+    @AutoMap()
+    totalSize: number;
+
+    @ApiResponseProperty()
     hasMore: boolean;
 
     @ApiResponseProperty()
