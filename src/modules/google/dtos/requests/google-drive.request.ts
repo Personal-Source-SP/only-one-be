@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
-import { GoogleDriveType } from '../../enums';
+import { GoogleDriveFileType, GoogleDriveType } from '../../enums';
 import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
 
 export class FilterGoogleDriveFilePaginationDto {
@@ -59,6 +59,11 @@ export class GoogleDrivePreviewRequest {
     @IsNumber()
     @Min(0)
     pageSize?: number;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsArray()
+    fileTypes?: GoogleDriveFileType[];
 
     @ApiPropertyOptional()
     @IsOptional()

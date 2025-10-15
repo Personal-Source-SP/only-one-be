@@ -18,7 +18,7 @@ import {
 import { GoogleDrivePreviewItem, GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
-import { GoogleApiType, GoogleDriveType } from '../enums';
+import { GoogleApiType, GoogleDriveFileType, GoogleDriveType } from '../enums';
 import { IGenerateParams, IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
 import { GoogleAuthService } from './google-auth.service';
 
@@ -134,7 +134,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             throw new BadRequestException('User ID is required');
         }
 
-        const { maxResults, type, customQuery, folderId } = request;
+        const { maxResults, type, customQuery, folderId, fileTypes } = request;
 
         let totalCount = 0;
         let nextPageToken: string | undefined;
@@ -146,6 +146,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                 const params = this.generateQuery({
                     type,
                     folderId,
+                    fileTypes,
                     customQuery,
                     nextPageToken,
                 });
@@ -203,7 +204,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     }
 
     private generateQuery(request: IGenerateParams): IGoogleApiParams {
-        const { pageSize, folderId, type, nextPageToken, isTrashed, isStarred, customQuery } = request;
+        const { pageSize, folderId, type, fileTypes, nextPageToken, isTrashed, isStarred, customQuery } = request;
 
         const params: IGoogleApiParams = {
             pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
@@ -216,6 +217,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         let query = '';
         let fields = '';
 
+        // Refine by type
         switch (type) {
             case GoogleDriveType.FILE: {
                 query += " and mimeType != 'application/vnd.google-apps.folder'";
@@ -233,12 +235,14 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             }
         }
 
-        if (folderId) {
-            query += ` and '${folderId}' in parents`;
+        // Refine by fileType
+        if (fileTypes?.length) {
+            const fileTypeQuery = this.refineByFileType(fileTypes);
+            query += fileTypeQuery;
         }
 
         if (folderId) {
-            query += ` and '${request.folderId}' in parents`;
+            query += ` and '${folderId}' in parents`;
         }
 
         if (isTrashed) {
@@ -262,6 +266,53 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         params.q = query.trim().startsWith('and ') ? query.trim().slice(4) : query;
 
         return params;
+    }
+
+    private refineByFileType(fileTypes: GoogleDriveFileType[]): string {
+        let queries: string[] = [];
+
+        fileTypes.forEach((fileType) => {
+            switch (fileType) {
+                case GoogleDriveFileType.DOCUMENT:
+                    queries.push(
+                        "(mimeType in ('application/vnd.google-apps.document','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','text/plain'))",
+                    );
+                    break;
+                case GoogleDriveFileType.SPREADSHEET:
+                    queries.push(
+                        "(mimeType in ('application/vnd.google-apps.spreadsheet','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv'))",
+                    );
+                    break;
+                case GoogleDriveFileType.PRESENTATION:
+                    queries.push(
+                        "(mimeType in ('application/vnd.google-apps.presentation','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation'))",
+                    );
+                    break;
+                case GoogleDriveFileType.PDF:
+                    queries.push("(mimeType = 'application/pdf')");
+                    break;
+                case GoogleDriveFileType.IMAGE:
+                    queries.push("(mimeType contains 'image/')");
+                    break;
+                case GoogleDriveFileType.VIDEO:
+                    queries.push("(mimeType contains 'video/')");
+                    break;
+                case GoogleDriveFileType.AUDIO:
+                    queries.push("(mimeType contains 'audio/')");
+                    break;
+                case GoogleDriveFileType.ARCHIVE:
+                    queries.push(
+                        "(mimeType in ('application/zip','application/x-7z-compressed','application/x-rar-compressed','application/x-tar'))",
+                    );
+                    break;
+            }
+        });
+
+        if (queries.length > 0) {
+            return ' and (' + queries.join(' or ') + ')';
+        }
+
+        return '';
     }
 
     private async saveFiles(googleAuthId: string, googleDriveFolderId: string, data: GoogleDrivePreviewItem[]): Promise<boolean> {

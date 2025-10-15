@@ -1,4 +1,4 @@
-import { GoogleApiType, GoogleDriveType } from '../enums';
+import { GoogleApiType, GoogleDriveFileType, GoogleDriveType } from '../enums';
 
 export interface IGoogleAuthResponse {
     access_token: string;
@@ -12,6 +12,7 @@ export interface IGenerateParams {
     pageSize?: number;
     folderId?: string;
     type?: GoogleDriveType;
+    fileTypes?: GoogleDriveFileType[];
     customQuery?: string;
     nextPageToken?: string;
     isTrashed?: boolean;
