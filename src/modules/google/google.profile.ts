@@ -7,6 +7,7 @@ import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { GoogleDriveFileTagDto } from './dtos/google-drive-file-tag.dto';
 import { GoogleDriveFileDto } from './dtos/google-drive-file.dto';
 import { GoogleDriveFolderDto } from './dtos/google-drive-folder.dto';
+import { GoogleDrivePreviewItem } from './dtos/responses/google-drive-preview-response.dto';
 import { FileTagEntity } from './entities/file-tag.entity';
 import { GoogleAuthEntity } from './entities/google-auth.entity';
 import { GoogleDriveFileTagEntity } from './entities/google-drive-file-tag.entity';
@@ -26,6 +27,9 @@ export class GoogleProfile extends AutomapperProfile {
             createMap(mapper, GoogleDriveFileEntity, GoogleDriveFileDto);
             createMap(mapper, GoogleDriveFileTagEntity, GoogleDriveFileTagDto);
             createMap(mapper, FileTagEntity, FileTagDto);
+
+            createMap(mapper, GoogleDrivePreviewItem, GoogleDriveFileEntity);
+            createMap(mapper, GoogleDrivePreviewItem, GoogleDriveFolderEntity);
         };
     }
 }

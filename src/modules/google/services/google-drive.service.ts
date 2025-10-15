@@ -9,11 +9,17 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
 import { GoogleDriveFileDto } from '../dtos/google-drive-file.dto';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
-import { GoogleDriveFilePaginationRequestDto, GoogleDriveFolderPaginationRequestDto } from '../dtos/requests';
+import {
+    GoogleDriveFilePaginationRequestDto,
+    GoogleDriveFolderPaginationRequestDto,
+    GoogleDrivePreviewRequest,
+    GoogleDriveSyncRequest,
+} from '../dtos/requests';
+import { GoogleDrivePreviewItem, GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
-import { GoogleApiType } from '../enums';
-import { IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
+import { GoogleApiType, GoogleDriveType } from '../enums';
+import { IGenerateParams, IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
 import { GoogleAuthService } from './google-auth.service';
 
 @Injectable()
@@ -79,152 +85,185 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         }
     }
 
-    async syncFromGoogleDrive(userId: string, folderId: string): Promise<boolean> {
+    async saveDataSync(userId: string, request: GoogleDriveSyncRequest): Promise<boolean> {
         if (!userId) {
             this.loggerService.error(`User ID is required`);
             throw new BadRequestException('User ID is required');
         }
 
         const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
-
         if (!googleAuth) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
             throw new NotFoundException('No Google auth found for user');
         }
 
-        if (!googleAuth.isActive) {
-            this.loggerService.error(`Google auth is not active for user ${userId}`);
-            throw new BadRequestException('Google auth is not active for user');
-        }
+        switch (request.type) {
+            case GoogleDriveType.FILE: {
+                const googleDriveFolder = await this.googleDriveFolderRepository.findOneBy({ id: request.folderId });
+                if (!googleDriveFolder) {
+                    this.loggerService.error(`No Google drive folder found for user ${userId}`);
+                    throw new NotFoundException('No Google drive folder found for user');
+                }
 
-        const googleDriveFolder = await this.googleDriveFolderRepository.findOneBy({ id: folderId });
-
-        if (!googleDriveFolder) {
-            this.loggerService.error(`No Google drive folder found for user ${userId}`);
-            throw new NotFoundException('No Google drive folder found for user');
-        }
-
-        const savedFileEntities: GoogleDriveFileEntity[] = [];
-
-        const params: IGoogleApiParams = {
-            pageSize: MAX_RECORD_SAVE.toString(),
-            q: `'${googleDriveFolder.googleDriveId}' in parents and trashed = false and mimeType != 'application/vnd.google-apps.folder'`,
-            fields: 'nextPageToken, files(id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,parents,modifiedTime,viewedByMeTime,trashed,starred)',
-        };
-
-        let nextPageToken: string | undefined;
-
-        do {
-            if (nextPageToken) {
-                params.pageToken = nextPageToken;
+                return await this.saveFiles(googleAuth.id, googleDriveFolder.id, request.data);
             }
 
-            const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
-
-            const files = data?.files;
-            if (files?.length) {
-                const entities = files.map((f) => {
-                    const fileEntity = this.googleDriveFileRepository.create({
-                        name: f.name,
-                        googleDriveId: f.id,
-                        mimeType: f.mimeType,
-                        webViewLink: f.webViewLink,
-                        thumbnailLink: f.thumbnailLink,
-                        webContentLink: f.webContentLink,
-                        size: f.size ? Number(f.size) : null,
-                        parentFolderId: f.parents?.[0] || null,
-                        lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
-                        isTrashed: Boolean(f.trashed),
-                        isStarred: Boolean(f.starred),
-                        googleAuthId: googleAuth.id,
-                        googleDriveFolderId: googleDriveFolder.id,
-                    });
-                    return fileEntity;
-                });
-
-                savedFileEntities.push(...entities);
+            case GoogleDriveType.FOLDER: {
+                return await this.saveFolders(googleAuth.id, request.data);
             }
 
-            nextPageToken = data?.nextPageToken;
-        } while (nextPageToken);
-
-        if (!savedFileEntities?.length) {
-            this.loggerService.error(`No files found for user ${userId}`);
-            return false;
+            default: {
+                this.loggerService.error(`Invalid type: ${request.type}`);
+                throw new BadRequestException('Invalid type');
+            }
         }
-
-        const saved = await this.saveManyRecords(this.googleDriveFileRepository, savedFileEntities);
-        return Boolean(saved);
     }
 
-    async syncFoldersFromGoogleDrive(userId: string): Promise<boolean> {
+    async previewDataSync(userId: string, request: GoogleDrivePreviewRequest): Promise<GoogleDrivePreviewResponse> {
         if (!userId) {
             this.loggerService.error(`User ID is required`);
             throw new BadRequestException('User ID is required');
         }
 
-        const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
+        const { maxResults, type, query, folderId } = request;
 
-        if (!googleAuth) {
-            this.loggerService.error(`No Google auth found for user ${userId}`);
-            throw new NotFoundException('No Google auth found for user');
-        }
-
-        if (!googleAuth.isActive) {
-            this.loggerService.error(`Google auth is not active for user ${userId}`);
-            throw new BadRequestException('Google auth is not active for user');
-        }
-
-        const savedFolderEntities: GoogleDriveFolderEntity[] = [];
-
-        const params: IGoogleApiParams = {
-            pageSize: MAX_RECORD_SAVE.toString(),
-            q: "mimeType = 'application/vnd.google-apps.folder' and trashed = false",
-            fields: 'nextPageToken, files(id,name,parents,modifiedTime,trashed,starred)',
-        };
-
+        let totalCount = 0;
         let nextPageToken: string | undefined;
+
+        const previewItems: GoogleDrivePreviewItem[] = [];
 
         try {
             do {
-                if (nextPageToken) {
-                    params.pageToken = nextPageToken;
-                }
+                const params = this.generateQuery({
+                    type,
+                    query,
+                    folderId,
+                    nextPageToken,
+                });
 
                 const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>(GoogleApiType.GOOGLE_DRIVE, userId, params);
 
                 const files = data?.files;
                 if (files?.length) {
-                    const entities = files.map((f) => {
-                        const folderEntity = this.googleDriveFolderRepository.create({
-                            name: f.name,
-                            googleDriveId: f.id,
-                            parentFolderId: f.parents?.[0] || null,
-                            lastModified: f.modifiedTime ? new Date(f.modifiedTime) : null,
-                            isTrashed: Boolean(f.trashed),
-                            isStarred: Boolean(f.starred),
-                            googleAuthId: googleAuth.id,
-                        });
-                        return folderEntity;
-                    });
+                    const items = files.map(
+                        (f) =>
+                            new GoogleDrivePreviewItem({
+                                name: f.name,
+                                googleDriveId: f.id,
+                                mimeType: f.mimeType,
+                                webViewLink: f.webViewLink,
+                                thumbnailLink: f.thumbnailLink,
+                                webContentLink: f.webContentLink,
+                                size: f.size ? Number(f.size) : undefined,
+                                parentFolderId: f.parents?.[0] || undefined,
+                                lastModified: f.modifiedTime ? new Date(f.modifiedTime) : undefined,
+                                isTrashed: Boolean(f.trashed),
+                                isStarred: Boolean(f.starred),
+                            }),
+                    );
 
-                    savedFolderEntities.push(...entities);
+                    previewItems.push(...items);
+                    totalCount += items.length;
                 }
 
                 nextPageToken = data?.nextPageToken;
+
+                // Check if the total number of items has reached the maximum number of items to return
+                if (maxResults && totalCount >= maxResults) {
+                    break;
+                }
             } while (nextPageToken);
         } catch (error) {
-            this.loggerService.error(`Sync folders from google drive error: ${error?.message}`);
-            throw error;
+            this.loggerService.error(`Preview data sync error: ${error?.message}`);
         }
 
-        if (!savedFolderEntities?.length) {
-            this.loggerService.error(`No folders found for user ${userId}`);
-            return true;
+        return new GoogleDrivePreviewResponse({
+            nextPageToken,
+            hasMore: Boolean(nextPageToken),
+            totalCount: previewItems?.length || 0,
+            data: maxResults ? previewItems.slice(0, maxResults) : previewItems,
+        });
+    }
+
+    private generateQuery(request: IGenerateParams): IGoogleApiParams {
+        const { pageSize, folderId, type, nextPageToken, isTrashed, isStarred } = request;
+
+        const params: IGoogleApiParams = {
+            pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
+        };
+
+        if (nextPageToken) {
+            params.pageToken = nextPageToken;
         }
 
-        const saved = await this.saveManyRecords(this.googleDriveFolderRepository, savedFolderEntities);
-        return saved;
+        let query = '';
+        let fields = '';
+
+        switch (type) {
+            case GoogleDriveType.FILE: {
+                query += " and mimeType != 'application/vnd.google-apps.folder'";
+                fields +=
+                    'nextPageToken, files(id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,parents,modifiedTime,viewedByMeTime,trashed,starred)';
+
+                break;
+            }
+
+            case GoogleDriveType.FOLDER: {
+                query += " and mimeType = 'application/vnd.google-apps.folder'";
+                fields += 'nextPageToken, files(id,name,parents,modifiedTime,trashed,starred)';
+
+                break;
+            }
+        }
+
+        if (folderId) {
+            query += ` and '${folderId}' in parents`;
+        }
+
+        if (folderId) {
+            query += ` and '${request.folderId}' in parents`;
+        }
+
+        if (isTrashed) {
+            query += ' and trashed = true';
+        } else {
+            query += ' and trashed = false';
+        }
+
+        if (isStarred) {
+            query += ' and starred = true';
+        } else {
+            query += ' and starred = false';
+        }
+
+        if (query) {
+            query += ` and name contains '${request.query}'`;
+        }
+
+        // Set the query and fields
+        params.fields = fields;
+        params.q = query.trim().startsWith('and ') ? query.trim().slice(4) : query;
+
+        return params;
+    }
+
+    private async saveFiles(googleAuthId: string, googleDriveFolderId: string, data: GoogleDrivePreviewItem[]): Promise<boolean> {
+        const googleDriveFileEntities = this.mapper.mapArray(data, GoogleDrivePreviewItem, GoogleDriveFileEntity);
+        googleDriveFileEntities.forEach((entity) => {
+            entity.googleAuthId = googleAuthId;
+            entity.googleDriveFolderId = googleDriveFolderId;
+        });
+
+        return await this.saveManyRecords(this.googleDriveFileRepository, googleDriveFileEntities);
+    }
+
+    private async saveFolders(googleAuthId: string, data: GoogleDrivePreviewItem[]): Promise<boolean> {
+        const googleDriveFolderEntities = this.mapper.mapArray(data, GoogleDrivePreviewItem, GoogleDriveFolderEntity);
+        googleDriveFolderEntities.forEach((entity) => {
+            entity.googleAuthId = googleAuthId;
+        });
+
+        return await this.saveManyRecords(this.googleDriveFolderRepository, googleDriveFolderEntities);
     }
 
     private async saveManyRecords<T>(repository: Repository<T>, data: T[]): Promise<boolean> {

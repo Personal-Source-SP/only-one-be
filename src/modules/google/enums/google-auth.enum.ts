@@ -5,3 +5,8 @@ export enum GoogleApiType {
 export enum GoogleApiUrl {
     GOOGLE_DRIVE = 'https://www.googleapis.com/drive/v3/files',
 }
+
+export enum GoogleDriveType {
+    FILE = 'file',
+    FOLDER = 'folder',
+}

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 
@@ -9,7 +9,13 @@ import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { GOOGLE_DRIVE_FILE_PAGINATION_CONFIG, GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG } from '../constants/google-drive-pagination.config';
 import { GoogleDriveFileDto } from '../dtos/google-drive-file.dto';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
-import { GoogleDriveFilePaginationRequestDto, GoogleDriveFolderPaginationRequestDto } from '../dtos/requests';
+import {
+    GoogleDriveFilePaginationRequestDto,
+    GoogleDriveFolderPaginationRequestDto,
+    GoogleDrivePreviewRequest,
+    GoogleDriveSyncRequest,
+} from '../dtos/requests';
+import { GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveService } from '../services/google-drive.service';
 
 @Controller('google-drive')
@@ -24,7 +30,7 @@ export class GoogleDriveController extends BaseController {
     @ApiOperation({ summary: 'Get paginated google drive files' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Get()
+    @Get('files')
     @ApiOkPaginatedResponse(GoogleDriveFileDto, GOOGLE_DRIVE_FILE_PAGINATION_CONFIG)
     @PaginatedSwaggerDocs(GoogleDriveFileDto, GOOGLE_DRIVE_FILE_PAGINATION_CONFIG)
     @ApiPaginationQuery(GOOGLE_DRIVE_FILE_PAGINATION_CONFIG)
@@ -45,26 +51,26 @@ export class GoogleDriveController extends BaseController {
         return result;
     }
 
-    @ApiOperation({ summary: 'Sync folders from google drive' })
+    @ApiOperation({ summary: 'Preview data sync' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('sync/folders')
-    @ApiOkResponse({ type: Boolean })
-    public async syncFoldersFromGoogleDrive(@User() user: PayloadDto): Promise<boolean> {
-        const result = await this.googleDriveService.syncFoldersFromGoogleDrive(user.id);
+    @Post('preview-data-sync')
+    @ApiOkResponse({ type: GoogleDrivePreviewResponse })
+    public async previewDataSync(
+        @User() user: PayloadDto,
+        @Body() request: GoogleDrivePreviewRequest,
+    ): Promise<GoogleDrivePreviewResponse> {
+        const result = await this.googleDriveService.previewDataSync(user.id, request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Sync files from google folder' })
+    @ApiOperation({ summary: 'Save data sync' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('sync/files/:folderDriveId')
+    @Put('save-data-sync')
     @ApiOkResponse({ type: Boolean })
-    public async syncFromGoogleDrive(
-        @User() user: PayloadDto,
-        @Param('folderDriveId', new ParseUUIDPipe()) folderDriveId: string,
-    ): Promise<boolean> {
-        const result = await this.googleDriveService.syncFromGoogleDrive(user.id, folderDriveId);
+    public async saveDataSync(@User() user: PayloadDto, @Body() request: GoogleDriveSyncRequest): Promise<boolean> {
+        const result = await this.googleDriveService.saveDataSync(user.id, request);
         return result;
     }
 }

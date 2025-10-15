@@ -1,7 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { GoogleDriveType } from '../../enums';
+import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
 
 export class FilterGoogleDriveFilePaginationDto {
     @ApiPropertyOptional({ description: 'Filter by mime type' })
@@ -41,4 +43,49 @@ export class GoogleDriveFolderPaginationRequestDto extends BasePaginationRequest
     @ValidateNested({ always: true })
     @Type(() => FilterGoogleDriveFolderPaginationDto)
     filter?: FilterGoogleDriveFolderPaginationDto;
+}
+
+export class GoogleDrivePreviewRequest {
+    @ApiProperty()
+    @IsEnum(GoogleDriveType)
+    type: GoogleDriveType;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    pageSize?: number;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    maxResults?: number;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    folderId?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    query?: string;
+}
+
+export class GoogleDriveSyncRequest {
+    @ApiProperty()
+    @IsEnum(GoogleDriveType)
+    type: GoogleDriveType;
+
+    @ApiProperty()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => GoogleDrivePreviewItem)
+    data: GoogleDrivePreviewItem[];
+
+    @ApiPropertyOptional()
+    @ValidateIf((object) => object.type === GoogleDriveType.FILE)
+    @IsUUID()
+    folderId?: string;
 }
