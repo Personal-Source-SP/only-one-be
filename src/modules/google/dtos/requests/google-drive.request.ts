@@ -103,8 +103,6 @@ export class GoogleDriveSyncRequest {
 
     @ApiProperty()
     @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => GoogleDrivePreviewItem)
     data: GoogleDrivePreviewItem[];
 
     @ApiPropertyOptional()

@@ -94,6 +94,27 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         }
     }
 
+    async getAllFolders(userId: string): Promise<GoogleDriveFolderDto[]> {
+        try {
+            const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
+            if (!googleAuth) {
+                this.loggerService.error(`No Google auth found for user ${userId}`);
+                return [];
+            }
+
+            const folders = await this.googleDriveFolderRepository.findBy({ googleAuthId: googleAuth.id });
+            if (!folders?.length) {
+                this.loggerService.error(`No Google drive folders found for user ${userId}`);
+                return [];
+            }
+
+            return this.mapper.mapArray(folders, GoogleDriveFolderEntity, GoogleDriveFolderDto);
+        } catch (error) {
+            this.loggerService.error(`Get all folders error: ${error?.message}`);
+            return [];
+        }
+    }
+
     async saveDataSync(userId: string, request: GoogleDriveSyncRequest): Promise<boolean> {
         if (!userId) {
             this.loggerService.error(`User ID is required`);
@@ -113,8 +134,6 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                     this.loggerService.error(`No Google drive folder found for user ${userId}`);
                     throw new NotFoundException('No Google drive folder found for user');
                 }
-
-                return await this.saveFiles(googleAuth.id, googleDriveFolder.id, request.data);
             }
 
             case GoogleDriveType.FOLDER: {

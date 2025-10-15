@@ -51,6 +51,16 @@ export class GoogleDriveController extends BaseController {
         return result;
     }
 
+    @ApiOperation({ summary: 'Get all google drive folders' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('folders/all')
+    @ApiOkResponse({ type: [GoogleDriveFolderDto] })
+    public async getAllFolders(@User() user: PayloadDto): Promise<GoogleDriveFolderDto[]> {
+        const result = await this.googleDriveService.getAllFolders(user.id);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Preview data sync' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
