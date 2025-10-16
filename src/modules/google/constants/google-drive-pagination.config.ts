@@ -22,7 +22,7 @@ export const GOOGLE_DRIVE_FILE_PAGINATION_CONFIG = createPaginationConfig<Google
         googleAuth: true,
         googleDriveFolder: true,
     },
-    select: [...googleDriveFileColumns, 'googleDriveFolder.id', 'googleDriveFolder.name'],
+    select: [...googleDriveFileColumns, 'googleDriveFolder.name', 'googleAuth.email'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

@@ -11,7 +11,7 @@ import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
 import { GoogleApiType, GoogleApiUrl } from '../enums';
-import { IGoogleApiParams, IGoogleApiRequest, IGoogleApiResponse } from '../interfaces';
+import { IGoogleApiRequest, IGoogleApiResponse } from '../interfaces';
 
 @Injectable()
 export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
@@ -29,15 +29,12 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
 
     async getListGoogleAuth(userId: string): Promise<GoogleAuthDto[]> {
         const googleAuths = await this.googleAuthRepository.findBy({ userId });
-
         if (!googleAuths?.length) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
             return null;
         }
 
-        const googleAuthNotExpired = googleAuths.filter((googleAuth) => !this.isExpiredToken(googleAuth.googleExpiresAt));
-        const dto = this.mapper.mapArray(googleAuthNotExpired, GoogleAuthEntity, GoogleAuthDto);
-
+        const dto = this.mapper.mapArray(googleAuths, GoogleAuthEntity, GoogleAuthDto);
         return dto;
     }
 
