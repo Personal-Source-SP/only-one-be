@@ -9,6 +9,10 @@ export class GoogleAuthDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
+    email: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
     googleAccessToken: string;
 
     @ApiResponseProperty()

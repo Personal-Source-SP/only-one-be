@@ -1,6 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf, ValidateNested } from 'class-validator';
+import {
+    IsArray,
+    IsDateString,
+    IsEmail,
+    IsEnum,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+    Min,
+    ValidateIf,
+    ValidateNested,
+} from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { GoogleDriveFileType, GoogleDriveType } from '../../enums';
 import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
@@ -53,12 +65,6 @@ export class GoogleDrivePreviewRequest {
     @ApiProperty()
     @IsString()
     googleAuthId: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    pageSize?: number;
 
     @ApiPropertyOptional()
     @IsOptional()

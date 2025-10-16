@@ -40,7 +40,7 @@ This backend is an aggregation of various Google services. It integrates and man
 
 4.  **Database Setup:**
     *   Ensure you have a running PostgreSQL instance.
-    *   (If not using migrations) Set `synchronize: true` in your TypeORM configuration (usually in `ormconfig.ts` or `app.module.ts`) for initial development to automatically create tables. **Note:** This is generally **not recommended** for production.
+    *   (If not using migrations) Set `synchronize: false` in your TypeORM configuration (usually in `ormconfig.ts` or `app.module.ts`) for initial development to automatically create tables. **Note:** This is generally **not recommended** for production.
     *   (Recommended) If using migrations, run the migration command:
         ```bash
         npm run typeorm:migration:run # Adjust command based on your package.json scripts

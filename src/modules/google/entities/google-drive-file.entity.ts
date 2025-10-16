@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { GoogleAuthEntity } from './google-auth.entity';
 import { GoogleDriveFileTagEntity } from './google-drive-file-tag.entity';
@@ -63,17 +63,17 @@ export class GoogleDriveFileEntity extends AbstractEntity {
     @AutoMap()
     metadata?: Record<string, any>;
 
-    @ManyToOne(() => GoogleAuthEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => GoogleAuthEntity, (googleAuth) => googleAuth.googleDriveFiles, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'google_auth_id' })
     @AutoMap(() => GoogleAuthEntity)
-    googleAuth: GoogleAuthEntity;
+    googleAuth: Relation<GoogleAuthEntity>;
 
-    @ManyToOne(() => GoogleDriveFolderEntity, { onDelete: 'SET NULL' })
+    @ManyToOne(() => GoogleDriveFolderEntity, (googleDriveFolder) => googleDriveFolder.googleDriveFiles, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'google_drive_folder_id' })
     @AutoMap(() => GoogleDriveFolderEntity)
-    googleDriveFolder?: GoogleDriveFolderEntity;
+    googleDriveFolder?: Relation<GoogleDriveFolderEntity>;
 
     @OneToMany(() => GoogleDriveFileTagEntity, (fileTag) => fileTag.googleDriveFile)
     @AutoMap(() => [GoogleDriveFileTagEntity])
-    fileTags?: GoogleDriveFileTagEntity[];
+    fileTags?: Relation<GoogleDriveFileTagEntity[]>;
 }

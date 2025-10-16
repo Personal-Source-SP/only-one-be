@@ -18,13 +18,13 @@ export class GoogleAuthController extends BaseController {
         super();
     }
 
-    @ApiOperation({ summary: 'Get Google auth' })
+    @ApiOperation({ summary: 'Get list of google auth' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Get()
-    @ApiOkResponse({ type: GoogleAuthDto })
-    public async getGoogleAuth(@User() user: PayloadDto): Promise<GoogleAuthDto> {
-        const result = await this.googleAuthService.getGoogleAuth(user.id);
+    @ApiOkResponse({ type: [GoogleAuthDto] })
+    public async getListGoogleAuth(@User() user: PayloadDto): Promise<GoogleAuthDto[]> {
+        const result = await this.googleAuthService.getListGoogleAuth(user.id);
         return result;
     }
 

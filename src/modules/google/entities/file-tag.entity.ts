@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { GoogleDriveFileTagEntity } from './google-drive-file-tag.entity';
 
@@ -12,5 +12,5 @@ export class FileTagEntity extends AbstractEntity {
 
     @OneToMany(() => GoogleDriveFileTagEntity, (fileTag) => fileTag.fileTag)
     @AutoMap(() => [GoogleDriveFileTagEntity])
-    fileTags?: GoogleDriveFileTagEntity[];
+    fileTags?: Relation<GoogleDriveFileTagEntity[]>;
 }

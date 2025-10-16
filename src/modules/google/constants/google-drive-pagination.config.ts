@@ -11,12 +11,18 @@ const googleDriveFolderColumns = getColumnNames(GoogleDriveFolderEntity);
 export const GOOGLE_DRIVE_FILE_PAGINATION_CONFIG = createPaginationConfig<GoogleDriveFileEntity>({
     sortableColumns: ['name', 'mimeType', 'createdAt'],
     searchableColumns: ['name', 'mimeType'],
-    defaultSortBy: [['name', 'ASC']],
+    defaultSortBy: [['createdAt', 'DESC']],
     filterableColumns: {
+        googleAuthId: [FilterOperator.EQ],
+        mimeType: [FilterOperator.CONTAINS],
+        googleDriveFolderId: [FilterOperator.EQ],
         name: [FilterOperator.ILIKE, FilterOperator.EQ],
-        mimeType: [FilterOperator.ILIKE, FilterOperator.EQ],
     },
-    select: [...googleDriveFileColumns],
+    relations: {
+        googleAuth: true,
+        googleDriveFolder: true,
+    },
+    select: [...googleDriveFileColumns, 'googleDriveFolder.name', 'googleAuth.email'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

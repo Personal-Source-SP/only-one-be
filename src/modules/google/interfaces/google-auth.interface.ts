@@ -9,8 +9,7 @@ export interface IGoogleAuthResponse {
 }
 
 export interface IGenerateParams {
-    pageSize?: number;
-    folderId?: string;
+    driveFolderId?: string;
     type?: GoogleDriveType;
     fileTypes?: GoogleDriveFileType[];
     modifiedTimeFrom?: string; // ISO string
@@ -29,7 +28,6 @@ export interface IGoogleApiParams {
 }
 
 export interface IGoogleApiRequest {
-    userId: string;
     googleAuthId: string;
     apiType: GoogleApiType;
     params?: IGoogleApiParams;

@@ -25,6 +25,6 @@ export class UserDto extends AbstractDto {
     phoneNumber?: string;
 
     @ApiResponseProperty()
-    @AutoMap(() => GoogleAuthDto)
-    googleAuth: GoogleAuthDto;
+    @AutoMap(() => [GoogleAuthDto])
+    googleAuths?: GoogleAuthDto[];
 }

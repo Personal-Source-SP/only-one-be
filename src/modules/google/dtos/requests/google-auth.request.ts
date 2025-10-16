@@ -1,7 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateGoogleAuthRequestDto {
+    @ApiProperty({ description: 'Email from Google OAuth' })
+    @IsString()
+    @IsNotEmpty()
+    email: string;
+
     @ApiProperty({ description: 'Google token from Google OAuth' })
     @IsString()
     @IsNotEmpty()
