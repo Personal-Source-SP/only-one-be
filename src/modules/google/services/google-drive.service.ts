@@ -134,6 +134,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                     this.loggerService.error(`No Google drive folder found for user ${userId}`);
                     throw new NotFoundException('No Google drive folder found for user');
                 }
+
+                return await this.saveFiles(googleAuth.id, googleDriveFolder.id, request.data);
             }
 
             case GoogleDriveType.FOLDER: {
@@ -155,16 +157,22 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
         const { maxResults, type, customQuery, folderId, fileTypes, modifiedTimeFrom, modifiedTimeTo } = request;
 
+        // Get the drive folder ID
+        let driveFolderId = folderId;
+        if (folderId) {
+            const googleDriveFolder = await this.googleDriveFolderRepository.findOneBy({ id: folderId });
+            driveFolderId = googleDriveFolder?.googleDriveId;
+        }
+
         let totalCount = 0;
         let nextPageToken: string | undefined;
-
         const previewItems: GoogleDrivePreviewItem[] = [];
 
         try {
             do {
                 const params = this.generateQuery({
                     type,
-                    folderId,
+                    driveFolderId,
                     fileTypes,
                     modifiedTimeFrom,
                     modifiedTimeTo,
@@ -214,17 +222,10 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         }
 
         // Filter out existing files
-        const googleDriveId = previewItems?.map((item) => item.googleDriveId);
-        const existFiles = await this.googleDriveFileRepository.find({
-            where: { googleDriveId: In(googleDriveId) },
-            select: ['googleDriveId'],
-        });
+        const newData = await this.checkExistData(previewItems, type);
 
-        // Filter out existing files
-        const existFilesSet = new Set(existFiles.map((file) => file.googleDriveId));
-        const newFiles = previewItems?.filter((item) => !existFilesSet.has(item.googleDriveId));
-
-        const data = maxResults ? newFiles.slice(0, maxResults) : newFiles;
+        // Get the data
+        const data = maxResults ? newData.slice(0, maxResults) : newData;
         const totalSize = data?.reduce((acc, item) => acc + (item.size || 0), 0) || 0;
 
         return new GoogleDrivePreviewResponse({
@@ -237,8 +238,18 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     }
 
     private generateQuery(request: IGenerateParams): IGoogleApiParams {
-        const { pageSize, folderId, type, fileTypes, modifiedTimeFrom, modifiedTimeTo, nextPageToken, isTrashed, isStarred, customQuery } =
-            request;
+        const {
+            pageSize,
+            driveFolderId,
+            type,
+            fileTypes,
+            modifiedTimeFrom,
+            modifiedTimeTo,
+            nextPageToken,
+            isTrashed,
+            isStarred,
+            customQuery,
+        } = request;
 
         const params: IGoogleApiParams = {
             pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
@@ -275,8 +286,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
             query += fileTypeQuery;
         }
 
-        if (folderId) {
-            query += ` and '${folderId}' in parents`;
+        if (driveFolderId) {
+            query += ` and '${driveFolderId}' in parents`;
         }
 
         if (isTrashed) {
@@ -374,6 +385,37 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         });
 
         return await this.saveManyRecords(this.googleDriveFolderRepository, googleDriveFolderEntities);
+    }
+
+    private async checkExistData(previewItems: GoogleDrivePreviewItem[], type: GoogleDriveType): Promise<GoogleDrivePreviewItem[]> {
+        const googleDriveIds = previewItems.map((item) => item.googleDriveId);
+
+        let existGoogleDriveIds: string[] = [];
+
+        switch (type) {
+            case GoogleDriveType.FILE: {
+                const existFiles = await this.googleDriveFileRepository.find({
+                    where: { googleDriveId: In(googleDriveIds) },
+                    select: ['googleDriveId'],
+                });
+
+                existGoogleDriveIds = existFiles.map((file) => file.googleDriveId);
+            }
+
+            case GoogleDriveType.FOLDER: {
+                const existFolders = await this.googleDriveFolderRepository.find({
+                    where: { googleDriveId: In(googleDriveIds) },
+                    select: ['googleDriveId'],
+                });
+
+                existGoogleDriveIds = existFolders.map((folder) => folder.googleDriveId);
+            }
+        }
+
+        const existDataSet = new Set(existGoogleDriveIds.map((id) => id));
+        const newData = previewItems?.filter((item) => !existDataSet.has(item.googleDriveId));
+
+        return newData;
     }
 
     private async saveManyRecords<T>(repository: Repository<T>, data: T[]): Promise<boolean> {
