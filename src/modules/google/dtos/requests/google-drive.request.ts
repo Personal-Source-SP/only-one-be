@@ -68,12 +68,6 @@ export class GoogleDrivePreviewRequest {
 
     @ApiPropertyOptional()
     @IsOptional()
-    @IsNumber()
-    @Min(0)
-    pageSize?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
     @IsArray()
     fileTypes?: GoogleDriveFileType[];
 

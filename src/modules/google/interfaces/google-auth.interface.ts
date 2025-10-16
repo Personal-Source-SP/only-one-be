@@ -9,7 +9,6 @@ export interface IGoogleAuthResponse {
 }
 
 export interface IGenerateParams {
-    pageSize?: number;
     driveFolderId?: string;
     type?: GoogleDriveType;
     fileTypes?: GoogleDriveFileType[];

@@ -237,21 +237,11 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
     }
 
     private generateQuery(request: IGenerateParams): IGoogleApiParams {
-        const {
-            pageSize,
-            driveFolderId,
-            type,
-            fileTypes,
-            modifiedTimeFrom,
-            modifiedTimeTo,
-            nextPageToken,
-            isTrashed,
-            isStarred,
-            customQuery,
-        } = request;
+        const { driveFolderId, type, fileTypes, modifiedTimeFrom, modifiedTimeTo, nextPageToken, isTrashed, isStarred, customQuery } =
+            request;
 
         const params: IGoogleApiParams = {
-            pageSize: Math.min(pageSize || MAX_RECORD_SAVE, MAX_RECORD_SAVE).toString(),
+            pageSize: MAX_RECORD_SAVE.toString(),
         };
 
         if (nextPageToken) {
