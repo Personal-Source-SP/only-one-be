@@ -27,28 +27,24 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         super(googleAuthRepository);
     }
 
-    async getGoogleAuth(userId: string): Promise<GoogleAuthDto> {
-        const googleAuth = await this.findOneByFilter({ userId });
+    async getListGoogleAuth(userId: string): Promise<GoogleAuthDto[]> {
+        const googleAuths = await this.googleAuthRepository.findBy({ userId });
 
-        if (!googleAuth) {
+        if (!googleAuths?.length) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
             return null;
         }
 
-        const expired = this.isExpiredToken(googleAuth.googleExpiresAt);
-        if (expired) {
-            this.loggerService.error(`Google auth expired for user ${userId}`);
-            return null;
-        }
+        const googleAuthNotExpired = googleAuths.filter((googleAuth) => !this.isExpiredToken(googleAuth.googleExpiresAt));
+        const dto = this.mapper.mapArray(googleAuthNotExpired, GoogleAuthEntity, GoogleAuthDto);
 
-        const dto = this.mapper.map(googleAuth, GoogleAuthEntity, GoogleAuthDto);
         return dto;
     }
 
     async updateGoogleAuth(request: UpdateGoogleAuthRequestDto, userId: string): Promise<boolean> {
-        const { accessToken, expiresIn, scope, tokenType, refreshToken, refreshTokenExpiresIn } = request;
+        const { email, accessToken, expiresIn, scope, tokenType, refreshToken, refreshTokenExpiresIn } = request;
 
-        const existingGoogleAuth = await this.findOneByFilter({ userId });
+        const existingGoogleAuth = await this.findOneByFilter({ userId, email });
 
         // Generate expires at
         const googleExpiresAt = this.generateExpiresAt(expiresIn);
@@ -69,6 +65,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         }
 
         const entity = this.googleAuthRepository.create({
+            email,
             userId,
             isActive: true,
             googleExpiresAt,
@@ -83,16 +80,16 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         return !!saved;
     }
 
-    async getAuthHeaders(userId: string, googleAuthId: string): Promise<Record<string, string>> {
-        const googleAuth = await this.findOneByFilter({ userId, id: googleAuthId });
+    async getAuthHeaders(googleAuthId: string): Promise<Record<string, string>> {
+        const googleAuth = await this.findOneByFilter({ id: googleAuthId });
 
         if (!googleAuth) {
-            this.loggerService.error(`No Google auth found for user ${userId}`);
+            this.loggerService.error(`No Google auth found for id ${googleAuthId}`);
             throw new NotFoundException('No Google token found for user');
         }
 
         if (!googleAuth.googleAccessToken && !googleAuth.googleRefreshToken) {
-            this.loggerService.error(`No access token found for user ${userId}`);
+            this.loggerService.error(`No access token found for id ${googleAuthId}`);
             throw new NotFoundException('No access token found for user');
         }
 
@@ -100,7 +97,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
 
         const isExpiredToken = this.isExpiredToken(googleAuth.googleExpiresAt);
         if (isExpiredToken) {
-            this.loggerService.error(`Google auth expired for user ${userId}`);
+            this.loggerService.error(`Google auth expired for id ${googleAuthId}`);
             throw new NotFoundException('Google auth expired for user');
         }
 
@@ -108,9 +105,9 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
     }
 
     async callGoogleApi<T>(request: IGoogleApiRequest): Promise<IGoogleApiResponse<T>> {
-        const { userId, googleAuthId, apiType, params } = request;
+        const { googleAuthId, apiType, params } = request;
 
-        const headers = await this.getAuthHeaders(userId, googleAuthId);
+        const headers = await this.getAuthHeaders(googleAuthId);
 
         let url = '';
 
@@ -129,7 +126,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         const response = await this.httpClient.get<any>(url, { headers, params });
 
         if (response.status !== 200 || isEmpty(response?.data)) {
-            this.loggerService.error(`Google API call failed for user ${userId}: ${response?.data}`);
+            this.loggerService.error(`Google API call failed for id ${googleAuthId}: ${response?.data}`);
             throw new BadRequestException('Google API call failed');
         }
 

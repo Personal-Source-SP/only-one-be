@@ -29,7 +29,6 @@ export interface IGoogleApiParams {
 }
 
 export interface IGoogleApiRequest {
-    userId: string;
     googleAuthId: string;
     apiType: GoogleApiType;
     params?: IGoogleApiParams;

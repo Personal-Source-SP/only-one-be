@@ -1,15 +1,19 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, Relation, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { UserEntity } from '../../user/entities/user.entity';
 import { GoogleDriveFileEntity } from './google-drive-file.entity';
 
 @Entity({ name: 'google_auths', synchronize: false })
-@Unique(['userId'])
+@Unique(['userId', 'email'])
 export class GoogleAuthEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()
     userId: string;
+
+    @Column({ length: 200 })
+    @AutoMap()
+    email: string;
 
     @Column({ length: 2000 })
     @AutoMap()
@@ -39,7 +43,7 @@ export class GoogleAuthEntity extends AbstractEntity {
     @AutoMap()
     googleRefreshTokenExpiresAt?: Date;
 
-    @OneToOne(() => UserEntity, (user) => user.googleAuth, { onDelete: 'CASCADE' })
+    @ManyToOne(() => UserEntity, (user) => user.googleAuths, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     @AutoMap(() => UserEntity)
     user: Relation<UserEntity>;

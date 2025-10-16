@@ -181,7 +181,6 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                 });
 
                 const data = await this.googleAuthService.callGoogleApi<IGoogleDriveFile>({
-                    userId,
                     params,
                     googleAuthId: request.googleAuthId,
                     apiType: GoogleApiType.GOOGLE_DRIVE,
