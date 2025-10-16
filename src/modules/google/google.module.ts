@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModule } from '../user/user.module';
 import { FileTagController } from './controllers/file-tag.controller';
 import { GoogleAuthController } from './controllers/google-auth.controller';
 import { GoogleDriveController } from './controllers/google-drive.controller';
@@ -18,7 +19,7 @@ const controllers = [GoogleDriveController, GoogleAuthController, FileTagControl
 const entities = [GoogleDriveFileEntity, GoogleDriveFolderEntity, GoogleDriveFileTagEntity, GoogleAuthEntity, FileTagEntity];
 
 @Module({
-    imports: [TypeOrmModule.forFeature(entities)],
+    imports: [TypeOrmModule.forFeature(entities), UserModule],
     controllers: [...controllers],
     providers: [...services, GoogleProfile],
     exports: [...services, GoogleProfile],
