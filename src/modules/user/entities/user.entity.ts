@@ -37,5 +37,5 @@ export class UserEntity extends AbstractEntity {
 
     @OneToMany(() => GoogleAuthEntity, (googleAuth) => googleAuth.user)
     @AutoMap(() => [GoogleAuthEntity])
-    googleAuths: Relation<GoogleAuthEntity[]>;
+    googleAuths?: Relation<GoogleAuthEntity[]>;
 }

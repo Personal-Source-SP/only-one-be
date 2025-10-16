@@ -26,5 +26,5 @@ export class UserDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap(() => [GoogleAuthDto])
-    googleAuths: GoogleAuthDto[];
+    googleAuths?: GoogleAuthDto[];
 }

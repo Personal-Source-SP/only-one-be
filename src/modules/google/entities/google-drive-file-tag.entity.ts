@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { FileTagEntity } from './file-tag.entity';
 import { GoogleDriveFileEntity } from './google-drive-file.entity';
@@ -15,13 +15,13 @@ export class GoogleDriveFileTagEntity extends AbstractEntity {
     @AutoMap()
     fileTagId: string;
 
-    @ManyToOne(() => GoogleDriveFileEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => GoogleDriveFileEntity, (googleDriveFile) => googleDriveFile.fileTags, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'google_drive_file_id' })
     @AutoMap(() => GoogleDriveFileEntity)
-    googleDriveFile: GoogleDriveFileEntity;
+    googleDriveFile: Relation<GoogleDriveFileEntity>;
 
-    @ManyToOne(() => FileTagEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => FileTagEntity, (fileTag) => fileTag.fileTags, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'file_tag_id' })
     @AutoMap(() => FileTagEntity)
-    fileTag: FileTagEntity;
+    fileTag: Relation<FileTagEntity>;
 }

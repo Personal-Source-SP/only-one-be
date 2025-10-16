@@ -16,7 +16,10 @@ export const GOOGLE_DRIVE_FILE_PAGINATION_CONFIG = createPaginationConfig<Google
         mimeType: [FilterOperator.CONTAINS],
         name: [FilterOperator.ILIKE, FilterOperator.EQ],
     },
-    select: [...googleDriveFileColumns],
+    relations: {
+        googleDriveFolder: true,
+    },
+    select: [...googleDriveFileColumns, 'googleDriveFolder.id', 'googleDriveFolder.name'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

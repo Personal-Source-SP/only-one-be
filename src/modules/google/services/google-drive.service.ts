@@ -44,13 +44,12 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
         globalConfig: PaginateConfig<GoogleDriveFileEntity>,
     ): Promise<Paginated<GoogleDriveFileDto>> {
         try {
-            const baseRelations = Array.isArray(globalConfig.relations) ? (globalConfig.relations as string[]) : [];
             const paginatedResult: Paginated<GoogleDriveFileEntity> = await this.getPaginationWithCustomQuery(
                 query as unknown as PaginateQuery,
                 this.googleDriveFileRepository,
                 {
                     ...globalConfig,
-                    relations: baseRelations,
+                    relations: globalConfig.relations,
                 },
             );
 
@@ -69,16 +68,15 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
     async getFoldersPagination(
         query: GoogleDriveFolderPaginationRequestDto,
-        globalConfig: PaginateConfig<GoogleDriveFolderEntity>,
+        globalConfig: PaginateConfig<GoogleDriveFileEntity>,
     ): Promise<Paginated<GoogleDriveFolderDto>> {
         try {
-            const baseRelations = Array.isArray(globalConfig.relations) ? (globalConfig.relations as string[]) : [];
             const paginatedResult: Paginated<GoogleDriveFolderEntity> = await this.getPaginationWithCustomQuery(
                 query as unknown as PaginateQuery,
                 this.googleDriveFolderRepository,
                 {
                     ...globalConfig,
-                    relations: baseRelations,
+                    relations: globalConfig.relations,
                 },
             );
 
