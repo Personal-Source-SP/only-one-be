@@ -91,16 +91,16 @@ async function bootstrap() {
         await connection.runMigrations();
     }
 
-    const redisIoAdapter = new RedisIoAdapter(app);
-    const redisOptions: RedisClientOptions = {
-        url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
-        ...(configService.get('REDIS_USERNAME') && { username: configService.get('REDIS_USERNAME') }),
-        ...(configService.get('REDIS_PASSWORD') && { password: configService.get('REDIS_PASSWORD') }),
-    };
+    // const redisIoAdapter = new RedisIoAdapter(app);
+    // const redisOptions: RedisClientOptions = {
+    //     url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
+    //     ...(configService.get('REDIS_USERNAME') && { username: configService.get('REDIS_USERNAME') }),
+    //     ...(configService.get('REDIS_PASSWORD') && { password: configService.get('REDIS_PASSWORD') }),
+    // };
 
-    await redisIoAdapter.connectToRedis(redisOptions);
+    // await redisIoAdapter.connectToRedis(redisOptions);
 
-    app.useWebSocketAdapter(redisIoAdapter);
+    // app.useWebSocketAdapter(redisIoAdapter);
 
     // Listen
     await app.listen(port, host);
