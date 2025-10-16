@@ -400,6 +400,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                 });
 
                 existGoogleDriveIds = existFiles.map((file) => file.googleDriveId);
+
+                break;
             }
 
             case GoogleDriveType.FOLDER: {
@@ -409,6 +411,8 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
                 });
 
                 existGoogleDriveIds = existFolders.map((folder) => folder.googleDriveId);
+
+                break;
             }
         }
 
