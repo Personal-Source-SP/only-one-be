@@ -13,10 +13,13 @@ export const GOOGLE_DRIVE_FILE_PAGINATION_CONFIG = createPaginationConfig<Google
     searchableColumns: ['name', 'mimeType'],
     defaultSortBy: [['createdAt', 'DESC']],
     filterableColumns: {
+        googleAuthId: [FilterOperator.EQ],
         mimeType: [FilterOperator.CONTAINS],
+        googleDriveFolderId: [FilterOperator.EQ],
         name: [FilterOperator.ILIKE, FilterOperator.EQ],
     },
     relations: {
+        googleAuth: true,
         googleDriveFolder: true,
     },
     select: [...googleDriveFileColumns, 'googleDriveFolder.id', 'googleDriveFolder.name'],
