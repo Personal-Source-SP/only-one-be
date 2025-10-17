@@ -17,7 +17,7 @@ export const USER_PAGINATION_CONFIG = createPaginationConfig<UserEntity>({
     relations: {
         googleAuths: true,
     },
-    select: [...userColumns],
+    select: [...userColumns, 'googleAuths.id'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });
