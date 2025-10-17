@@ -2,19 +2,10 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In, Repository } from 'typeorm';
-import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
-import { GoogleDriveFileDto } from '../dtos/google-drive-file.dto';
-import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
-import {
-    GoogleDriveFilePaginationRequestDto,
-    GoogleDriveFolderPaginationRequestDto,
-    GoogleDrivePreviewRequest,
-    GoogleDriveSyncRequest,
-} from '../dtos/requests';
+import { GoogleDrivePreviewRequest, GoogleDriveSyncRequest } from '../dtos/requests';
 import { GoogleDrivePreviewItem, GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
@@ -23,7 +14,7 @@ import { IGenerateParams, IGoogleApiParams, IGoogleDriveFile } from '../interfac
 import { GoogleAuthService } from './google-auth.service';
 
 @Injectable()
-export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
+export class GoogleDriveService {
     constructor(
         private readonly loggerService: LoggerService,
         private readonly googleAuthService: GoogleAuthService,
@@ -35,83 +26,7 @@ export class GoogleDriveService extends BaseService<GoogleDriveFileEntity> {
 
         @InjectRepository(GoogleDriveFolderEntity)
         private readonly googleDriveFolderRepository: Repository<GoogleDriveFolderEntity>,
-    ) {
-        super(googleDriveFileRepository);
-    }
-
-    async getFilesPagination(
-        query: GoogleDriveFilePaginationRequestDto,
-        globalConfig: PaginateConfig<GoogleDriveFileEntity>,
-    ): Promise<Paginated<GoogleDriveFileDto>> {
-        try {
-            const paginatedResult: Paginated<GoogleDriveFileEntity> = await this.getPaginationWithCustomQuery(
-                query as unknown as PaginateQuery,
-                this.googleDriveFileRepository,
-                {
-                    ...globalConfig,
-                    relations: globalConfig.relations,
-                },
-            );
-
-            const data = this.mapper.mapArray(paginatedResult.data, GoogleDriveFileEntity, GoogleDriveFileDto);
-            return { ...paginatedResult, data } as Paginated<GoogleDriveFileDto>;
-        } catch (error) {
-            this.loggerService.error(`Get files pagination error: ${error?.message}`);
-
-            return {
-                data: [],
-                meta: null,
-                links: null,
-            };
-        }
-    }
-
-    async getFoldersPagination(
-        query: GoogleDriveFolderPaginationRequestDto,
-        globalConfig: PaginateConfig<GoogleDriveFileEntity>,
-    ): Promise<Paginated<GoogleDriveFolderDto>> {
-        try {
-            const paginatedResult: Paginated<GoogleDriveFolderEntity> = await this.getPaginationWithCustomQuery(
-                query as unknown as PaginateQuery,
-                this.googleDriveFolderRepository,
-                {
-                    ...globalConfig,
-                    relations: globalConfig.relations,
-                },
-            );
-
-            const data = this.mapper.mapArray(paginatedResult.data, GoogleDriveFolderEntity, GoogleDriveFolderDto);
-            return { ...paginatedResult, data } as Paginated<GoogleDriveFolderDto>;
-        } catch (error) {
-            this.loggerService.error(`Get folders pagination error: ${error?.message}`);
-            return {
-                data: [],
-                meta: null,
-                links: null,
-            };
-        }
-    }
-
-    async getAllFolders(userId: string): Promise<GoogleDriveFolderDto[]> {
-        try {
-            const googleAuth = await this.googleAuthService.findOneByFilter({ userId });
-            if (!googleAuth) {
-                this.loggerService.error(`No Google auth found for user ${userId}`);
-                return [];
-            }
-
-            const folders = await this.googleDriveFolderRepository.findBy({ googleAuthId: googleAuth.id });
-            if (!folders?.length) {
-                this.loggerService.error(`No Google drive folders found for user ${userId}`);
-                return [];
-            }
-
-            return this.mapper.mapArray(folders, GoogleDriveFolderEntity, GoogleDriveFolderDto);
-        } catch (error) {
-            this.loggerService.error(`Get all folders error: ${error?.message}`);
-            return [];
-        }
-    }
+    ) {}
 
     async saveDataSync(userId: string, request: GoogleDriveSyncRequest): Promise<boolean> {
         if (!userId) {
