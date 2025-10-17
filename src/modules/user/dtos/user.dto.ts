@@ -10,6 +10,10 @@ export class UserDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
+    userName: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
     isActive: boolean;
 
     @ApiResponseProperty()
