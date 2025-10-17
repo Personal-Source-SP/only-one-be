@@ -5,10 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { Brackets, Not, Repository } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
-import { ChangePasswordRequestDto, CreateUserRequestDto, UpdateUserRequestDto } from '../dtos/requests';
+import { ChangePasswordRequestDto, UpdateUserRequestDto, UserPaginationRequestDto } from '../dtos/requests';
 import { UserDto } from '../dtos/user.dto';
 import { UserEntity } from '../entities/user.entity';
 
@@ -38,20 +39,37 @@ export class UserService extends BaseService<UserEntity> {
         }
     }
 
-    async createUser(user: CreateUserRequestDto): Promise<UserDto> {
-        const existingUser = await this.exists({ email: user.email });
-        if (existingUser) throw new ConflictException('Email already exists');
-
-        const userEntity = this.mapper.map(user, CreateUserRequestDto, UserEntity);
-        userEntity.password = UtilsService.generateHash(user.password);
-
+    async getUsersPagination(query: UserPaginationRequestDto, globalConfig: PaginateConfig<UserEntity>): Promise<Paginated<UserDto>> {
         try {
-            const result = await this.create(userEntity);
-            return this.mapper.map(result, UserEntity, UserDto);
+            const paginatedResult: Paginated<UserEntity> = await this.getPaginationWithCustomQuery(
+                query as unknown as PaginateQuery,
+                this.userRepository,
+                {
+                    ...globalConfig,
+                    relations: globalConfig.relations,
+                },
+            );
+
+            const data = this.mapper.mapArray(paginatedResult.data, UserEntity, UserDto);
+            return { ...paginatedResult, data } as Paginated<UserDto>;
         } catch (error) {
-            this.loggerService.error(`Error creating user: ${error.message}`);
-            throw error;
+            this.loggerService.error(`Get users pagination error: ${error?.message}`);
+            return {
+                data: [],
+                meta: null,
+                links: null,
+            };
         }
+    }
+
+    async getUserById(id: string): Promise<UserDto> {
+        const user = await this.findById(id);
+        if (!user) {
+            this.loggerService.error(`User not found with id ${id}`);
+            return null;
+        }
+
+        return this.mapper.map(user, UserEntity, UserDto);
     }
 
     async updateUser(id: string, user: UpdateUserRequestDto): Promise<boolean> {

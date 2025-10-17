@@ -1,10 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { ChangePasswordRequestDto, UpdateUserRequestDto } from '../dtos/requests';
+import { USER_PAGINATION_CONFIG } from '../constants/user-pagination.config';
+import { ChangePasswordRequestDto, UpdateUserRequestDto, UserPaginationRequestDto } from '../dtos/requests';
+import { UserDto } from '../dtos/user.dto';
 import { UserService } from '../services/user.service';
 
 @Controller('users')
@@ -14,6 +17,28 @@ import { UserService } from '../services/user.service';
 export class UserController extends BaseController {
     constructor(private readonly userService: UserService) {
         super();
+    }
+
+    @ApiOperation({ summary: 'Get user by id' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get(':id')
+    @ApiOkResponse({ type: UserDto })
+    public async getUserById(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserDto> {
+        const result = await this.userService.getUserById(id);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Get paginated users' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get()
+    @ApiOkPaginatedResponse(UserDto, USER_PAGINATION_CONFIG)
+    @PaginatedSwaggerDocs(UserDto, USER_PAGINATION_CONFIG)
+    @ApiPaginationQuery(USER_PAGINATION_CONFIG)
+    public async getUsersPagination(@Paginate() query: UserPaginationRequestDto): Promise<Paginated<UserDto>> {
+        const result = await this.userService.getUsersPagination(query, USER_PAGINATION_CONFIG);
+        return result;
     }
 
     @ApiOperation({ summary: 'Change password' })
