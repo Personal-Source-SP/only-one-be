@@ -9,7 +9,7 @@ import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
-import { ChangePasswordRequestDto, UpdateUserRequestDto, UserPaginationRequestDto } from '../dtos/requests';
+import { ChangePasswordRequestDto, CreateUserRequestDto, UpdateUserRequestDto, UserPaginationRequestDto } from '../dtos/requests';
 import { UserDto } from '../dtos/user.dto';
 import { UserEntity } from '../entities/user.entity';
 
@@ -70,6 +70,22 @@ export class UserService extends BaseService<UserEntity> {
         }
 
         return this.mapper.map(user, UserEntity, UserDto);
+    }
+
+    async createUser(user: CreateUserRequestDto): Promise<UserDto> {
+        const existingUser = await this.exists({ email: user.email });
+        if (existingUser) throw new ConflictException('Email already exists');
+
+        const userEntity = this.mapper.map(user, CreateUserRequestDto, UserEntity);
+        userEntity.password = UtilsService.generateHash(user.password);
+
+        try {
+            const result = await this.create(userEntity);
+            return this.mapper.map(result, UserEntity, UserDto);
+        } catch (error) {
+            this.loggerService.error(`Error creating user: ${error.message}`);
+            throw error;
+        }
     }
 
     async updateUser(id: string, user: UpdateUserRequestDto): Promise<boolean> {
