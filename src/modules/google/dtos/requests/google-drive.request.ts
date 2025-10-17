@@ -1,61 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import {
-    IsArray,
-    IsDateString,
-    IsEmail,
-    IsEnum,
-    IsNumber,
-    IsOptional,
-    IsString,
-    IsUUID,
-    Min,
-    ValidateIf,
-    ValidateNested,
-} from 'class-validator';
-import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf } from 'class-validator';
 import { GoogleDriveFileType, GoogleDriveType } from '../../enums';
 import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
-
-export class FilterGoogleDriveFilePaginationDto {
-    @ApiPropertyOptional({ description: 'Filter by mime type' })
-    @IsOptional()
-    @IsString()
-    mimeType?: string;
-
-    @ApiPropertyOptional({ description: 'Filter by starred only' })
-    @IsOptional()
-    @IsString()
-    starredOnly?: boolean;
-
-    @ApiPropertyOptional({ description: 'Filter by trashed only' })
-    @IsOptional()
-    @IsString()
-    trashedOnly?: boolean;
-}
-
-export class GoogleDriveFilePaginationRequestDto extends BasePaginationRequestDto<FilterGoogleDriveFilePaginationDto> {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @ValidateNested({ always: true })
-    @Type(() => FilterGoogleDriveFilePaginationDto)
-    filter?: FilterGoogleDriveFilePaginationDto;
-}
-
-export class FilterGoogleDriveFolderPaginationDto {
-    @ApiPropertyOptional({ description: 'Filter by name' })
-    @IsOptional()
-    @IsString()
-    name?: string;
-}
-
-export class GoogleDriveFolderPaginationRequestDto extends BasePaginationRequestDto<FilterGoogleDriveFolderPaginationDto> {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @ValidateNested({ always: true })
-    @Type(() => FilterGoogleDriveFolderPaginationDto)
-    filter?: FilterGoogleDriveFolderPaginationDto;
-}
 
 export class GoogleDrivePreviewRequest {
     @ApiProperty()

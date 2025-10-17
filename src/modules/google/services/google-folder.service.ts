@@ -1,13 +1,13 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
-import { GoogleDriveFolderPaginationRequestDto } from '../dtos/requests';
+import { GoogleDriveFolderPaginationRequestDto, UpdateGoogleDriveFolderRequest } from '../dtos/requests';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
 import { GoogleAuthService } from './google-auth.service';
 
@@ -23,6 +23,16 @@ export class GoogleFolderService extends BaseService<GoogleDriveFolderEntity> {
         private readonly googleDriveFolderRepository: Repository<GoogleDriveFolderEntity>,
     ) {
         super(googleDriveFolderRepository);
+    }
+
+    async getById(id: string): Promise<GoogleDriveFolderDto> {
+        const folder = await this.findById(id);
+        if (!folder) {
+            this.loggerService.error(`No Google drive folder found with id ${id}`);
+            return null;
+        }
+
+        return this.mapper.map(folder, GoogleDriveFolderEntity, GoogleDriveFolderDto);
     }
 
     async getFoldersPagination(
@@ -70,5 +80,26 @@ export class GoogleFolderService extends BaseService<GoogleDriveFolderEntity> {
             this.loggerService.error(`Get all folders error: ${error?.message}`);
             return [];
         }
+    }
+
+    async updateFolder(id: string, request: UpdateGoogleDriveFolderRequest): Promise<boolean> {
+        const existingFolder = await this.exists({ id });
+        if (!existingFolder) {
+            this.loggerService.error(`No Google drive folder found with id ${id}`);
+            throw new NotFoundException('No Google drive folder found with id');
+        }
+
+        const updatedFolder = await this.update(id, request);
+        return updatedFolder;
+    }
+
+    async deleteFolder(id: string): Promise<boolean> {
+        const existingFolder = await this.exists({ id });
+        if (!existingFolder) {
+            this.loggerService.error(`No Google drive folder found with id ${id}`);
+            throw new NotFoundException('No Google drive folder found with id');
+        }
+
+        return this.delete(id);
     }
 }
