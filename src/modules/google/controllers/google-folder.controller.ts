@@ -20,6 +20,16 @@ export class GoogleFolderController extends BaseController {
         super();
     }
 
+    @ApiOperation({ summary: 'Get all google drive folders' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('all')
+    @ApiOkResponse({ type: [GoogleDriveFolderDto] })
+    public async getAllFolders(@User() user: PayloadDto): Promise<GoogleDriveFolderDto[]> {
+        const result = await this.googleFolderService.getAllFolders(user.id);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Get google drive folder by id' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
@@ -39,16 +49,6 @@ export class GoogleFolderController extends BaseController {
     @ApiPaginationQuery(GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG)
     public async getFoldersPagination(@Paginate() query: GoogleDriveFolderPaginationRequestDto): Promise<Paginated<GoogleDriveFolderDto>> {
         const result = await this.googleFolderService.getFoldersPagination(query, GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Get all google drive folders' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get('all')
-    @ApiOkResponse({ type: [GoogleDriveFolderDto] })
-    public async getAllFolders(@User() user: PayloadDto): Promise<GoogleDriveFolderDto[]> {
-        const result = await this.googleFolderService.getAllFolders(user.id);
         return result;
     }
 
