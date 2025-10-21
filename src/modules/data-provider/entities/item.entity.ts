@@ -1,0 +1,29 @@
+import { AutoMap } from '@automapper/classes';
+import { Column, Entity, OneToMany, Relation } from 'typeorm';
+
+import { AbstractEntity } from '../../../common/entities';
+import { ProductMappingStatus } from '../enums';
+import { DataProviderItemEntity } from './data-provider-item.entity';
+
+@Entity({ name: 'items', synchronize: true })
+export class ItemEntity extends AbstractEntity {
+    @Column({ length: 255 })
+    @AutoMap()
+    name: string;
+
+    @Column({ type: 'varchar', length: 100, default: ProductMappingStatus.UNMAPPED })
+    @AutoMap()
+    mappingStatus: ProductMappingStatus;
+
+    @Column({ length: 20, nullable: true })
+    @AutoMap()
+    code?: string;
+
+    @Column({ type: 'jsonb', default: [] })
+    @AutoMap()
+    tags?: string[];
+
+    @OneToMany(() => DataProviderItemEntity, (entity) => entity.item)
+    @AutoMap(() => [DataProviderItemEntity])
+    dataProviderItems?: Relation<DataProviderItemEntity>[];
+}

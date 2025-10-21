@@ -11,16 +11,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { DataProviderModule } from './modules/data-provider/data-provider.module';
 import { GoogleModule } from './modules/google/google.module';
-import { QueueModule } from './modules/queue/queue.module';
 import { SettingModule } from './modules/setting/setting.module';
 import { SimulationModule } from './modules/simulation/simulation.module';
 import { UserModule } from './modules/user/user.module';
 import { AppLoggerMiddleware } from './shared/middleware/app.logger.middleware';
 import { AppConfigService } from './shared/services/app-config.service';
 import { SharedModule } from './shared/shared.module';
-import { WebsocketModule } from './modules/websocket/websocket.module';
-import { WorkerModule } from './modules/worker/worker.module';
 
 @Module({
     imports: [
@@ -40,6 +38,7 @@ import { WorkerModule } from './modules/worker/worker.module';
         GoogleModule,
         SettingModule,
         SimulationModule,
+        DataProviderModule,
         // QueueModule,
         // WebsocketModule,
         // WorkerModule,

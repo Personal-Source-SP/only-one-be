@@ -1,0 +1,75 @@
+import { Injectable } from '@nestjs/common';
+import * as cheerio from 'cheerio';
+
+import { IRunFunctionExtractData } from '../interfaces/target-config.interface';
+
+@Injectable()
+class ExtractDataHelper {
+    async runFunctionExtractData(dto: IRunFunctionExtractData): Promise<Record<string, any>> {
+        const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
+
+        try {
+            const extractData = new Function(
+                'cheerio',
+                `return (html) => {
+                    ${this.transformFunction(functionGenerator)}
+                    return extractData(html);
+                }`,
+            )(cheerio);
+
+            const htmlContentTransformed = this.transformHtmlContent(htmlContent);
+            const mainContent = this.getMainContent({
+                html: htmlContentTransformed,
+                options: { mainContentSelector, isChildren: isGetParentElement },
+            });
+            if (!mainContent) throw new Error(`Main content not found for selector: ${mainContentSelector}`);
+
+            const result = extractData(mainContent);
+
+            return result;
+        } catch (error) {
+            console.error('Error run function extract data:', error?.message);
+            throw new Error(`Error run function extract data: ${error?.message}`);
+        }
+    }
+
+    private getMainContent(dto: { html: string; options?: { mainContentSelector?: string; isChildren?: boolean } }): string {
+        const { html, options } = dto;
+
+        if (!options?.mainContentSelector) return html;
+
+        try {
+            const $ = cheerio.load(html);
+            const mainContent = options?.isChildren ? $(options.mainContentSelector).parent() : $(options.mainContentSelector);
+
+            // Get outer html
+            const outterHTML = mainContent.length > 0 ? $.html(mainContent.get(0)) : $.html(mainContent);
+            return outterHTML || '';
+        } catch (error) {
+            return null;
+        }
+    }
+
+    private transformFunction(functionString: string): string {
+        if (!functionString) return '';
+        return functionString.replace('```javascript', '').replace('```', '').trim();
+    }
+
+    private transformHtmlContent(htmlContent: string): string {
+        try {
+            const $ = cheerio.load(htmlContent);
+            const bodyContent = $('html');
+
+            // Remove all style tags, CSS link tags
+            bodyContent.find('style').remove();
+            bodyContent.find('link[rel="icon"]').remove();
+            bodyContent.find('link[rel="stylesheet"]').remove();
+
+            return bodyContent.html().replace(/\n/g, '').trim();
+        } catch (error) {
+            return null;
+        }
+    }
+}
+
+export { ExtractDataHelper };

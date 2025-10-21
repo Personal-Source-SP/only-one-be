@@ -167,4 +167,11 @@ export class AppConfigService {
             password: this.get('REDIS_PASSWORD'),
         };
     }
+
+    get scraperConfig() {
+        return {
+            url: this.get('SCRAPER_URL'),
+            secretKey: this.get('SCRAPER_SECRET_KEY'),
+        };
+    }
 }
