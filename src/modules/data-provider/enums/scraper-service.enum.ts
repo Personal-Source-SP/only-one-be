@@ -1,4 +1,4 @@
 export enum ScraperServiceEnum {
     GENERIC = 'generic',
-    AMAZON = 'amazon',
+    API = 'api',
 }

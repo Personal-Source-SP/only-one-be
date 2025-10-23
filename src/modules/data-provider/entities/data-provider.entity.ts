@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DataProviderSearchStatus, DataProviderStatus } from '../enums';
+import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ISearchConfig, ITargetConfig } from '../interfaces';
 import { ConfigVersionEntity } from './config-version.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
@@ -20,9 +20,9 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     name: string;
 
-    @Column({ length: 100, default: 'generic' })
+    @Column({ length: 100, default: ScraperServiceEnum.GENERIC })
     @AutoMap()
-    scraperService: string;
+    scraperService: ScraperServiceEnum;
 
     @Column({ length: 255 })
     @AutoMap()

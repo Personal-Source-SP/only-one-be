@@ -20,9 +20,9 @@ export class ParserService {
 
         const extractData = await this.extractDataHelper.runFunctionExtractData({
             htmlContent: request.htmlContentString,
-            functionGenerator: request.targetConfig.functionGenerator,
-            mainContentSelector: request.targetConfig.mainContentSelector,
-            isGetParentElement: request.targetConfig.isGetParentElement,
+            functionGenerator: request.functionGenerator,
+            mainContentSelector: request.mainContentSelector,
+            isGetParentElement: request.isGetParentElement,
         });
 
         return extractData;

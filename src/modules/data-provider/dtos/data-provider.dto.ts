@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { DataProviderSearchStatus, DataProviderStatus } from '../enums';
+import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ISearchConfig, ITargetConfig } from '../interfaces';
 import { ConfigVersionDto } from './config-version.dto';
 import { DataProviderItemDto } from './data-provider-item.dto';
@@ -17,7 +17,7 @@ export class DataProviderDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    scraperService: string;
+    scraperService: ScraperServiceEnum;
 
     @ApiResponseProperty()
     @AutoMap()
