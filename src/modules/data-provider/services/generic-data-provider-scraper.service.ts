@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { parsePrice } from '../../worker/helpers/price-parser';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
-import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
-import { IDataProviderScraperService, IExtractDataResponse, IScraperRequest, ITargetConfig } from '../interfaces';
+import {
+    IDataProviderScraperService,
+    IExtractDataResponse,
+    IGetExtractDataRequest,
+    IScrapeItemDataRequest,
+    IScraperRequest,
+    ITargetConfig,
+    IValidateParserFunctionRequest,
+} from '../interfaces';
 import { ScraperService } from './scraper.service';
 
 @Injectable()
@@ -13,7 +20,9 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
         private readonly extractDataHelper: ExtractDataHelper,
     ) {}
 
-    async scrapeItemData(dataProviderItem: DataProviderItemEntity): Promise<ScrapeItemDataResponseDto> {
+    async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
+        const { dataProviderItem } = request;
+
         const dataProvider = dataProviderItem.dataProvider;
 
         const targetConfig: ITargetConfig = dataProvider.targetConfig;
@@ -39,7 +48,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
         };
 
         try {
-            const extractData = await this.getExtractData(targetConfig, requestOptions);
+            const extractData = await this.getExtractData({ targetConfig, requestOptions });
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
@@ -52,7 +61,6 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
                 ...defaultResponse,
                 status: 'success',
                 html: extractData.html,
-                image: extractData.image,
                 request: requestOptions,
                 extractedDataResult: extractData.data,
             });
@@ -66,13 +74,15 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
         }
     }
 
-    async validateParserFunction(productUrl: string, targetConfig: ITargetConfig): Promise<ValidateParserFunctionResponseDto> {
+    async validateParserFunction(request: IValidateParserFunctionRequest): Promise<ValidateParserFunctionResponseDto> {
+        const { targetConfig, productUrl } = request;
+
         const requestOptions: IScraperRequest = {
             url: productUrl,
         };
 
         try {
-            const extractData = await this.getExtractData(targetConfig, requestOptions);
+            const extractData = await this.getExtractData({ targetConfig, requestOptions });
             if (extractData?.error) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
@@ -110,11 +120,9 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
         }
     }
 
-    async getExtractData(
-        targetConfig: ITargetConfig,
-        requestOptions?: IScraperRequest,
-        htmlContentString?: string,
-    ): Promise<IExtractDataResponse> {
+    async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
+        const { targetConfig, requestOptions, htmlContentString } = request;
+
         try {
             // Get html content if not provided
             let html = htmlContentString;

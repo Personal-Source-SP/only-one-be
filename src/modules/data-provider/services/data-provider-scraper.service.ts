@@ -63,7 +63,7 @@ export class DataProviderScraperService {
             });
         }
 
-        return await dataProviderScraperService.scrapeItemData(dataProviderItem);
+        return await dataProviderScraperService.scrapeItemData({ dataProviderItem });
     }
 
     async validateParserFunction(dto: {
@@ -81,6 +81,6 @@ export class DataProviderScraperService {
             });
         }
 
-        return await dataProviderScraperService.validateParserFunction(itemUrl, targetConfig);
+        return await dataProviderScraperService.validateParserFunction({ targetConfig, productUrl: itemUrl });
     }
 }

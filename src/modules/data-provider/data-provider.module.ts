@@ -38,6 +38,7 @@ const services = [
     DataProviderService,
     DataProviderItemService,
     DataProviderScraperService,
+    ApiDataProviderScraperService,
     GenericDataProviderScraperService,
 ];
 

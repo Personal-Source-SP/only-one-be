@@ -3,7 +3,15 @@ import { parsePrice } from '../../worker/helpers/price-parser';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
-import { IDataProviderScraperService, IExtractDataResponse, IScraperRequest, ITargetConfig } from '../interfaces';
+import {
+    IDataProviderScraperService,
+    IExtractDataResponse,
+    IGetExtractDataRequest,
+    IScrapeItemDataRequest,
+    IScraperRequest,
+    ITargetConfig,
+    IValidateParserFunctionRequest,
+} from '../interfaces';
 import { ScraperService } from './scraper.service';
 
 @Injectable()
@@ -13,7 +21,9 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
         private readonly extractDataHelper: ExtractDataHelper,
     ) {}
 
-    async scrapeItemData(dataProviderItem: DataProviderItemEntity): Promise<ScrapeItemDataResponseDto> {
+    async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
+        const { dataProviderItem } = request;
+
         const dataProvider = dataProviderItem.dataProvider;
 
         const targetConfig: ITargetConfig = dataProvider.targetConfig;
@@ -34,45 +44,34 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
             dataProviderItemId: dataProviderItem.id,
         });
 
-        const requestOptions: IScraperRequest = {
-            url: dataProviderItem.itemUrl,
-        };
-
         try {
-            const extractData = await this.getExtractData(targetConfig, requestOptions);
+            const extractData = await this.getExtractData({ targetConfig });
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
                     error: extractData.error,
-                    request: requestOptions,
                 });
             }
 
             return new ScrapeItemDataResponseDto({
                 ...defaultResponse,
                 status: 'success',
-                html: extractData.html,
-                image: extractData.image,
-                request: requestOptions,
                 extractedDataResult: extractData.data,
             });
         } catch (error) {
             console.error(error);
             return new ScrapeItemDataResponseDto({
                 ...defaultResponse,
-                request: requestOptions,
                 error: error?.message || 'Unknown error',
             });
         }
     }
 
-    async validateParserFunction(productUrl: string, targetConfig: ITargetConfig): Promise<ValidateParserFunctionResponseDto> {
-        const requestOptions: IScraperRequest = {
-            url: productUrl,
-        };
+    async validateParserFunction(request: IValidateParserFunctionRequest): Promise<ValidateParserFunctionResponseDto> {
+        const { targetConfig } = request;
 
         try {
-            const extractData = await this.getExtractData(targetConfig, requestOptions);
+            const extractData = await this.getExtractData({ targetConfig });
             if (extractData?.error) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
@@ -110,35 +109,31 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
         }
     }
 
-    async getExtractData(
-        targetConfig: ITargetConfig,
-        requestOptions?: IScraperRequest,
-        htmlContentString?: string,
-    ): Promise<IExtractDataResponse> {
+    async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
+        const { targetConfig, requestOptions, dataContent } = request;
+
         try {
             // Get html content if not provided
-            let html = htmlContentString;
-            if (!html) {
-                const htmlContent = await this.scraperService.getApiContent(requestOptions);
-                if (htmlContent.status !== 'success') {
-                    return { error: htmlContent.error_message || `Not found html content from ${requestOptions.url}` };
+            let data = dataContent;
+            if (!data) {
+                const dataContent = await this.scraperService.getApiContent(requestOptions);
+                if (dataContent.status !== 'success') {
+                    return { error: dataContent.error_message || `Not found data content from ${requestOptions.url}` };
                 }
 
-                html = htmlContent.html;
+                data = dataContent.data;
             }
 
-            const extractData = await this.extractDataHelper.runFunctionExtractData({
-                htmlContent: html,
+            const extractData = await this.extractDataHelper.runApiFunctionExtractData({
+                data: data,
                 functionGenerator: targetConfig.functionGenerator,
-                isGetParentElement: targetConfig.isGetParentElement,
-                mainContentSelector: targetConfig.mainContentSelector,
             });
 
             if (!extractData) {
                 return { error: 'Not found extract data' };
             }
 
-            return { data: extractData, html };
+            return { data: extractData };
         } catch (error) {
             console.error(error);
             return { error: error?.message || 'Unknown error' };
