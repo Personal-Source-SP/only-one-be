@@ -18,7 +18,7 @@ import {
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
-import { DataProviderStatus } from '../enums';
+import { DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ITargetConfig } from '../interfaces/target-config.interface';
 import { ConfigVersionService } from './config-version.service';
 import { DataProviderItemService } from './data-provider-item.service';
@@ -305,7 +305,10 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
         const { scraperService, targetConfig, itemUrl } = data;
         if (!targetConfig) throw new BadRequestException('Target config not found');
 
-        const requiredProperties: Array<keyof ITargetConfig> = ['mainContentSelector', 'functionGenerator', 'isGetParentElement'];
+        const requiredProperties: Array<keyof ITargetConfig> = ['functionGenerator'];
+        if (scraperService === ScraperServiceEnum.GENERIC) {
+            requiredProperties.push('mainContentSelector', 'isGetParentElement');
+        }
 
         const missingProperties: Array<keyof ITargetConfig> = requiredProperties.filter((prop) => !(prop in targetConfig));
         if (missingProperties.length) {
