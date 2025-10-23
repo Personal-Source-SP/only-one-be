@@ -6,6 +6,7 @@ import { DataHistoryController } from './controllers/data-history.controller';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DataProviderController } from './controllers/data-provider.controller';
 import { ItemController } from './controllers/item.controller';
+import { ParserController } from './controllers/parser.controller';
 import { DataProviderProfile } from './data-provider.profile';
 import { ConfigVersionEntity } from './entities/config-version.entity';
 import { DataHistoryEntity } from './entities/data-history.entity';
@@ -21,13 +22,15 @@ import { DataProviderScraperService } from './services/data-provider-scraper.ser
 import { DataProviderService } from './services/data-provider.service';
 import { GenericDataProviderScraperService } from './services/generic-data-provider-scraper.service';
 import { ItemService } from './services/item.service';
+import { ParserService } from './services/parser.service';
 import { ScraperService } from './services/scraper.service';
 
 const helpers = [ExtractDataHelper];
-const controllers = [ItemController, DataHistoryController, DataProviderController, DataProviderItemController];
 const entities = [DataProviderEntity, DataProviderItemEntity, DataHistoryEntity, ItemEntity, ConfigVersionEntity];
+const controllers = [ItemController, DataHistoryController, DataProviderController, DataProviderItemController, ParserController];
 const services = [
     ItemService,
+    ParserService,
     ScraperService,
     DataHistoryService,
     ConfigVersionService,
