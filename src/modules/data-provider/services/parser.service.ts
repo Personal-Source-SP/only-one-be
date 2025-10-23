@@ -11,15 +11,16 @@ export class ParserService {
     ) {}
 
     async testParserFunction(request: TestParserFunctionRequestDto): Promise<IExtractDataResponse> {
-        const { url, dataContent, ...targetConfig } = request;
+        const { url, dataContent, htmlContentString, ...targetConfig } = request;
 
-        if (!url && !dataContent) throw new BadRequestException('URL or Data content is required');
+        if (!url && !dataContent && !htmlContentString) throw new BadRequestException('URL, Data content or Html content is required');
 
         const dataProviderScraperService = this.dataProviderScraperServiceMap[request.scraperService];
         if (!dataProviderScraperService) throw new BadRequestException(`Scraper service ${request.scraperService} not found`);
 
         const extractData = await dataProviderScraperService.getExtractData({
             dataContent,
+            htmlContentString,
             targetConfig: targetConfig as ITargetConfig,
             requestOptions: {
                 url,
