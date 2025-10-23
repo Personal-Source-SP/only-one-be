@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { ScraperServiceEnum } from '../../enums';
 
@@ -77,6 +77,51 @@ export class UpdateTargetConfigRequestDto {
     @IsOptional()
     @IsBoolean()
     isGetParentElement?: boolean;
+
+    @ApiPropertyOptional({ description: 'Delay between retries in ms' })
+    @IsOptional()
+    @IsNumber()
+    retryDelay?: number;
+
+    @ApiPropertyOptional({ description: 'Number of retry attempts on error' })
+    @IsOptional()
+    @IsNumber()
+    retryAttempts?: number;
+
+    @ApiPropertyOptional({ description: 'Enable stealth mode to bypass bot detection' })
+    @IsOptional()
+    @IsBoolean()
+    stealthMode?: boolean;
+
+    @ApiPropertyOptional({ description: 'Enable Cloudflare Bypass' })
+    @IsOptional()
+    @IsBoolean()
+    cloudflareBypass?: boolean;
+
+    @ApiPropertyOptional({ description: 'Selector to wait for before fetching content' })
+    @IsOptional()
+    @IsString()
+    waitForSelector?: string;
+
+    @ApiPropertyOptional({ description: 'User agent string for browser simulation' })
+    @IsOptional()
+    @IsString()
+    userAgent?: string;
+
+    @ApiPropertyOptional({ description: 'Enable or disable JavaScript execution' })
+    @IsOptional()
+    @IsBoolean()
+    javascriptEnabled?: boolean;
+
+    @ApiPropertyOptional({ description: 'Enable or disable image loading' })
+    @IsOptional()
+    @IsBoolean()
+    imagesEnabled?: boolean;
+
+    @ApiPropertyOptional({ description: 'Enable or disable CSS loading' })
+    @IsOptional()
+    @IsBoolean()
+    cssEnabled?: boolean;
 }
 
 export class DataProviderPaginationFilterDto {

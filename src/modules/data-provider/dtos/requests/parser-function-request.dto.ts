@@ -1,30 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { UpdateTargetConfigRequestDto } from './data-provider-request.dto';
 
-export class TargetConfigRequest {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    functionGenerator?: string;
-
-    @ApiProperty()
-    @IsString()
-    mainContentSelector: string;
-
-    @ApiProperty({ default: false })
-    @IsBoolean()
-    isGetParentElement: boolean;
-}
-
-export class TestParserFunctionRequestDto {
-    @ApiProperty({ description: 'Scraper service name' })
-    @IsString()
-    scraperService: string;
-
-    @ApiProperty({ type: TargetConfigRequest, description: 'Target config' })
-    @IsObject()
-    targetConfig: TargetConfigRequest;
-
+export class TestParserFunctionRequestDto extends UpdateTargetConfigRequestDto {
     @ApiPropertyOptional({ description: 'URL' })
     @IsOptional()
     @ValidateIf((o) => !o.htmlContentString)
