@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Put, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 
@@ -6,7 +6,7 @@ import { BaseController } from '../../../common/base.controller';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ITEM_PAGINATION_CONFIG } from '../constants/item-pagination.config';
 import { ItemDto } from '../dtos/item.dto';
-import { ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
+import { CreateItemRequestDto, ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
 import { ItemService } from '../services/item.service';
 
 @Controller('items')
@@ -37,6 +37,16 @@ export class ItemController extends BaseController {
     @ApiPaginationQuery(ITEM_PAGINATION_CONFIG)
     public async getItemsPagination(@Paginate() query: ItemPaginationRequestDto): Promise<Paginated<ItemDto>> {
         const result = await this.itemService.getItemsPagination(query, ITEM_PAGINATION_CONFIG);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Create item' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post()
+    @ApiOkResponse({ type: ItemDto })
+    public async createItem(@Body() request: CreateItemRequestDto): Promise<ItemDto> {
+        const result = await this.itemService.createItem(request);
         return result;
     }
 
