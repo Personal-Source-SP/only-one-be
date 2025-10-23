@@ -29,31 +29,40 @@ export class ScraperService implements OnModuleDestroy {
     }
 
     async getHtmlContent(params: IScraperRequest): Promise<IScraperResponse> {
+        const {
+            retryAttempts = 3,
+            retryDelay = 2000,
+            timeout = 30000,
+            waitForTimeout = 10000,
+            url,
+            waitForSelector,
+            stealthMode,
+            cloudflareBypass,
+        } = params;
+
         const startTime = Date.now();
-        const retryAttempts = params.retryAttempts || 3;
-        const retryDelay = params.retryDelay || 2000;
 
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
             let page: Page | null = null;
 
             try {
-                const browser = await this.getBrowser(params.stealthMode);
+                const browser = await this.getBrowser(stealthMode);
                 page = await browser.newPage();
 
                 await this.configurePage(page, params);
 
-                if (params.cloudflareBypass) {
+                if (cloudflareBypass) {
                     await this.handleCloudflare(page, params);
                 }
 
-                await page.goto(params.url, {
+                await page.goto(url, {
+                    timeout,
                     waitUntil: 'networkidle2',
-                    timeout: params.timeout || 30000,
                 });
 
-                if (params.waitForSelector) {
-                    await page.waitForSelector(params.waitForSelector, {
-                        timeout: params.waitForTimeout || 10000,
+                if (waitForSelector) {
+                    await page.waitForSelector(waitForSelector, {
+                        timeout: waitForTimeout,
                     });
                 }
 
@@ -92,33 +101,34 @@ export class ScraperService implements OnModuleDestroy {
     }
 
     async getApiContent(params: IScraperRequest): Promise<IScraperResponse> {
+        const { retryAttempts = 3, retryDelay = 2000, timeout = 30000, userAgent, headers, cookies, url, queryParams } = params;
+
         const startTime = Date.now();
-        const retryAttempts = params.retryAttempts || 3;
-        const retryDelay = params.retryDelay || 2000;
 
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
             try {
                 const config: AxiosRequestConfig = {
-                    timeout: params.timeout || 30000,
+                    timeout,
                     headers: {
                         'User-Agent':
-                            params.userAgent ||
+                            userAgent ||
                             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                         'Accept-Language': 'en-US,en;q=0.9',
                         'Accept-Encoding': 'gzip, deflate, br',
                         'Cache-Control': 'no-cache',
                         Pragma: 'no-cache',
-                        ...params.headers,
+                        ...headers,
                     },
                 };
 
-                if (params.cookies && params.cookies.length > 0) {
-                    const cookieString = params.cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
+                if (cookies?.length > 0) {
+                    const cookieString = cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
                     config.headers['Cookie'] = cookieString;
                 }
 
-                const response = await this.baseHttpService.get<Record<string, any>>(params.url, config);
+                const requestUrl = queryParams ? `${url}?${queryParams}` : url;
+                const response = await this.baseHttpService.get<Record<string, any>>(requestUrl, config);
 
                 return {
                     status: 'success',
@@ -199,6 +209,8 @@ export class ScraperService implements OnModuleDestroy {
     }
 
     private async handleCloudflare(page: Page, params: IScraperRequest): Promise<void> {
+        const { userAgent } = params;
+
         await page.evaluateOnNewDocument(() => {
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined,
@@ -233,36 +245,30 @@ export class ScraperService implements OnModuleDestroy {
         });
 
         await page.setUserAgent(
-            params.userAgent ||
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         );
     }
 
     private async configurePage(page: Page, params: IScraperRequest): Promise<void> {
-        if (params.viewport) {
-            await page.setViewport({
-                width: params.viewport.width,
-                height: params.viewport.height,
-            });
+        const { userAgent, headers, cookies, javascriptEnabled, imagesEnabled, cssEnabled } = params;
+
+        if (userAgent) {
+            await page.setUserAgent(userAgent);
         }
 
-        if (params.userAgent) {
-            await page.setUserAgent(params.userAgent);
+        if (headers) {
+            await page.setExtraHTTPHeaders(headers);
         }
 
-        if (params.headers) {
-            await page.setExtraHTTPHeaders(params.headers);
+        if (cookies) {
+            await page.setCookie(...cookies);
         }
 
-        if (params.cookies) {
-            await page.setCookie(...params.cookies);
-        }
-
-        if (params.javascriptEnabled === false) {
+        if (javascriptEnabled === false) {
             await page.setJavaScriptEnabled(false);
         }
 
-        if (params.imagesEnabled === false) {
+        if (imagesEnabled === false) {
             await page.setRequestInterception(true);
             page.on('request', (req) => {
                 if (req.resourceType() === 'image') {
@@ -273,7 +279,7 @@ export class ScraperService implements OnModuleDestroy {
             });
         }
 
-        if (params.cssEnabled === false) {
+        if (cssEnabled === false) {
             await page.setRequestInterception(true);
             page.on('request', (req) => {
                 if (req.resourceType() === 'stylesheet') {

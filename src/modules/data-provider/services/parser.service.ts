@@ -21,6 +21,10 @@ export class ParserService {
         const extractData = await dataProviderScraperService.getExtractData({
             dataContent,
             targetConfig: targetConfig as ITargetConfig,
+            requestOptions: {
+                url,
+                ...targetConfig,
+            },
         });
 
         return extractData;
