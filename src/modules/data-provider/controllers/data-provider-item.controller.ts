@@ -9,8 +9,8 @@ import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DataProviderItemPaginationRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemService } from '../services/data-provider-item.service';
 
-@Controller('data-provider-item')
-@ApiTags('data-provider-item')
+@Controller('data-provider-items')
+@ApiTags('data-provider-items')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DataProviderItemController extends BaseController {

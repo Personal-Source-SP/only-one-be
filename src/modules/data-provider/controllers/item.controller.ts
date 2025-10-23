@@ -9,8 +9,8 @@ import { ItemDto } from '../dtos/item.dto';
 import { ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
 import { ItemService } from '../services/item.service';
 
-@Controller('item')
-@ApiTags('item')
+@Controller('items')
+@ApiTags('items')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ItemController extends BaseController {
