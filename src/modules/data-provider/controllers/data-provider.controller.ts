@@ -9,6 +9,7 @@ import {
     CreateDataProviderRequestDto,
     DataProviderPaginationRequestDto,
     UpdateDataProviderRequestDto,
+    UpdateTargetConfigRequestDto,
 } from '../dtos/requests/data-provider-request.dto';
 import { ConfigVersionService } from '../services/config-version.service';
 import { DataProviderService } from '../services/data-provider.service';
@@ -64,6 +65,19 @@ export class DataProviderController extends BaseController {
     @ApiOkResponse({ type: DataProviderDto })
     public async createDataProvider(@Body() request: CreateDataProviderRequestDto): Promise<DataProviderDto> {
         const result = await this.dataProviderService.createDataProvider(request);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Update search config' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Put(':id/target-config')
+    @ApiOkResponse({ type: Boolean })
+    public async updateTargetConfig(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() request: UpdateTargetConfigRequestDto,
+    ): Promise<boolean> {
+        const result = await this.dataProviderService.updateTargetConfig(id, request);
         return result;
     }
 

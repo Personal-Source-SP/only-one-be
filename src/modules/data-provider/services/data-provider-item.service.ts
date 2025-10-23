@@ -36,16 +36,13 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity>
         filter: FindOptionsWhere<DataProviderItemEntity>,
         options?: { isRandom?: boolean; relations?: string[] },
     ): Promise<DataProviderItemEntity> {
-        const queryBuilder = this.dataProviderItemRepository.createQueryBuilder('dataProviderItem').where(filter);
-
-        queryBuilder.leftJoinAndSelect('dataProviderItem.dataProvider', 'dataProvider').leftJoinAndSelect('dataProvider.parent', 'parent');
+        const queryBuilder = this.dataProviderItemRepository
+            .createQueryBuilder('dataProviderItem')
+            .leftJoinAndSelect('dataProviderItem.dataProvider', 'dataProvider')
+            .where(filter);
 
         if (options?.isRandom) {
-            queryBuilder
-                .limit(20)
-                .orderBy('RANDOM()')
-                .addOrderBy('dataProviderItem.createdAt', 'DESC')
-                .addOrderBy(`CASE WHEN dataProviderProduct.lastScrapeStatus = 'success' THEN 0 ELSE 1 END`, 'ASC');
+            queryBuilder.limit(20).orderBy('RANDOM()').addOrderBy('dataProviderItem.createdAt', 'DESC');
         }
 
         if (options?.relations?.length) {

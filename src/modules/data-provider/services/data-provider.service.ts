@@ -10,7 +10,6 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import {
-    CreateConfigVersionRequestDto,
     CreateDataProviderRequestDto,
     DataProviderPaginationRequestDto,
     UpdateDataProviderRequestDto,
@@ -19,7 +18,7 @@ import {
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
-import { DataProviderStatus, ScraperServiceEnum } from '../enums';
+import { DataProviderStatus } from '../enums';
 import { ITargetConfig } from '../interfaces/target-config.interface';
 import { ConfigVersionService } from './config-version.service';
 import { DataProviderItemService } from './data-provider-item.service';
@@ -166,17 +165,14 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
         }
     }
 
-    async updateTargetConfig(id: string, request: UpdateTargetConfigRequestDto, user: PayloadDto): Promise<boolean> {
+    async updateTargetConfig(id: string, request: UpdateTargetConfigRequestDto): Promise<boolean> {
         const dataProviderEntity = await this.findOneByFilter({ id });
 
         if (!dataProviderEntity) {
             throw new NotFoundException(`Data provider with ID ${id} not found or is not a parent data provider`);
         }
 
-        const scraperService = request.scraperService || (dataProviderEntity.scraperService as ScraperServiceEnum);
-
         const targetConfig: ITargetConfig = {
-            useBrowser: request.useBrowser,
             functionGenerator: request.functionGenerator,
             isGetParentElement: request.isGetParentElement,
             mainContentSelector: request.mainContentSelector,
@@ -200,17 +196,6 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
             if (oldStatus === DataProviderStatus.UNCONFIGURED) {
                 newStatus = DataProviderStatus.TESTING;
             }
-
-            const configVersionRequest = new CreateConfigVersionRequestDto({
-                targetConfig,
-                isActive: true,
-                dataProviderId: id,
-                changeType: request.changeType,
-                changeDescription: request.changeDescription,
-            });
-
-            const isCreatedConfigVersion = await this.configVersionService.createConfigVersion(configVersionRequest, user);
-            if (!isCreatedConfigVersion) return false;
 
             const result = await this.update(id, {
                 targetConfig,
@@ -320,12 +305,7 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
         const { scraperService, targetConfig, itemUrl } = data;
         if (!targetConfig) throw new BadRequestException('Target config not found');
 
-        const requiredProperties: Array<keyof ITargetConfig> = [
-            'useBrowser',
-            'mainContentSelector',
-            'functionGenerator',
-            'isGetParentElement',
-        ];
+        const requiredProperties: Array<keyof ITargetConfig> = ['mainContentSelector', 'functionGenerator', 'isGetParentElement'];
 
         const missingProperties: Array<keyof ITargetConfig> = requiredProperties.filter((prop) => !(prop in targetConfig));
         if (missingProperties.length) {

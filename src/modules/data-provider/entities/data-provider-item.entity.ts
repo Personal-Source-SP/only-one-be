@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } fr
 
 import { AbstractEntity } from '../../../common/entities';
 import { ScrapeStatusEnum } from '../enums';
+import { ITargetConfig } from '../interfaces';
 import { DataHistoryEntity } from './data-history.entity';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
@@ -24,7 +25,7 @@ export class DataProviderItemEntity extends AbstractEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
-    targetConfig: Record<string, any> | null;
+    targetConfig?: ITargetConfig;
 
     @Column({ type: 'varchar', length: 20, nullable: true })
     @AutoMap()

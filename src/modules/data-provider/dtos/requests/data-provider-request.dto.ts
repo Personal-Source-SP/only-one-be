@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
-import { ConfigVersionType, ScraperServiceEnum } from '../../enums';
+import { ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderRequestDto {
     @ApiPropertyOptional({ description: 'Identifier must contain only letters, numbers, and dashes' })
@@ -63,10 +63,6 @@ export class UpdateTargetConfigRequestDto {
     @IsEnum(ScraperServiceEnum)
     scraperService?: ScraperServiceEnum;
 
-    @ApiProperty({ default: false })
-    @IsBoolean()
-    useBrowser: boolean;
-
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
@@ -81,16 +77,6 @@ export class UpdateTargetConfigRequestDto {
     @IsOptional()
     @IsBoolean()
     isGetParentElement?: boolean;
-
-    // Properties for config version
-    @ApiProperty({ enum: ConfigVersionType })
-    @IsEnum(ConfigVersionType)
-    changeType: ConfigVersionType;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    changeDescription?: string;
 }
 
 export class DataProviderPaginationFilterDto {
