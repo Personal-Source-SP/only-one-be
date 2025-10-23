@@ -76,6 +76,15 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity>
         return this.mapper.map(dataProviderItem, DataProviderItemEntity, DataProviderItemDto);
     }
 
+    async getByDataProviderId(dataProviderId: string): Promise<DataProviderItemDto[]> {
+        const dataProviderItems = await this.dataProviderItemRepository.find({
+            where: { dataProviderId },
+            relations: ['item', 'dataProvider'],
+        });
+
+        return this.mapper.mapArray(dataProviderItems, DataProviderItemEntity, DataProviderItemDto);
+    }
+
     async getDataProviderItemsPagination(
         query: DataProviderItemPaginationRequestDto,
         globalConfig: PaginateConfig<DataProviderItemEntity>,

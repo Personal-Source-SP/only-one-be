@@ -18,12 +18,22 @@ export class DataProviderItemController extends BaseController {
         super();
     }
 
+    @ApiOperation({ summary: 'Get data provider items by data provider id' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('data-provider/:dataProviderId')
+    @ApiOkResponse({ type: DataProviderItemDto })
+    public async getByDataProviderId(@Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string): Promise<DataProviderItemDto[]> {
+        const result = await this.dataProviderItemService.getByDataProviderId(dataProviderId);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Get data provider item by id' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Get(':id')
     @ApiOkResponse({ type: DataProviderItemDto })
-    public async getDataProviderItemById(@Param('id', new ParseUUIDPipe()) id: string): Promise<DataProviderItemDto> {
+    public async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<DataProviderItemDto> {
         const result = await this.dataProviderItemService.getById(id);
         return result;
     }
