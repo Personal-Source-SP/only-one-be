@@ -30,7 +30,7 @@ export class DataProviderController extends BaseController {
     @Version('1')
     @Get(':id')
     @ApiOkResponse({ type: DataProviderDto })
-    public async getDataProviderItemById(@Param('id', new ParseUUIDPipe()) id: string): Promise<DataProviderDto> {
+    public async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<DataProviderDto> {
         const result = await this.dataProviderService.getById(id);
         return result;
     }

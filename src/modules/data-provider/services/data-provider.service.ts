@@ -48,7 +48,6 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
     async getById(id: string): Promise<DataProviderDto> {
         const dataProvider = await this.dataProviderRepository.findOne({
             where: { id },
-            relations: ['parent', 'children', 'dataProviderItems', 'configVersions'],
         });
 
         return this.mapper.map(dataProvider, DataProviderEntity, DataProviderDto);
