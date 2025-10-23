@@ -1,11 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Put, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 import { BaseController } from '../../../common/base.controller';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DATA_PROVIDER_PAGINATION_CONFIG } from '../constants/data-provider-pagination.config';
 import { DataProviderDto } from '../dtos/data-provider.dto';
-import { DataProviderPaginationRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests/data-provider-request.dto';
+import {
+    CreateDataProviderRequestDto,
+    DataProviderPaginationRequestDto,
+    UpdateDataProviderRequestDto,
+} from '../dtos/requests/data-provider-request.dto';
 import { ConfigVersionService } from '../services/config-version.service';
 import { DataProviderService } from '../services/data-provider.service';
 
@@ -40,6 +44,16 @@ export class DataProviderController extends BaseController {
     @ApiPaginationQuery(DATA_PROVIDER_PAGINATION_CONFIG)
     public async getDataProvidersPagination(@Paginate() query: DataProviderPaginationRequestDto): Promise<Paginated<DataProviderDto>> {
         const result = await this.dataProviderService.getDataProvidersPagination(query, DATA_PROVIDER_PAGINATION_CONFIG);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Create data provider' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post()
+    @ApiOkResponse({ type: DataProviderDto })
+    public async createDataProvider(@Body() request: CreateDataProviderRequestDto): Promise<DataProviderDto> {
+        const result = await this.dataProviderService.createDataProvider(request);
         return result;
     }
 
