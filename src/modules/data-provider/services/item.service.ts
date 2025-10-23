@@ -36,6 +36,11 @@ export class ItemService extends BaseService<ItemEntity> {
         return this.mapper.map(item, ItemEntity, ItemDto);
     }
 
+    async getAll(): Promise<ItemDto[]> {
+        const items = await this.findAll();
+        return this.mapper.mapArray(items, ItemEntity, ItemDto);
+    }
+
     async getItemsPagination(query: ItemPaginationRequestDto, globalConfig: PaginateConfig<ItemEntity>): Promise<Paginated<ItemDto>> {
         try {
             const queryBuilder = this.itemRepository.createQueryBuilder('item');

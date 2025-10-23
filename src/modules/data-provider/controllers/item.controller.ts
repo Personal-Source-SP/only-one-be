@@ -18,6 +18,16 @@ export class ItemController extends BaseController {
         super();
     }
 
+    @ApiOperation({ summary: 'Get all items' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('all')
+    @ApiOkResponse({ type: [ItemDto] })
+    public async getAll(): Promise<ItemDto[]> {
+        const result = await this.itemService.getAll();
+        return result;
+    }
+
     @ApiOperation({ summary: 'Get item by id' })
     @HttpCode(HttpStatus.OK)
     @Version('1')

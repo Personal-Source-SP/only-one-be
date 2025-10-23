@@ -25,6 +25,16 @@ export class DataProviderController extends BaseController {
         super();
     }
 
+    @ApiOperation({ summary: 'Get all data providers' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('all')
+    @ApiOkResponse({ type: [DataProviderDto] })
+    public async getAll(): Promise<DataProviderDto[]> {
+        const result = await this.dataProviderService.getAll();
+        return result;
+    }
+
     @ApiOperation({ summary: 'Get data provider by id' })
     @HttpCode(HttpStatus.OK)
     @Version('1')

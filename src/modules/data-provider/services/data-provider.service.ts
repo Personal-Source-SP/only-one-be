@@ -53,6 +53,11 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
         return this.mapper.map(dataProvider, DataProviderEntity, DataProviderDto);
     }
 
+    async getAll(): Promise<DataProviderDto[]> {
+        const dataProviders = await this.findAll();
+        return this.mapper.mapArray(dataProviders, DataProviderEntity, DataProviderDto);
+    }
+
     async getDataProvidersPagination(
         query: DataProviderPaginationRequestDto,
         globalConfig: PaginateConfig<DataProviderEntity>,

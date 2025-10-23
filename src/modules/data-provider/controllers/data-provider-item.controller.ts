@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Put, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 
@@ -6,7 +6,7 @@ import { BaseController } from '../../../common/base.controller';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DATA_PROVIDER_ITEM_PAGINATION_CONFIG } from '../constants/data-provider-item-pagination.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
-import { DataProviderItemPaginationRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
+import { CreateDataProviderItemRequestDto, DataProviderItemPaginationRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemService } from '../services/data-provider-item.service';
 
 @Controller('data-provider-items')
@@ -39,6 +39,16 @@ export class DataProviderItemController extends BaseController {
         @Paginate() query: DataProviderItemPaginationRequestDto,
     ): Promise<Paginated<DataProviderItemDto>> {
         const result = await this.dataProviderItemService.getDataProviderItemsPagination(query, DATA_PROVIDER_ITEM_PAGINATION_CONFIG);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Create data provider item' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post()
+    @ApiOkResponse({ type: DataProviderItemDto })
+    public async createDataProviderItem(@Body() request: CreateDataProviderItemRequestDto): Promise<DataProviderItemDto> {
+        const result = await this.dataProviderItemService.createDataProviderItem(request);
         return result;
     }
 
