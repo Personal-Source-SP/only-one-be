@@ -3,7 +3,9 @@ import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { BaseHttpService } from './../../../shared/services/base-http.service';
 
+import { AxiosRequestConfig } from 'axios';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { IScraperRequest, IScraperResponse } from '../interfaces/scraper.interface';
 
@@ -11,7 +13,10 @@ import { IScraperRequest, IScraperResponse } from '../interfaces/scraper.interfa
 export class ScraperService implements OnModuleDestroy {
     private browser: Browser | null = null;
 
-    constructor(private readonly logger: LoggerService) {
+    constructor(
+        private readonly logger: LoggerService,
+        private readonly baseHttpService: BaseHttpService,
+    ) {
         puppeteer.use(StealthPlugin());
         puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
     }
@@ -77,6 +82,59 @@ export class ScraperService implements OnModuleDestroy {
 
                 if (page) {
                     await page.close();
+                }
+
+                if (attempt < retryAttempts) {
+                    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+                }
+            }
+        }
+    }
+
+    async getApiContent(params: IScraperRequest): Promise<IScraperResponse> {
+        const startTime = Date.now();
+        const retryAttempts = params.retryAttempts || 3;
+        const retryDelay = params.retryDelay || 2000;
+
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+            try {
+                const config: AxiosRequestConfig = {
+                    timeout: params.timeout || 30000,
+                    headers: {
+                        'User-Agent':
+                            params.userAgent ||
+                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Cache-Control': 'no-cache',
+                        Pragma: 'no-cache',
+                        ...params.headers,
+                    },
+                };
+
+                if (params.cookies && params.cookies.length > 0) {
+                    const cookieString = params.cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
+                    config.headers['Cookie'] = cookieString;
+                }
+
+                const response = await this.baseHttpService.get<Record<string, any>>(params.url, config);
+
+                return {
+                    status: 'success',
+                    data: response.data,
+                    execution_time: Date.now() - startTime,
+                };
+            } catch (error) {
+                this.logger.error(`Get api content attempt ${attempt} failed: ${error?.message}`);
+
+                if (attempt === retryAttempts) {
+                    return {
+                        status: 'error',
+                        execution_time: Date.now() - startTime,
+                        error_code: error?.name || 'UNKNOWN_ERROR',
+                        error_message: error?.message || 'Unknown error',
+                    };
                 }
 
                 if (attempt < retryAttempts) {

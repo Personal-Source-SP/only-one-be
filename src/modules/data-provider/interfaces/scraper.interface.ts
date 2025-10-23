@@ -28,10 +28,14 @@ export interface IScraperRequest {
 
 export interface IScraperResponse {
     status: 'success' | 'error';
+
     html?: string;
-    error_code?: string;
-    error_message?: string;
-    execution_time?: number;
+    data?: Record<string, any>;
+
     url?: string;
     title?: string;
+    execution_time?: number;
+
+    error_code?: string;
+    error_message?: string;
 }

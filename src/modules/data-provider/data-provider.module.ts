@@ -15,6 +15,7 @@ import { DataProviderEntity } from './entities/data-provider.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { IDataProviderScraperService } from './interfaces';
+import { ApiDataProviderScraperService } from './services/api-data-provider-scraper.service';
 import { ConfigVersionService } from './services/config-version.service';
 import { DataHistoryService } from './services/data-history.service';
 import { DataProviderItemService } from './services/data-provider-item.service';
@@ -50,11 +51,13 @@ const services = [
         {
             provide: DATA_PROVIDER_SCRAPER_SERVICE_MAP,
             useFactory: (
+                apiDataProviderScraperService: ApiDataProviderScraperService,
                 genericDataProviderScraperService: GenericDataProviderScraperService,
             ): Record<string, IDataProviderScraperService> => ({
+                [DATA_PROVIDER_SCRAPER_SERVICE_MAP_KEY.API]: apiDataProviderScraperService,
                 [DATA_PROVIDER_SCRAPER_SERVICE_MAP_KEY.GENERIC]: genericDataProviderScraperService,
             }),
-            inject: [GenericDataProviderScraperService],
+            inject: [ApiDataProviderScraperService, GenericDataProviderScraperService],
         },
     ],
     exports: [...helpers, ...services, DataProviderProfile],

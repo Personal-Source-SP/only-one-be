@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 
-import { IRunFunctionExtractData } from '../interfaces/target-config.interface';
+import { IRunFunctionExtractData, IRunApiFunctionExtractData } from '../interfaces/target-config.interface';
 
 @Injectable()
 class ExtractDataHelper {
@@ -30,6 +30,39 @@ class ExtractDataHelper {
         } catch (error) {
             console.error('Error run function extract data:', error?.message);
             throw new Error(`Error run function extract data: ${error?.message}`);
+        }
+    }
+
+    async runApiFunctionExtractData(dto: IRunApiFunctionExtractData): Promise<Record<string, any>> {
+        const { functionGenerator, data } = dto;
+
+        if (!functionGenerator) {
+            throw new Error('Function generator is required');
+        }
+
+        if (!data || typeof data !== 'object') {
+            throw new Error('Data must be a valid object');
+        }
+
+        try {
+            const extractData = new Function(
+                'data',
+                `return (data) => {
+                    ${this.transformFunction(functionGenerator)}
+                    return extractData(data);
+                }`,
+            );
+
+            const result = extractData(data);
+
+            if (typeof result !== 'object' || result === null) {
+                throw new Error('Function must return an object');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error run API function extract data:', error?.message);
+            throw new Error(`Error run API function extract data: ${error?.message}`);
         }
     }
 

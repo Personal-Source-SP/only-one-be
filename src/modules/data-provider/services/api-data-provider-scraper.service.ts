@@ -119,7 +119,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
             // Get html content if not provided
             let html = htmlContentString;
             if (!html) {
-                const htmlContent = await this.scraperService.getHtmlContent(requestOptions);
+                const htmlContent = await this.scraperService.getApiContent(requestOptions);
                 if (htmlContent.status !== 'success') {
                     return { error: htmlContent.error_message || `Not found html content from ${requestOptions.url}` };
                 }

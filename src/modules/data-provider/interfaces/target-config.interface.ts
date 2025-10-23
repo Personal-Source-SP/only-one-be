@@ -14,16 +14,14 @@ export interface ITargetConfig {
     cssEnabled?: boolean; // Có tải CSS hay không
 }
 
-export interface IGenerateExtractDataFunction {
-    htmlContent: string;
-    mainContentSelector: string;
-    isGetParentElement: boolean;
-    additionalHtmlContent?: string[]; // Optional array of additional HTML content examples
-}
-
 export interface IRunFunctionExtractData {
     htmlContent: string;
     functionGenerator: string;
     mainContentSelector: string;
     isGetParentElement: boolean;
+}
+
+export interface IRunApiFunctionExtractData {
+    data: Record<string, any>;
+    functionGenerator: string;
 }
