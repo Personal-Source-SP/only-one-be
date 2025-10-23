@@ -13,7 +13,8 @@ export const DATA_PROVIDER_ITEM_PAGINATION_CONFIG = createPaginationConfig<DataP
     filterableColumns: {
         itemUrl: [FilterOperator.ILIKE, FilterOperator.EQ],
     },
-    select: [...dataProviderItemColumns],
+    relations: ['item', 'dataProvider'],
+    select: [...dataProviderItemColumns, 'item.name', 'dataProvider.name'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });
