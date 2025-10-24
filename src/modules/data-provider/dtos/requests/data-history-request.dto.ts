@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsDate, IsOptional, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDate, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateDataHistoryRequestDto {
     @ApiProperty()
@@ -43,4 +43,9 @@ export class ProcessScrapeDataRequestDto {
     @IsOptional()
     @IsDate()
     lastScrapeTimestamp?: Date;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsBoolean()
+    checkDuplicateData?: boolean;
 }

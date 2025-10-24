@@ -3,7 +3,7 @@ import { InjectMapper } from '@automapper/nestjs';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
@@ -166,13 +166,22 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             }
         }
 
-        const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
+        let dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
             return this.dataHistoryRepository.create({
                 scrapeTimestamp: new Date(),
                 metadata: successData.data,
+                dataId: successData?.data?.id || null,
                 dataProviderItemId: successData.dataProviderItemId,
             });
         });
+
+        if (request.checkDuplicateData) {
+            const dataIds = dataHistoryEntities.map((entity) => entity.dataId);
+            const duplicateData = await this.dataHistoryRepository.find({ where: { dataId: In(dataIds) }, select: ['dataId'] });
+
+            const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
+            dataHistoryEntities = dataHistoryEntities.filter((entity) => !duplicateDataIds.includes(entity.dataId));
+        }
 
         const savedDataHistoryEntities = await this.dataHistoryRepository.save(dataHistoryEntities);
         if (!savedDataHistoryEntities.length) {
