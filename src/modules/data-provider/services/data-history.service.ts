@@ -174,7 +174,6 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
                 response.error++;
                 response.errors.push({
                     dataProviderId: dataProvider.id,
-                    dataProviderItemId: dataProvider.dataProviderItems[0].id,
                     errorMessage: `Scraper service ${dataProvider.scraperService} not found`,
                 });
 

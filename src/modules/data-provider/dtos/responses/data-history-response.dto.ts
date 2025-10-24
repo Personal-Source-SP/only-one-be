@@ -13,8 +13,8 @@ export class ProcessScrapeDataResponse {
 
     errors?: {
         dataProviderId: string;
-        dataProviderItemId: string;
         errorMessage: string;
+        dataProviderItemId?: string;
     }[];
 
     constructor(data?: Partial<ProcessScrapeDataResponse>) {
