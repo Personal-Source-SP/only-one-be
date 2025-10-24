@@ -7,15 +7,11 @@ import { ISearchConfig, ITargetConfig } from '../interfaces';
 import { ConfigVersionEntity } from './config-version.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 
-@Entity({ name: 'data_providers', synchronize: true })
+@Entity({ name: 'data_providers', synchronize: false })
 @Check(`"base_url" NOT LIKE '%/'`)
 @Unique(['baseUrl'])
 @Check(`"identifier" is null OR "identifier" ~ '^[a-z0-9-]+$'`)
 export class DataProviderEntity extends AbstractEntity {
-    @Column({ length: 255, nullable: true, comment: 'Group identifier for region-specific providers' })
-    @AutoMap()
-    identifier?: string;
-
     @Column({ length: 255 })
     @AutoMap()
     name: string;
@@ -32,6 +28,10 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     status: DataProviderStatus;
 
+    @Column({ length: 255, nullable: true, comment: 'Group identifier for region-specific providers' })
+    @AutoMap()
+    identifier?: string;
+
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
     targetConfig?: ITargetConfig;
@@ -40,11 +40,6 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     lastSuccessfulScrapeAt?: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
-    @AutoMap()
-    lastFailedScrapeAt?: Date;
-
-    // New field for search config
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
     searchConfig?: ISearchConfig;

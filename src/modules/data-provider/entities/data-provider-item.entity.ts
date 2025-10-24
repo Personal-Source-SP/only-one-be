@@ -2,13 +2,12 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { ScrapeStatusEnum } from '../enums';
 import { ITargetConfig } from '../interfaces';
 import { DataHistoryEntity } from './data-history.entity';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
 
-@Entity({ name: 'data_provider_items', synchronize: true })
+@Entity({ name: 'data_provider_items', synchronize: false })
 @Unique(['itemId', 'dataProviderId'])
 export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
@@ -26,10 +25,6 @@ export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
     targetConfig?: ITargetConfig;
-
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    @AutoMap()
-    lastScrapeStatus?: ScrapeStatusEnum;
 
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()

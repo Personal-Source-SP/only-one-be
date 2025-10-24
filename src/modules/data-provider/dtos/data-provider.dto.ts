@@ -37,10 +37,6 @@ export class DataProviderDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    lastFailedScrapeAt?: Date;
-
-    @ApiResponseProperty()
-    @AutoMap()
     searchConfig?: ISearchConfig;
 
     @ApiResponseProperty()
