@@ -1,7 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
-import { ScrapeStatusEnum } from '../../enums/scrape-status.enum';
+import { IsArray, IsDate, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateDataHistoryRequestDto {
     @ApiProperty()
@@ -9,42 +8,16 @@ export class CreateDataHistoryRequestDto {
     @AutoMap()
     dataProviderItemId: string;
 
-    @ApiProperty()
-    @IsEnum(ScrapeStatusEnum)
-    @AutoMap()
-    status: ScrapeStatusEnum;
-
     @ApiPropertyOptional()
     @IsOptional()
-    @IsNumber()
-    @Min(0)
+    @IsDate()
     @AutoMap()
-    price?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    @AutoMap()
-    regularPrice?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(10)
-    @AutoMap()
-    currency?: string;
+    scrapeTimestamp?: Date;
 
     @ApiPropertyOptional()
     @IsOptional()
     @AutoMap()
     metadata?: Record<string, any>;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @AutoMap()
-    errorMessage?: string;
 }
 
 export class FilterDataHistoryPaginationDto {
@@ -52,29 +25,6 @@ export class FilterDataHistoryPaginationDto {
     @IsOptional()
     @IsUUID()
     dataProviderItemId?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsEnum(ScrapeStatusEnum)
-    status?: ScrapeStatusEnum;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    minPrice?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    maxPrice?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(10)
-    currency?: string;
 }
 
 export class DataHistoryPaginationRequestDto {
@@ -85,8 +35,9 @@ export class DataHistoryPaginationRequestDto {
 
 export class ProcessScrapeDataRequestDto {
     @ApiProperty()
+    @IsOptional()
     @IsArray()
-    dataProviderIds: string[];
+    dataProviderIds?: string[];
 
     @ApiPropertyOptional()
     @IsOptional()

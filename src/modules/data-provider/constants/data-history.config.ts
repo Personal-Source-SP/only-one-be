@@ -5,7 +5,7 @@ import { DataHistoryEntity } from '../entities/data-history.entity';
 const dataHistoryColumns = getColumnNames(DataHistoryEntity);
 
 export const DATA_HISTORY_PAGINATION_CONFIG = createPaginationConfig<DataHistoryEntity>({
-    sortableColumns: ['scrapeTimestamp', 'status'],
+    sortableColumns: ['scrapeTimestamp', 'dataId'],
     defaultSortBy: [['scrapeTimestamp', 'DESC']],
     relations: ['dataProviderItem'],
     select: [...dataHistoryColumns],

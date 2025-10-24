@@ -14,7 +14,7 @@ import { ProcessDataProviderItemResponse, ProcessScrapeDataResponse } from '../d
 import { DataHistoryEntity } from '../entities/data-history.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
-import { DataProviderStatus, ScrapeStatusEnum } from '../enums';
+import { DataProviderStatus } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
 
@@ -54,40 +54,6 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
     ): Promise<Paginated<DataHistoryDto>> {
         try {
             const queryBuilder = this.dataHistoryRepository.createQueryBuilder('dataHistory');
-
-            // Handle dataProviderItemId filter
-            if (query.filter?.dataProviderItemId) {
-                queryBuilder.andWhere('dataHistory.dataProviderItemId = :dataProviderItemId', {
-                    dataProviderItemId: query.filter.dataProviderItemId,
-                });
-            }
-
-            // Handle status filter
-            if (query.filter?.status) {
-                queryBuilder.andWhere('dataHistory.status = :status', {
-                    status: query.filter.status,
-                });
-            }
-
-            // Handle price range filter
-            if (query.filter?.minPrice !== undefined) {
-                queryBuilder.andWhere('dataHistory.price >= :minPrice', {
-                    minPrice: query.filter.minPrice,
-                });
-            }
-
-            if (query.filter?.maxPrice !== undefined) {
-                queryBuilder.andWhere('dataHistory.price <= :maxPrice', {
-                    maxPrice: query.filter.maxPrice,
-                });
-            }
-
-            // Handle currency filter
-            if (query.filter?.currency) {
-                queryBuilder.andWhere('dataHistory.currency = :currency', {
-                    currency: query.filter.currency,
-                });
-            }
 
             const paginatedResult: Paginated<DataHistoryEntity> = await this.getPaginationWithCustomQuery(
                 query as unknown as PaginateQuery,
@@ -203,7 +169,6 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
         const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
             return this.dataHistoryRepository.create({
                 scrapeTimestamp: new Date(),
-                status: ScrapeStatusEnum.SUCCESS,
                 metadata: successData.data,
                 dataProviderItemId: successData.dataProviderItemId,
             });
