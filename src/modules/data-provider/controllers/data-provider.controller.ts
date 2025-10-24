@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPi
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 import { BaseController } from '../../../common/base.controller';
+import { ResponseDto } from '../../../common/dto/response.dto';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DATA_PROVIDER_PAGINATION_CONFIG } from '../constants/data-provider-pagination.config';
 import { DataProviderDto } from '../dtos/data-provider.dto';
@@ -11,6 +12,7 @@ import {
     UpdateDataProviderRequestDto,
     UpdateTargetConfigRequestDto,
 } from '../dtos/requests/data-provider-request.dto';
+import { DataProviderStatus } from '../enums';
 import { ConfigVersionService } from '../services/config-version.service';
 import { DataProviderService } from '../services/data-provider.service';
 
@@ -65,6 +67,16 @@ export class DataProviderController extends BaseController {
     @ApiOkResponse({ type: DataProviderDto })
     public async createDataProvider(@Body() request: CreateDataProviderRequestDto): Promise<DataProviderDto> {
         const result = await this.dataProviderService.createDataProvider(request);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Switch status data provider' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Put(':id/switch-status/:status')
+    @ApiOkResponse({ type: Boolean })
+    public async switchStatus(@Param('status') status: DataProviderStatus, @Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
+        const result = await this.dataProviderService.switchStatus(id, status);
         return result;
     }
 
