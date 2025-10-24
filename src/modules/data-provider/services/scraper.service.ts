@@ -101,7 +101,7 @@ export class ScraperService implements OnModuleDestroy {
     }
 
     async getApiContent(params: IScraperRequest): Promise<IScraperResponse> {
-        const { retryAttempts = 3, retryDelay = 2000, timeout = 30000, userAgent, headers, cookies, url, queryParams } = params;
+        const { retryAttempts, retryDelay, timeout, userAgent, headers, cookies, url, queryParams } = params;
 
         const startTime = Date.now();
 

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { parsePrice } from '../../worker/helpers/price-parser';
+import { isEmpty } from 'lodash';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
-import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
 import {
     IDataProviderScraperService,
@@ -44,8 +43,13 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
             dataProviderItemId: dataProviderItem.id,
         });
 
+        const requestOptions: IScraperRequest = {
+            ...(targetConfig as unknown as IScraperRequest),
+            url: dataProviderItem.itemUrl,
+        };
+
         try {
-            const extractData = await this.getExtractData({ targetConfig });
+            const extractData = await this.getExtractData({ targetConfig, requestOptions });
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
@@ -68,10 +72,15 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     }
 
     async validateParserFunction(request: IValidateParserFunctionRequest): Promise<ValidateParserFunctionResponseDto> {
-        const { targetConfig } = request;
+        const { targetConfig, productUrl } = request;
+
+        const requestOptions: IScraperRequest = {
+            ...(targetConfig as unknown as IScraperRequest),
+            url: productUrl,
+        };
 
         try {
-            const extractData = await this.getExtractData({ targetConfig });
+            const extractData = await this.getExtractData({ targetConfig, requestOptions });
             if (extractData?.error) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
@@ -79,20 +88,10 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
                 });
             }
 
-            if (!extractData.data?.productPrice) {
+            if (isEmpty(extractData.data)) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
-                    error: 'Function parse price is not valid, cannot parse product price',
-                });
-            }
-
-            const productPrice = parsePrice(extractData.data?.productPrice ?? 0);
-            const regularPrice = parsePrice(extractData.data?.regularPrice ?? 0);
-
-            if (productPrice <= 0 && regularPrice <= 0) {
-                return new ValidateParserFunctionResponseDto({
-                    status: 'error',
-                    error: 'Parse price is not valid',
+                    error: 'Function parse data is not valid, cannot parse data',
                 });
             }
 
@@ -110,7 +109,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     }
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
-        const { targetConfig, requestOptions, dataContent } = request;
+        const { targetConfig, dataContent, requestOptions } = request;
 
         try {
             // Get html content if not provided
@@ -120,7 +119,6 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
                 if (dataContent.status !== 'success') {
                     return { error: dataContent.error_message || `Not found data content from ${requestOptions.url}` };
                 }
-
                 data = dataContent.data;
             }
 

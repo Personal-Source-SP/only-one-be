@@ -45,6 +45,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
 
         const requestOptions: IScraperRequest = {
             url: dataProviderItem.itemUrl,
+            ...(targetConfig as unknown as IScraperRequest),
         };
 
         try {
@@ -79,6 +80,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
 
         const requestOptions: IScraperRequest = {
             url: productUrl,
+            ...(targetConfig as unknown as IScraperRequest),
         };
 
         try {

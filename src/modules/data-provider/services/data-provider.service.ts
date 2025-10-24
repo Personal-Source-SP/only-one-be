@@ -172,17 +172,13 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
             throw new NotFoundException(`Data provider with ID ${id} not found or is not a parent data provider`);
         }
 
-        const targetConfig: ITargetConfig = {
-            functionGenerator: request.functionGenerator,
-            isGetParentElement: request.isGetParentElement,
-            mainContentSelector: request.mainContentSelector,
-        };
+        const { scraperService, ...targetConfig } = request;
 
         const product = await this.getProviderItemRandom(id);
         const validateParserFunction = await this.validateTargetConfig({
-            targetConfig,
+            scraperService,
             itemUrl: product.itemUrl,
-            scraperService: request.scraperService,
+            targetConfig: targetConfig as ITargetConfig,
         });
 
         if (validateParserFunction.status !== 'success') {
@@ -323,56 +319,4 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
 
         return response;
     }
-
-    // async manualTriggerScraping(id: string, request: TriggerScrapingDataProviderRequestDto): Promise<boolean> {
-    //     const { tags, mappingStatus, supplierIds } = request;
-    //     const tagValues = parseFilterValueToArray(tags);
-    //     const mappingStatusValues = parseFilterValueToArray(mappingStatus);
-    //     const supplierIdsValues = parseFilterValueToArray(supplierIds);
-
-    //     try {
-    //         const dataProviderQuery = this.repository
-    //             .createQueryBuilder('dataProvider')
-    //             .leftJoinAndSelect('dataProvider.dataProviderProducts', 'dataProviderProducts')
-    //             .leftJoinAndSelect('dataProviderProducts.product', 'product')
-    //             .leftJoinAndSelect('product.supplier', 'supplier')
-    //             .select(['dataProvider.id', 'dataProvider.status', 'dataProviderProducts.id'])
-    //             .where('dataProvider.id = :id', { id });
-
-    //         if (tagValues) {
-    //             dataProviderQuery.andWhere('product.tags::jsonb ?| ARRAY[:...tagValues]', { tagValues });
-    //         }
-
-    //         if (mappingStatusValues) {
-    //             dataProviderQuery.andWhere('product.mappingStatus IN (:...mappingStatusValues)', { mappingStatusValues });
-    //         }
-
-    //         if (supplierIdsValues) {
-    //             dataProviderQuery.andWhere('supplier.id IN (:...supplierIdsValues)', { supplierIdsValues });
-    //         }
-
-    //         const dataProvider = await dataProviderQuery.getOne();
-
-    //         if (!dataProvider) throw new NotFoundException(`Data provider with ID ${id} not found`);
-    //         if (dataProvider.status !== DataProviderStatus.READY) throw new BadRequestException('Data provider is not ready');
-    //         if (dataProvider.dataProviderProducts.length === 0) throw new BadRequestException('Data provider has no products');
-
-    //         const dataProviderProductIds = dataProvider.dataProviderProducts.map((product) => product.id);
-
-    //         const result = await this.scrapingJobService.createJobs({
-    //             dataProviderProductIds,
-    //             triggerType: ScrapingJobTriggerTypeEnum.MANUAL,
-    //         });
-
-    //         if (!result.success && result.errors.length) {
-    //             const errorMessage = result.errors[0].message;
-    //             throw new BadRequestException(errorMessage);
-    //         }
-
-    //         return result.success;
-    //     } catch (error) {
-    //         this.loggerService.error(error);
-    //         throw error;
-    //     }
-    // }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 
 import { IRunFunctionExtractData, IRunApiFunctionExtractData } from '../interfaces/target-config.interface';
+import axios from 'axios';
 
 @Injectable()
 class ExtractDataHelper {
@@ -47,13 +48,14 @@ class ExtractDataHelper {
         try {
             const extractData = new Function(
                 'data',
-                `return (data) => {
+                'axios',
+                `return (data, axios) => {
                     ${this.transformFunction(functionGenerator)}
-                    return extractData(data);
+                    return extractData(data, axios);
                 }`,
-            );
+            )(data, axios);
 
-            const result = extractData(data);
+            const result = await extractData(data, axios);
 
             if (typeof result !== 'object' || result === null) {
                 throw new Error('Function must return an object');
