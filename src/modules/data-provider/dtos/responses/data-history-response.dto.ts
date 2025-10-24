@@ -9,6 +9,10 @@ export class ProcessScrapeDataResponse {
         dataProviderId: string;
         dataProviderItemId: string;
         data: Record<string, any>;
+
+        type?: string;
+        url?: string;
+        lastModified?: Date;
     }[];
 
     errors?: {

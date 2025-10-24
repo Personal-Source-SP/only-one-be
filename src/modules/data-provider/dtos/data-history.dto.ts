@@ -18,6 +18,18 @@ export class DataHistoryDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
+    type?: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    url?: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    lastModified?: Date;
+
+    @ApiResponseProperty()
+    @AutoMap()
     metadata?: Record<string, any>;
 
     @ApiResponseProperty()

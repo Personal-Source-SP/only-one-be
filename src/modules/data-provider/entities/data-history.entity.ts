@@ -18,6 +18,18 @@ export class DataHistoryEntity extends AbstractEntity {
     @AutoMap()
     dataId?: string;
 
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    @AutoMap()
+    type?: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    @AutoMap()
+    url?: string;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    @AutoMap()
+    lastModified?: Date;
+
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
     metadata?: Record<string, any>;

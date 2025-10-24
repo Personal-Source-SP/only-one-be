@@ -161,6 +161,9 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
                         dataProviderId: dataProvider.id,
                         dataProviderItemId: dataProviderItem.id,
                         data: itemExtractData.data,
+                        type: itemExtractData?.data?.type || null,
+                        url: itemExtractData?.data?.url || null,
+                        lastModified: itemExtractData?.data?.lastModified || null,
                     });
                 }
             }
