@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { ScrapeStatusEnum } from '../../enums/scrape-status.enum';
 
 export class CreateDataHistoryRequestDto {
@@ -81,4 +81,15 @@ export class DataHistoryPaginationRequestDto {
     @ApiPropertyOptional()
     @IsOptional()
     filter?: FilterDataHistoryPaginationDto;
+}
+
+export class ProcessScrapeDataRequestDto {
+    @ApiProperty()
+    @IsArray()
+    dataProviderIds: string[];
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsDate()
+    lastScrapeTimestamp?: Date;
 }

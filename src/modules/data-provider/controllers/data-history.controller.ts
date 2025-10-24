@@ -1,11 +1,12 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Version } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Version } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
 
 import { BaseController } from '../../../common/base.controller';
 import { DATA_HISTORY_PAGINATION_CONFIG } from '../constants/data-history.config';
 import { DataHistoryDto } from '../dtos/data-history.dto';
-import { DataHistoryPaginationRequestDto } from '../dtos/requests';
+import { DataHistoryPaginationRequestDto, ProcessScrapeDataRequestDto } from '../dtos/requests';
+import { ProcessScrapeDataResponse } from '../dtos/responses';
 import { DataHistoryService } from '../services/data-history.service';
 
 @ApiTags('Data History')
@@ -34,6 +35,16 @@ export class DataHistoryController extends BaseController {
     @ApiPaginationQuery(DATA_HISTORY_PAGINATION_CONFIG)
     public async getDataHistoryPagination(@Paginate() query: DataHistoryPaginationRequestDto): Promise<Paginated<DataHistoryDto>> {
         const result = await this.dataHistoryService.getDataHistoryPagination(query, DATA_HISTORY_PAGINATION_CONFIG);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Process scrape data' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post('scrape-data')
+    @ApiOkResponse({ type: ProcessScrapeDataResponse })
+    public async processScrapeData(@Body() request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
+        const result = await this.dataHistoryService.processScrapeData(request);
         return result;
     }
 
