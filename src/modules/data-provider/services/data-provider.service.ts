@@ -246,11 +246,7 @@ export class DataProviderService extends BaseService<DataProviderEntity> {
             throw new BadRequestException('Not allowed to switch status to UNCONFIGURED');
         }
 
-        const dataProvider = await this.dataProviderRepository.findOne({
-            where: { id },
-            relations: ['parent'],
-        });
-
+        const dataProvider = await this.findById(id);
         if (!dataProvider) throw new BadRequestException(`No data provider found with ID ${id}`);
 
         switch (status) {
