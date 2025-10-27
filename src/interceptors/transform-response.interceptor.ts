@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ResponseDto } from '../common/dto/response.dto';
-import { Paginated } from 'nestjs-paginate';
 
 @Injectable()
 export class TransformResponseInterceptor implements NestInterceptor {

@@ -1,6 +1,6 @@
 import 'source-map-support/register';
 
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { BadRequestException, ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 import cors from 'cors';
@@ -41,10 +41,13 @@ async function bootstrap() {
         new ValidationPipe({
             whitelist: true,
             transform: true,
-            // exceptionFactory: errors => new BadRequestException(errors),
-            // dismissDefaultMessages: true,//TODO: disable in prod (if required)
+            exceptionFactory: (errors) => {
+                const messages = errors.map((error) => Object.values(error.constraints || {}).join(', '));
+                return new BadRequestException(messages);
+            },
             validationError: {
                 target: false,
+                value: false,
             },
         }),
     );

@@ -6,13 +6,6 @@ import { BasePaginationRequestDto } from '../../../../common/dto/pagination-requ
 import { ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderRequestDto {
-    @ApiPropertyOptional({ description: 'Identifier must contain only letters, numbers, and dashes' })
-    @IsString()
-    @AutoMap()
-    @MaxLength(255)
-    @Matches(/^[a-z0-9-]+$/, { message: 'Identifier can only contain lowercase letters, numbers, and dashes' })
-    identifier?: string;
-
     @ApiProperty()
     @IsString()
     @MaxLength(255)
@@ -24,6 +17,14 @@ export class CreateDataProviderRequestDto {
     @MaxLength(255)
     @AutoMap()
     baseUrl: string;
+
+    @ApiPropertyOptional({ description: 'Identifier must contain only letters, numbers, and dashes' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    @Matches(/^[a-z0-9-]+$/, { message: 'Identifier can only contain lowercase letters, numbers, and dashes' })
+    @AutoMap()
+    identifier?: string;
 }
 
 export class UpdateDataProviderRequestDto {
