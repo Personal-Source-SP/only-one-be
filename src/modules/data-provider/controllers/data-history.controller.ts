@@ -41,7 +41,7 @@ export class DataHistoryController extends BaseController {
     @ApiOperation({ summary: 'Process scrape data' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post('scrape-data')
+    @Post('process-scrape-data')
     @ApiOkResponse({ type: ProcessScrapeDataResponse })
     public async processScrapeData(@Body() request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
         const result = await this.dataHistoryService.processScrapeData(request);
