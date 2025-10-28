@@ -15,8 +15,8 @@ export const DATA_HISTORY_PAGINATION_CONFIG = createPaginationConfig<DataHistory
         dataProviderId: [FilterOperator.EQ],
     },
     defaultSortBy: [['scrapeTimestamp', 'DESC']],
-    relations: ['dataProviderItem'],
-    select: [...dataHistoryColumns],
+    relations: ['dataProviderItem', 'dataProvider'],
+    select: [...dataHistoryColumns, 'dataProviderItem.itemUrl', 'dataProvider.name'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });
