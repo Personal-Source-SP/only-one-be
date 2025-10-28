@@ -23,7 +23,6 @@ export class ImportDataService {
     ) {}
 
     async previewImportData(filePath: string, type: ImportDataType): Promise<PreviewImportDataResponseDto> {
-        // Load the workbook
         const workbook = new ExcelJS.Workbook();
         const ext = path.extname(filePath).toLowerCase();
 
@@ -36,16 +35,23 @@ export class ImportDataService {
         const worksheet = workbook.worksheets[0];
         if (!worksheet) {
             return new PreviewImportDataResponseDto({
-                items: [],
+                data: [],
                 errorMessage: 'No worksheet found in the file',
             });
         }
-
-        switch (type) {
-            case ImportDataType.ITEM:
-                return this.previewItem(worksheet);
-            default:
-                throw new BadRequestException('Invalid import data type');
+        try {
+            switch (type) {
+                case ImportDataType.ITEM:
+                    return this.previewItem(worksheet);
+                default:
+                    throw new BadRequestException('Invalid import data type');
+            }
+        } catch (error) {
+            this.loggerService.error(`Failed to preview import data: ${error.message}`);
+            return new PreviewImportDataResponseDto({
+                data: [],
+                errorMessage: error?.message || 'Failed to preview import data',
+            });
         }
     }
 
@@ -102,7 +108,7 @@ export class ImportDataService {
 
         if (!nameCol || !codeCol || !headerRowNumber) {
             return new PreviewImportDataResponseDto({
-                items: [],
+                data: [],
                 errorMessage: 'Name or code column not found in the file',
             });
         }
@@ -127,7 +133,7 @@ export class ImportDataService {
         const overridden = await this.itemService.count({ code: In(codes) });
 
         return new PreviewImportDataResponseDto({
-            items: itemData,
+            data: itemData,
             statistics: {
                 overridden,
                 updates: itemData.length,

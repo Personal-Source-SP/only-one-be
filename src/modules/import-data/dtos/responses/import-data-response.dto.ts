@@ -9,7 +9,7 @@ export class PreviewImportDataResponseDto {
     };
 
     @ApiResponseProperty()
-    items: any[];
+    data: any[];
 
     @ApiResponseProperty()
     errorMessage?: string;
