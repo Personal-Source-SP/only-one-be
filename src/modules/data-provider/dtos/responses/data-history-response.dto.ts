@@ -12,10 +12,11 @@ export class ProcessScrapeDataResponse {
         dataProviderName: string;
         dataProviderItemId: string;
         dataProviderItemUrl: string;
-        data: Record<string, any>;
 
-        url?: string;
-        mimeType?: string;
+        url: string;
+        dataId: string;
+        mimeType: string;
+        data: Record<string, any>;
         lastModified?: Date;
     }[];
 

@@ -6,6 +6,7 @@ import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { MimeType } from '../../../common/enums/mime-type';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { DataHistoryDto } from '../dtos/data-history.dto';
@@ -160,14 +161,19 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
 
                     const data = itemExtractData.data;
                     data?.forEach((item) => {
+                        if (!item?.id || !item?.mimeType || !item?.url) {
+                            return;
+                        }
+
                         response.successData.push({
                             dataProviderId: dataProvider.id,
                             dataProviderName: dataProvider.name,
                             dataProviderItemId: dataProviderItem.id,
                             dataProviderItemUrl: dataProviderItem.itemUrl,
                             data: item,
-                            url: item?.url || null,
-                            mimeType: item?.mimeType || null,
+                            url: item.url,
+                            dataId: item.id,
+                            mimeType: item.mimeType,
                             lastModified: item?.lastModified || new Date(),
                         });
                     });
@@ -175,22 +181,31 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             }
         }
 
-        let dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
-            return this.dataHistoryRepository.create({
-                scrapeTimestamp: new Date(),
-                metadata: successData.data,
-                dataId: successData?.data?.id || null,
-                dataProviderItemId: successData.dataProviderItemId,
-            });
-        });
-
         if (request.checkDuplicateData) {
-            const dataIds = dataHistoryEntities.map((entity) => entity.dataId);
+            const dataIds = response.successData.map((successData) => successData.dataId);
             const duplicateData = await this.dataHistoryRepository.find({ where: { dataId: In(dataIds) }, select: ['dataId'] });
 
             const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
-            dataHistoryEntities = dataHistoryEntities.filter((entity) => !duplicateDataIds.includes(entity.dataId));
+            response.successData = response.successData.filter((successData) => !duplicateDataIds.includes(successData.dataId));
         }
+
+        if (request.mimeTypes?.length) {
+            response.successData = response.successData.filter((successData) =>
+                request.mimeTypes.includes(successData.mimeType as MimeType),
+            );
+        }
+
+        const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
+            return this.dataHistoryRepository.create({
+                scrapeTimestamp: new Date(),
+                metadata: successData.data,
+                dataId: successData.dataId,
+                type: successData.mimeType,
+                url: successData.url,
+                lastModified: successData.lastModified,
+                dataProviderItemId: successData.dataProviderItemId,
+            });
+        });
 
         const savedDataHistoryEntities = await this.dataHistoryRepository.save(dataHistoryEntities);
         if (!savedDataHistoryEntities.length) {
