@@ -2,18 +2,14 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as ExcelJS from 'exceljs';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import * as path from 'path';
-import { In, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { ItemDto } from '../dtos/item.dto';
-import { CreateItemRequestDto, ImportItemRequestDto, ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
-import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
+import { CreateItemRequestDto, ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
 import { ItemEntity } from '../entities/item.entity';
-import { ExcelFileTypes, ProductMappingStatus } from '../enums';
 import { parseBooleanFilter, parseFilterValueToArray } from '../utils/query.utils';
 
 @Injectable()
@@ -141,121 +137,4 @@ export class ItemService extends BaseService<ItemEntity> {
 
         return this.delete(id);
     }
-
-    async previewImportData(filePath: string): Promise<PreviewImportDataResponseDto> {
-        // Load the workbook
-        const workbook = new ExcelJS.Workbook();
-        const ext = path.extname(filePath).toLowerCase();
-
-        if (ext === ExcelFileTypes.CSV) {
-            await workbook.csv.readFile(filePath);
-        } else {
-            await workbook.xlsx.readFile(filePath);
-        }
-
-        const worksheet = workbook.worksheets[0];
-        if (!worksheet) {
-            return new PreviewImportDataResponseDto({
-                items: [],
-                errorMessage: 'No worksheet found in the file',
-            });
-        }
-
-        let nameCol: number | null = null;
-        let codeCol: number | null = null;
-        let headerRowNumber: number | null = null;
-
-        for (let i = 1; i <= worksheet.rowCount; i++) {
-            const row = worksheet.getRow(i);
-
-            let candidateNameCol: number | null = null;
-            let candidateCodeCol: number | null = null;
-
-            row.eachCell((cell, colNumber) => {
-                const raw = cell.value;
-
-                if (this.isHeaderMatch(raw, ['Tên', 'Tên sản phẩm'])) {
-                    candidateNameCol = colNumber;
-                }
-
-                if (this.isHeaderMatch(raw, ['Mã', 'Mã sản phẩm'])) {
-                    candidateCodeCol = colNumber;
-                }
-            });
-
-            if (candidateNameCol && candidateCodeCol) {
-                headerRowNumber = i;
-                nameCol = candidateNameCol;
-                codeCol = candidateCodeCol;
-
-                break;
-            }
-        }
-
-        if (!nameCol || !codeCol || !headerRowNumber) {
-            return new PreviewImportDataResponseDto({
-                items: [],
-                errorMessage: 'Name or code column not found in the file',
-            });
-        }
-
-        const itemData: ItemDto[] = [];
-        worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber <= headerRowNumber!) return;
-
-            const code = row.getCell(codeCol!)?.value?.toString().trim();
-            const name = row.getCell(nameCol!)?.value?.toString().trim();
-
-            if (code && name) {
-                itemData.push({
-                    code: code,
-                    name: name,
-                    mappingStatus: ProductMappingStatus.UNMAPPED,
-                });
-            }
-        });
-
-        const codes = itemData.map((item) => item.code);
-        const overridden = await this.count({ code: In(codes) });
-
-        return new PreviewImportDataResponseDto({
-            items: itemData,
-            statistics: {
-                overridden,
-                updates: itemData.length,
-                errors: worksheet.rowCount - itemData.length,
-            },
-        });
-    }
-
-    async importItemData(request: ImportItemRequestDto): Promise<ImportDataResponseDto> {
-        try {
-            const itemEntities = this.mapper.mapArray(request.items, ItemDto, ItemEntity);
-            const result = await this.itemRepository.save(itemEntities);
-
-            return new ImportDataResponseDto({
-                success: true,
-                updated: result.length,
-                message: 'Items imported successfully',
-            });
-        } catch (error) {
-            this.loggerService.error(`Failed to import items: ${error.message}`);
-
-            return new ImportDataResponseDto({
-                updated: 0,
-                success: false,
-                message: error?.message || 'Failed to import items',
-            });
-        }
-    }
-
-    private isHeaderMatch = (value: ExcelJS.CellValue, targets: string[]): boolean => {
-        const v = value?.toString().trim().toUpperCase();
-        if (!v) return false;
-
-        return targets.some((target) => {
-            const t = target.toUpperCase();
-            return v === t || v.includes(t);
-        });
-    };
 }

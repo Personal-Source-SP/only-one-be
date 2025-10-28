@@ -25,6 +25,10 @@ export class BaseService<T> {
         return this.repository.save(data);
     }
 
+    async createMany(data: any[]): Promise<T[]> {
+        return this.repository.save(data);
+    }
+
     async update(id: string, data: QueryDeepPartialEntity<T>): Promise<boolean> {
         const result = await this.repository.update(id, data);
         return result.affected > 0;

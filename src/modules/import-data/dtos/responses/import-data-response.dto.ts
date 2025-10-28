@@ -1,7 +1,5 @@
 import { ApiResponseProperty } from '@nestjs/swagger';
 
-import { ItemDto } from '../item.dto';
-
 export class PreviewImportDataResponseDto {
     @ApiResponseProperty()
     statistics?: {
@@ -11,7 +9,7 @@ export class PreviewImportDataResponseDto {
     };
 
     @ApiResponseProperty()
-    items: ItemDto[];
+    items: any[];
 
     @ApiResponseProperty()
     errorMessage?: string;

@@ -13,6 +13,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { DataProviderModule } from './modules/data-provider/data-provider.module';
 import { GoogleModule } from './modules/google/google.module';
+import { ImportDataModule } from './modules/import-data/import-data.module';
 import { SettingModule } from './modules/setting/setting.module';
 import { SimulationModule } from './modules/simulation/simulation.module';
 import { UserModule } from './modules/user/user.module';
@@ -39,6 +40,7 @@ import { SharedModule } from './shared/shared.module';
         SettingModule,
         SimulationModule,
         DataProviderModule,
+        ImportDataModule,
         // QueueModule,
         // WebsocketModule,
         // WorkerModule,
