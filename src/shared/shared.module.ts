@@ -10,12 +10,14 @@ import { LoggerService } from './services/logger.service';
 import { PuppeteerService } from './services/puppeteer.service';
 import { UtilsService } from './services/utils.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { FileHelper } from './helpers/file-helper';
 
+const helpers = [FileHelper];
 const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService, JwtStrategy];
 
 @Global()
 @Module({
-    providers,
+    providers: [...providers, ...helpers],
     imports: [
         HttpModule.registerAsync({
             useFactory: async (configService: AppConfigService) => ({
@@ -29,6 +31,6 @@ const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpServic
         }),
         PassportModule.register({ defaultStrategy: 'jwt' }),
     ],
-    exports: [...providers, HttpModule, AutomapperModule],
+    exports: [...providers, ...helpers, HttpModule, AutomapperModule],
 })
 export class SharedModule {}
