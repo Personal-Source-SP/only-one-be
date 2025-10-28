@@ -3,13 +3,14 @@ import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { MimeType } from '../../../common/enums/mime-type';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
 import { GoogleDrivePreviewRequest, GoogleDriveSyncRequest } from '../dtos/requests';
 import { GoogleDrivePreviewItem, GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
-import { GoogleApiType, GoogleDriveFileType, GoogleDriveType } from '../enums';
+import { GoogleApiType, GoogleDriveType } from '../enums';
 import { IGenerateParams, IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
 import { GoogleAuthService } from './google-auth.service';
 
@@ -223,39 +224,39 @@ export class GoogleDriveService {
         return params;
     }
 
-    private refineByFileType(fileTypes: GoogleDriveFileType[]): string {
+    private refineByFileType(fileTypes: MimeType[]): string {
         let queries: string[] = [];
 
         fileTypes.forEach((fileType) => {
             switch (fileType) {
-                case GoogleDriveFileType.DOCUMENT:
+                case MimeType.DOCUMENT:
                     queries.push(
                         "(mimeType in ('application/vnd.google-apps.document','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','text/plain'))",
                     );
                     break;
-                case GoogleDriveFileType.SPREADSHEET:
+                case MimeType.SPREADSHEET:
                     queries.push(
                         "(mimeType in ('application/vnd.google-apps.spreadsheet','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv'))",
                     );
                     break;
-                case GoogleDriveFileType.PRESENTATION:
+                case MimeType.PRESENTATION:
                     queries.push(
                         "(mimeType in ('application/vnd.google-apps.presentation','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation'))",
                     );
                     break;
-                case GoogleDriveFileType.PDF:
+                case MimeType.PDF:
                     queries.push("(mimeType = 'application/pdf')");
                     break;
-                case GoogleDriveFileType.IMAGE:
+                case MimeType.IMAGE:
                     queries.push("(mimeType contains 'image/')");
                     break;
-                case GoogleDriveFileType.VIDEO:
+                case MimeType.VIDEO:
                     queries.push("(mimeType contains 'video/')");
                     break;
-                case GoogleDriveFileType.AUDIO:
+                case MimeType.AUDIO:
                     queries.push("(mimeType contains 'audio/')");
                     break;
-                case GoogleDriveFileType.ARCHIVE:
+                case MimeType.ARCHIVE:
                     queries.push(
                         "(mimeType in ('application/zip','application/x-7z-compressed','application/x-rar-compressed','application/x-tar'))",
                     );

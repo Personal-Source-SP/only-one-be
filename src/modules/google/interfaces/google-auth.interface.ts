@@ -1,4 +1,5 @@
-import { GoogleApiType, GoogleDriveFileType, GoogleDriveType } from '../enums';
+import { MimeType } from '../../../common/enums/mime-type';
+import { GoogleApiType, GoogleDriveType } from '../enums';
 
 export interface IGoogleAuthResponse {
     access_token: string;
@@ -11,7 +12,7 @@ export interface IGoogleAuthResponse {
 export interface IGenerateParams {
     driveFolderId?: string;
     type?: GoogleDriveType;
-    fileTypes?: GoogleDriveFileType[];
+    fileTypes?: MimeType[];
     modifiedTimeFrom?: string; // ISO string
     modifiedTimeTo?: string; // ISO string
     customQuery?: string;

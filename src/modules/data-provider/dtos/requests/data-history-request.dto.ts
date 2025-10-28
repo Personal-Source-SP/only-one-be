@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsDate, IsOptional, IsUUID } from 'class-validator';
+import { MimeType } from '../../../../common/enums/mime-type';
 
 export class CreateDataHistoryRequestDto {
     @ApiProperty()
@@ -48,4 +49,9 @@ export class ProcessScrapeDataRequestDto {
     @IsOptional()
     @IsBoolean()
     checkDuplicateData?: boolean;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsArray()
+    mimeTypes?: MimeType[];
 }
