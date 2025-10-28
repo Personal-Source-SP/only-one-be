@@ -10,15 +10,12 @@ import {
     ParseUUIDPipe,
     Post,
     Put,
-    Query,
-    Res,
     UploadedFile,
     UseGuards,
     UseInterceptors,
     Version,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { ApiOkPaginatedResponse, ApiPaginationQuery, Paginate, Paginated, PaginatedSwaggerDocs } from 'nestjs-paginate';
@@ -45,18 +42,6 @@ export class ItemController extends BaseController {
         private readonly itemService: ItemService,
     ) {
         super();
-    }
-
-    @ApiOperation({ summary: 'Download item import template' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get('import-template')
-    @ApiOkResponse({ type: String })
-    async createImportTemplate(@Query('format') format: string = 'xlsx', @Res() res: Response): Promise<string> {
-        const filePath = await this.itemService.createImportTemplate(format);
-        await this.fileHelper.sendFileAsDownload(res, filePath, `import-item-template${format}`);
-
-        return filePath;
     }
 
     @ApiOperation({ summary: 'Get all items' })

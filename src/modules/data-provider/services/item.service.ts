@@ -3,7 +3,6 @@ import { InjectMapper } from '@automapper/nestjs';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as ExcelJS from 'exceljs';
-import * as fs from 'fs';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import * as path from 'path';
 import { In, Not, Repository } from 'typeorm';
@@ -143,42 +142,6 @@ export class ItemService extends BaseService<ItemEntity> {
         return this.delete(id);
     }
 
-    async createImportTemplate(format: string = ExcelFileTypes.XLSX): Promise<string> {
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Item Import Template');
-
-        worksheet.columns = [
-            { header: 'Tên', key: 'name', width: 40 },
-            { header: 'Mã sản phẩm', key: 'code', width: 30 },
-        ];
-
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true, size: 12 };
-        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-        headerRow.commit();
-
-        const instructionRow = worksheet.addRow({ name: 'Tên sản phẩm', code: 'Mã sản phẩm' });
-        instructionRow.font = { italic: true, color: { argb: 'FF808080' } };
-        instructionRow.commit();
-
-        const uploadsDir = path.resolve(process.cwd(), 'uploads');
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-
-        const timestamp = Date.now();
-        const filePath = path.join(uploadsDir, `item-import-template-${timestamp}${format}`);
-
-        if (format === ExcelFileTypes.CSV) {
-            await workbook.csv.writeFile(filePath);
-        } else {
-            await workbook.xlsx.writeFile(filePath);
-        }
-
-        this.loggerService.log(`Created item import template at: ${filePath}`);
-        return filePath;
-    }
-
     async previewImportData(filePath: string): Promise<PreviewImportDataResponseDto> {
         // Load the workbook
         const workbook = new ExcelJS.Workbook();
@@ -266,24 +229,6 @@ export class ItemService extends BaseService<ItemEntity> {
     }
 
     async importItemData(request: ImportItemRequestDto): Promise<ImportDataResponseDto> {
-        const codes = request.items.map((item) => item.code);
-        if (!codes?.length) {
-            return new ImportDataResponseDto({
-                updated: 0,
-                success: false,
-                message: 'No valid codes found in the file',
-            });
-        }
-
-        const items = await this.itemRepository.findBy({ code: In(codes) });
-        if (!items?.length) {
-            return new ImportDataResponseDto({
-                updated: 0,
-                success: false,
-                message: 'No items found for the given codes',
-            });
-        }
-
         try {
             const itemEntities = this.mapper.mapArray(request.items, ItemDto, ItemEntity);
             const result = await this.itemRepository.save(itemEntities);
