@@ -186,13 +186,17 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             const duplicateData = await this.dataHistoryRepository.find({ where: { dataId: In(dataIds) }, select: ['dataId'] });
 
             const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
-            response.successData = response.successData.filter((successData) => !duplicateDataIds.includes(successData.dataId));
+            const successDataWithoutDuplicate = response.successData.filter(
+                (successData) => !duplicateDataIds.includes(String(successData.dataId)),
+            );
+            response.successData = successDataWithoutDuplicate;
         }
 
         if (request.mimeTypes?.length) {
-            response.successData = response.successData.filter((successData) =>
+            const successDataWithoutMimeType = response.successData.filter((successData) =>
                 request.mimeTypes.includes(successData.mimeType as MimeType),
             );
+            response.successData = successDataWithoutMimeType;
         }
 
         const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
@@ -207,6 +211,15 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
                 dataProviderItemId: successData.dataProviderItemId,
             });
         });
+
+        if (!dataHistoryEntities.length) {
+            return new ProcessScrapeDataResponse({
+                process: 0,
+                success: 0,
+                error: 0,
+                errorsMessage: 'No data history entities to save',
+            });
+        }
 
         const savedDataHistoryEntities = await this.dataHistoryRepository.save(dataHistoryEntities);
         if (!savedDataHistoryEntities.length) {
