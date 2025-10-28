@@ -22,10 +22,6 @@ export class DataProviderItemEntity extends AbstractEntity {
     @AutoMap()
     itemUrl: string;
 
-    @Column({ type: 'jsonb', nullable: true })
-    @AutoMap()
-    targetConfig?: ITargetConfig;
-
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()
     lastScrapedTimestamp?: Date;
@@ -42,5 +38,5 @@ export class DataProviderItemEntity extends AbstractEntity {
 
     @OneToMany(() => DataHistoryEntity, (entity) => entity.dataProviderItem)
     @AutoMap(() => [DataHistoryEntity])
-    dataHistory: Relation<DataHistoryEntity>[];
+    dataHistory?: Relation<DataHistoryEntity>[];
 }

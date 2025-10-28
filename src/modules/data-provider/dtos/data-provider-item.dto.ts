@@ -21,10 +21,6 @@ export class DataProviderItemDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    targetConfig: Record<string, any> | null;
-
-    @ApiResponseProperty()
-    @AutoMap()
     lastScrapedTimestamp?: Date;
 
     @ApiResponseProperty()
@@ -37,5 +33,5 @@ export class DataProviderItemDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap(() => [DataHistoryDto])
-    dataHistory: DataHistoryDto[];
+    dataHistory?: DataHistoryDto[];
 }

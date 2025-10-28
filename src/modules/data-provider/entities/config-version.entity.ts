@@ -7,7 +7,7 @@ import { ConfigVersionType } from '../enums';
 import { ITargetConfig } from '../interfaces';
 import { DataProviderEntity } from './data-provider.entity';
 
-@Entity({ name: 'data_provider_config_versions', synchronize: true })
+@Entity({ name: 'data_provider_config_versions', synchronize: false })
 export class ConfigVersionEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()

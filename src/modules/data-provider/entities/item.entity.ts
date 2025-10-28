@@ -5,7 +5,7 @@ import { AbstractEntity } from '../../../common/entities';
 import { ProductMappingStatus } from '../enums';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 
-@Entity({ name: 'items', synchronize: true })
+@Entity({ name: 'items', synchronize: false })
 export class ItemEntity extends AbstractEntity {
     @Column({ length: 255 })
     @AutoMap()

@@ -198,57 +198,6 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity>
         return this.delete(id);
     }
 
-    // async triggerScraping(dto: CreateManuallyTriggerScrapingRequestDto): Promise<boolean> {
-    //     try {
-    //         const { ids } = dto;
-
-    //         if (!ids || ids.length === 0) {
-    //             this.loggerService.warn('No DataProviderProduct IDs provided for manual trigger');
-    //             throw new Error('No DataProviderProduct IDs provided for manual trigger');
-    //         }
-
-    //         // Fetch the DataProviderProducts
-    //         const dataProviderProducts = await this.dataProviderItemRepository.count({
-    //             where: { id: In(ids) },
-    //         });
-
-    //         if (dataProviderProducts !== ids.length) {
-    //             this.loggerService.warn('Some DataProviderProduct IDs do not exist');
-    //             throw new NotFoundException('Some DataProviderProduct IDs do not exist');
-    //         }
-
-    //         // Create scraping jobs for each DataProviderProduct
-    //         const res = await this.scrapingJobService.createJobs({
-    //             dataProviderProductIds: ids,
-    //             priority: dto?.priority,
-    //         });
-
-    //         if (!res.success && res.errors.length) {
-    //             const errorMessage = res.errors[0].message;
-    //             throw new BadRequestException(errorMessage);
-    //         }
-
-    //         return res.success;
-    //     } catch (error) {
-    //         this.loggerService.error(`Trigger scraping failed: ${error?.message}`);
-    //         throw error;
-    //     }
-    // }
-
-    // async triggerScrapingBulk(dto: CreateManuallyTriggerScrapingRequestDto): Promise<boolean> {
-    //     try {
-    //         const res = await this.scrapingJobService.createJobs({
-    //             priority: dto?.priority,
-    //             dataProviderItemIds: dto.ids,
-    //         });
-
-    //         return res.success;
-    //     } catch (error) {
-    //         this.loggerService.error(`Trigger scraping bulk failed: ${error?.message}`);
-    //         throw error;
-    //     }
-    // }
-
     private validateItemUrlMatchesBaseUrl(itemUrl: string, baseUrl: string): boolean {
         return itemUrl.startsWith(baseUrl);
     }
