@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { isEmpty } from 'lodash';
 import { parsePrice } from '../../worker/helpers/price-parser';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
@@ -21,9 +22,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
     ) {}
 
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
-        const { dataProviderItem } = request;
-
-        const dataProvider = dataProviderItem.dataProvider;
+        const { dataProvider, dataProviderItem } = request;
 
         const targetConfig: ITargetConfig = dataProvider.targetConfig;
         if (!targetConfig) {
@@ -124,6 +123,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
         const { targetConfig, requestOptions, htmlContentString } = request;
+        const { functionGenerator, mainContentSelector, isGetParentElement, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
@@ -139,13 +139,17 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
 
             const extractData = await this.extractDataHelper.runFunctionExtractData({
                 htmlContent: html,
-                functionGenerator: targetConfig.functionGenerator,
-                isGetParentElement: targetConfig.isGetParentElement,
-                mainContentSelector: targetConfig.mainContentSelector,
+                functionGenerator,
+                isGetParentElement,
+                mainContentSelector,
             });
 
-            if (!extractData) {
+            if (isEmpty(extractData)) {
                 return { error: 'Not found extract data' };
+            }
+
+            if (maxResults && extractData.length > maxResults) {
+                return { data: extractData.slice(0, maxResults) };
             }
 
             return { data: extractData, html };

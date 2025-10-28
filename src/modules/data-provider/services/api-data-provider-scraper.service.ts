@@ -21,9 +21,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     ) {}
 
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
-        const { dataProviderItem } = request;
-
-        const dataProvider = dataProviderItem.dataProvider;
+        const { dataProvider, dataProviderItem } = request;
 
         const targetConfig: ITargetConfig = dataProvider.targetConfig;
         if (!targetConfig) {
@@ -110,6 +108,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
         const { targetConfig, dataContent, requestOptions } = request;
+        const { functionGenerator, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
@@ -124,11 +123,15 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
 
             const extractData = await this.extractDataHelper.runApiFunctionExtractData({
                 data: data,
-                functionGenerator: targetConfig.functionGenerator,
+                functionGenerator,
             });
 
-            if (!extractData) {
+            if (isEmpty(extractData)) {
                 return { error: 'Not found extract data' };
+            }
+
+            if (maxResults && extractData.length > maxResults) {
+                return { data: extractData.slice(0, maxResults) };
             }
 
             return { data: extractData };

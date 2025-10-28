@@ -63,7 +63,7 @@ export class DataProviderScraperService {
             });
         }
 
-        return await dataProviderScraperService.scrapeItemData({ dataProviderItem });
+        return await dataProviderScraperService.scrapeItemData({ dataProvider, dataProviderItem });
     }
 
     async validateParserFunction(dto: {

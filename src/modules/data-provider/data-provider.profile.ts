@@ -1,4 +1,4 @@
-import { createMap, Mapper, MappingProfile } from '@automapper/core';
+import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { ConfigVersionDto } from './dtos/config-version.dto';
@@ -30,7 +30,20 @@ export class DataProviderProfile extends AutomapperProfile {
 
     override get profile(): MappingProfile {
         return (mapper) => {
-            createMap(mapper, DataProviderEntity, DataProviderDto);
+            createMap(
+                mapper,
+                DataProviderEntity,
+                DataProviderDto,
+                forMember(
+                    (d) => d.targetConfig,
+                    mapFrom((s) => s.targetConfig),
+                ),
+                forMember(
+                    (d) => d.searchConfig,
+                    mapFrom((s) => s.searchConfig),
+                ),
+            );
+
             createMap(mapper, DataProviderItemEntity, DataProviderItemDto);
             createMap(mapper, DataHistoryEntity, DataHistoryDto);
             createMap(mapper, ItemEntity, ItemDto);

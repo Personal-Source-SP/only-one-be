@@ -6,6 +6,7 @@ export interface ITargetConfig {
 
     queryParams?: string; //  Tham số truyền vào API
 
+    maxResults?: number; // Số lượng kết quả tối đa
     retryDelay?: number; // Thời gian delay giữa mỗi lần retry (ms)
     retryAttempts?: number; // Số lần thử lại khi có lỗi
     userAgent?: string; // Chuỗi user-agent giả lập cho trình duyệt

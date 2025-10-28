@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { ScraperServiceEnum } from '../../enums';
 
@@ -79,6 +79,16 @@ export class UpdateTargetConfigRequestDto {
     @IsBoolean()
     isGetParentElement?: boolean;
 
+    @ApiPropertyOptional({ description: 'Query parameters to add to the request' })
+    @IsOptional()
+    @IsString()
+    queryParams?: string;
+
+    @ApiPropertyOptional({ description: 'Maximum number of results to return' })
+    @IsOptional()
+    @IsNumber()
+    maxResults?: number;
+
     @ApiPropertyOptional({ description: 'Delay between retries in ms' })
     @IsOptional()
     @IsNumber()
@@ -88,6 +98,21 @@ export class UpdateTargetConfigRequestDto {
     @IsOptional()
     @IsNumber()
     retryAttempts?: number;
+
+    @ApiPropertyOptional({ description: 'User agent string for browser simulation' })
+    @IsOptional()
+    @IsString()
+    userAgent?: string;
+
+    @ApiPropertyOptional({ description: 'Headers to add to the request' })
+    @IsOptional()
+    @IsObject()
+    headers?: Record<string, string>;
+
+    @ApiPropertyOptional({ description: 'Cookies to add to the request' })
+    @IsOptional()
+    @IsObject()
+    cookies?: Record<string, string>;
 
     @ApiPropertyOptional({ description: 'Enable stealth mode to bypass bot detection' })
     @IsOptional()
@@ -103,11 +128,6 @@ export class UpdateTargetConfigRequestDto {
     @IsOptional()
     @IsString()
     waitForSelector?: string;
-
-    @ApiPropertyOptional({ description: 'User agent string for browser simulation' })
-    @IsOptional()
-    @IsString()
-    userAgent?: string;
 
     @ApiPropertyOptional({ description: 'Enable or disable JavaScript execution' })
     @IsOptional()

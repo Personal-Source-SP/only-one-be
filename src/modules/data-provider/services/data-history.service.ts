@@ -147,7 +147,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             }
 
             for (const dataProviderItem of dataProvider.dataProviderItems) {
-                const itemExtractData = await this.processDataProviderItem(dataProviderItem, dataProviderScraperService);
+                const itemExtractData = await this.processDataProviderItem(dataProvider, dataProviderItem, dataProviderScraperService);
                 if (itemExtractData.status !== 'success') {
                     response.error++;
                     response.errors.push({
@@ -200,11 +200,12 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
     }
 
     private async processDataProviderItem(
+        dataProvider: DataProviderEntity,
         dataProviderItem: DataProviderItemEntity,
         dataProviderScraperService: IDataProviderScraperService,
     ): Promise<ProcessDataProviderItemResponse> {
         try {
-            const itemExtractData = await dataProviderScraperService.scrapeItemData({ dataProviderItem });
+            const itemExtractData = await dataProviderScraperService.scrapeItemData({ dataProviderItem, dataProvider });
             if (itemExtractData.status !== 'success') {
                 return new ProcessDataProviderItemResponse({
                     status: 'error',
