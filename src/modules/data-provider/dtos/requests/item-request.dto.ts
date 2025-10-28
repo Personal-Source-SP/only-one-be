@@ -1,8 +1,10 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { ProductMappingStatus } from '../../enums';
+import { ItemDto } from '../item.dto';
 
 export class CreateItemRequestDto {
     @ApiProperty()
@@ -78,4 +80,17 @@ export class ItemPaginationRequestDto extends BasePaginationRequestDto<FilterIte
     @ValidateNested({ always: true })
     @Type(() => FilterItemPaginationDto)
     filter?: FilterItemPaginationDto;
+}
+
+export class ImportItemRequestDto {
+    @ApiProperty({
+        type: [ItemDto],
+        description: 'Items',
+        example: [{ code: '1234567890', name: 'Item 1', mappingStatus: ProductMappingStatus.MAPPED }],
+    })
+    @IsNotEmpty()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ItemDto)
+    items: ItemDto[];
 }

@@ -2,15 +2,19 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as ExcelJS from 'exceljs';
+import * as fs from 'fs';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { Not, Repository } from 'typeorm';
+import * as path from 'path';
+import { In, Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { ItemDto } from '../dtos/item.dto';
-import { CreateItemRequestDto, ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
+import { CreateItemRequestDto, ImportItemRequestDto, ItemPaginationRequestDto, UpdateItemRequestDto } from '../dtos/requests';
+import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ItemEntity } from '../entities/item.entity';
-import { ProductMappingStatus } from '../enums';
+import { ExcelFileTypes, ProductMappingStatus } from '../enums';
 import { parseBooleanFilter, parseFilterValueToArray } from '../utils/query.utils';
 
 @Injectable()
@@ -90,23 +94,18 @@ export class ItemService extends BaseService<ItemEntity> {
     }
 
     async createItem(request: CreateItemRequestDto): Promise<ItemDto> {
-        try {
-            // Check if item with same code already exists
-            if (request.code) {
-                const existingItem = await this.itemRepository.count({
-                    where: { code: request.code },
-                });
-
-                if (existingItem > 0) {
-                    throw new ConflictException(`Item with code ${request.code} already exists`);
-                }
+        // Check if item with same code already exists
+        if (request.code) {
+            const existingItem = await this.count({ code: request.code });
+            if (existingItem > 0) {
+                throw new ConflictException(`Item with code ${request.code} already exists`);
             }
+        }
 
-            // Create the item
+        try {
             const itemEntity = this.mapper.map(request, CreateItemRequestDto, ItemEntity);
-            itemEntity.mappingStatus = ProductMappingStatus.UNMAPPED;
+            const item = await this.create(itemEntity);
 
-            const item = await this.itemRepository.save(itemEntity);
             return this.mapper.map(item, ItemEntity, ItemDto);
         } catch (error) {
             this.loggerService.error(`Create item error: ${error?.message}`);
@@ -123,7 +122,7 @@ export class ItemService extends BaseService<ItemEntity> {
 
         // Check if code is being updated and if it already exists
         if (request.code !== undefined) {
-            const existing = await this.itemRepository.count({ where: { code: request.code, id: Not(id) } });
+            const existing = await this.count({ code: request.code, id: Not(id) });
             if (existing > 0) {
                 this.loggerService.error(`Item with code ${request.code} already exists`);
                 throw new ConflictException(`Item with code ${request.code} already exists`);
@@ -143,4 +142,175 @@ export class ItemService extends BaseService<ItemEntity> {
 
         return this.delete(id);
     }
+
+    async createImportTemplate(format: string = ExcelFileTypes.XLSX): Promise<string> {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Item Import Template');
+
+        worksheet.columns = [
+            { header: 'Tên', key: 'name', width: 40 },
+            { header: 'Mã sản phẩm', key: 'code', width: 30 },
+        ];
+
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true, size: 12 };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        headerRow.commit();
+
+        const instructionRow = worksheet.addRow({ name: 'Tên sản phẩm', code: 'Mã sản phẩm' });
+        instructionRow.font = { italic: true, color: { argb: 'FF808080' } };
+        instructionRow.commit();
+
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        const timestamp = Date.now();
+        const filePath = path.join(uploadsDir, `item-import-template-${timestamp}${format}`);
+
+        if (format === ExcelFileTypes.CSV) {
+            await workbook.csv.writeFile(filePath);
+        } else {
+            await workbook.xlsx.writeFile(filePath);
+        }
+
+        this.loggerService.log(`Created item import template at: ${filePath}`);
+        return filePath;
+    }
+
+    async previewImportData(filePath: string): Promise<PreviewImportDataResponseDto> {
+        // Load the workbook
+        const workbook = new ExcelJS.Workbook();
+        const ext = path.extname(filePath).toLowerCase();
+
+        if (ext === ExcelFileTypes.CSV) {
+            await workbook.csv.readFile(filePath);
+        } else {
+            await workbook.xlsx.readFile(filePath);
+        }
+
+        const worksheet = workbook.worksheets[0];
+        if (!worksheet) {
+            return new PreviewImportDataResponseDto({
+                items: [],
+                errorMessage: 'No worksheet found in the file',
+            });
+        }
+
+        let nameCol: number | null = null;
+        let codeCol: number | null = null;
+        let headerRowNumber: number | null = null;
+
+        for (let i = 1; i <= worksheet.rowCount; i++) {
+            const row = worksheet.getRow(i);
+
+            let candidateNameCol: number | null = null;
+            let candidateCodeCol: number | null = null;
+
+            row.eachCell((cell, colNumber) => {
+                const raw = cell.value;
+
+                if (this.isHeaderMatch(raw, ['Tên', 'Tên sản phẩm'])) {
+                    candidateNameCol = colNumber;
+                }
+
+                if (this.isHeaderMatch(raw, ['Mã', 'Mã sản phẩm'])) {
+                    candidateCodeCol = colNumber;
+                }
+            });
+
+            if (candidateNameCol && candidateCodeCol) {
+                headerRowNumber = i;
+                nameCol = candidateNameCol;
+                codeCol = candidateCodeCol;
+
+                break;
+            }
+        }
+
+        if (!nameCol || !codeCol || !headerRowNumber) {
+            return new PreviewImportDataResponseDto({
+                items: [],
+                errorMessage: 'Name or code column not found in the file',
+            });
+        }
+
+        const itemData: ItemDto[] = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber <= headerRowNumber!) return;
+
+            const code = row.getCell(codeCol!)?.value?.toString().trim();
+            const name = row.getCell(nameCol!)?.value?.toString().trim();
+
+            if (code && name) {
+                itemData.push({
+                    code: code,
+                    name: name,
+                    mappingStatus: ProductMappingStatus.UNMAPPED,
+                });
+            }
+        });
+
+        const codes = itemData.map((item) => item.code);
+        const overridden = await this.count({ code: In(codes) });
+
+        return new PreviewImportDataResponseDto({
+            items: itemData,
+            statistics: {
+                overridden,
+                updates: itemData.length,
+                errors: worksheet.rowCount - itemData.length,
+            },
+        });
+    }
+
+    async importItemData(request: ImportItemRequestDto): Promise<ImportDataResponseDto> {
+        const codes = request.items.map((item) => item.code);
+        if (!codes?.length) {
+            return new ImportDataResponseDto({
+                updated: 0,
+                success: false,
+                message: 'No valid codes found in the file',
+            });
+        }
+
+        const items = await this.itemRepository.findBy({ code: In(codes) });
+        if (!items?.length) {
+            return new ImportDataResponseDto({
+                updated: 0,
+                success: false,
+                message: 'No items found for the given codes',
+            });
+        }
+
+        try {
+            const itemEntities = this.mapper.mapArray(request.items, ItemDto, ItemEntity);
+            const result = await this.itemRepository.save(itemEntities);
+
+            return new ImportDataResponseDto({
+                success: true,
+                updated: result.length,
+                message: 'Items imported successfully',
+            });
+        } catch (error) {
+            this.loggerService.error(`Failed to import items: ${error.message}`);
+
+            return new ImportDataResponseDto({
+                updated: 0,
+                success: false,
+                message: error?.message || 'Failed to import items',
+            });
+        }
+    }
+
+    private isHeaderMatch = (value: ExcelJS.CellValue, targets: string[]): boolean => {
+        const v = value?.toString().trim().toUpperCase();
+        if (!v) return false;
+
+        return targets.some((target) => {
+            const t = target.toUpperCase();
+            return v === t || v.includes(t);
+        });
+    };
 }

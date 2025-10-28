@@ -43,24 +43,22 @@ export class DataProviderProfile extends AutomapperProfile {
                     mapFrom((s) => s.searchConfig),
                 ),
             );
-
-            createMap(mapper, DataProviderItemEntity, DataProviderItemDto);
-            createMap(mapper, DataHistoryEntity, DataHistoryDto);
-            createMap(mapper, ItemEntity, ItemDto);
-            createMap(mapper, ConfigVersionEntity, ConfigVersionDto);
-
-            // Request DTOs to Entity mappings
             createMap(mapper, CreateDataProviderRequestDto, DataProviderEntity);
             createMap(mapper, UpdateDataProviderRequestDto, DataProviderEntity);
 
+            createMap(mapper, DataProviderItemEntity, DataProviderItemDto);
             createMap(mapper, CreateDataProviderItemRequestDto, DataProviderItemEntity);
             createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
 
+            createMap(mapper, DataHistoryEntity, DataHistoryDto);
+            createMap(mapper, CreateDataHistoryRequestDto, DataHistoryEntity);
+
+            createMap(mapper, ItemEntity, ItemDto);
+            createMap(mapper, ItemDto, ItemEntity);
             createMap(mapper, CreateItemRequestDto, ItemEntity);
             createMap(mapper, UpdateItemRequestDto, ItemEntity);
 
-            createMap(mapper, CreateDataHistoryRequestDto, DataHistoryEntity);
-
+            createMap(mapper, ConfigVersionEntity, ConfigVersionDto);
             createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
         };
     }
