@@ -127,7 +127,7 @@ export class ScraperService implements OnModuleDestroy {
                     config.headers['Cookie'] = cookieString;
                 }
 
-                const requestUrl = queryParams ? `${url}?${queryParams}` : url;
+                const requestUrl = queryParams ? `${url}${queryParams}` : url;
                 const response = await this.baseHttpService.get<Record<string, any>>(requestUrl, config);
 
                 return {
