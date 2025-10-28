@@ -7,7 +7,8 @@ import { BaseHttpService } from './../../../shared/services/base-http.service';
 
 import { AxiosRequestConfig } from 'axios';
 import { LoggerService } from '../../../shared/services/logger.service';
-import { IScraperRequest, IScraperResponse } from '../interfaces/scraper.interface';
+import { IScraperResponse } from '../interfaces/scraper.interface';
+import { ITargetConfig } from '../interfaces/target-config.interface';
 
 @Injectable()
 export class ScraperService implements OnModuleDestroy {
@@ -28,17 +29,16 @@ export class ScraperService implements OnModuleDestroy {
         }
     }
 
-    async getHtmlContent(params: IScraperRequest): Promise<IScraperResponse> {
+    async getHtmlContent(url: string, targetConfig: ITargetConfig): Promise<IScraperResponse> {
         const {
             retryAttempts = 3,
             retryDelay = 2000,
             timeout = 30000,
             waitForTimeout = 10000,
-            url,
             waitForSelector,
             stealthMode,
             cloudflareBypass,
-        } = params;
+        } = this.transformTargetConfig(targetConfig);
 
         const startTime = Date.now();
 
@@ -49,10 +49,10 @@ export class ScraperService implements OnModuleDestroy {
                 const browser = await this.getBrowser(stealthMode);
                 page = await browser.newPage();
 
-                await this.configurePage(page, params);
+                await this.configurePage(page, targetConfig);
 
                 if (cloudflareBypass) {
-                    await this.handleCloudflare(page, params);
+                    await this.handleCloudflare(page, targetConfig);
                 }
 
                 await page.goto(url, {
@@ -100,8 +100,8 @@ export class ScraperService implements OnModuleDestroy {
         }
     }
 
-    async getApiContent(params: IScraperRequest): Promise<IScraperResponse> {
-        const { retryAttempts, retryDelay, timeout, userAgent, headers, cookies, url, queryParams } = params;
+    async getApiContent(url: string, targetConfig: ITargetConfig): Promise<IScraperResponse> {
+        const { retryAttempts, retryDelay, timeout, userAgent, headers, cookies, queryParams } = this.transformTargetConfig(targetConfig);
 
         const startTime = Date.now();
 
@@ -152,6 +152,17 @@ export class ScraperService implements OnModuleDestroy {
                 }
             }
         }
+    }
+
+    private transformTargetConfig(targetConfig: ITargetConfig): ITargetConfig {
+        return {
+            ...targetConfig,
+            timeout: targetConfig.timeout || 30000,
+            maxResults: targetConfig.maxResults || 30,
+            retryDelay: targetConfig.retryDelay || 2000,
+            retryAttempts: targetConfig.retryAttempts || 3,
+            waitForTimeout: targetConfig.waitForTimeout || 10000,
+        };
     }
 
     private async getBrowser(stealthMode = false): Promise<Browser> {
@@ -208,8 +219,8 @@ export class ScraperService implements OnModuleDestroy {
         return this.browser;
     }
 
-    private async handleCloudflare(page: Page, params: IScraperRequest): Promise<void> {
-        const { userAgent } = params;
+    private async handleCloudflare(page: Page, targetConfig: ITargetConfig): Promise<void> {
+        const { userAgent } = targetConfig;
 
         await page.evaluateOnNewDocument(() => {
             Object.defineProperty(navigator, 'webdriver', {
@@ -249,8 +260,8 @@ export class ScraperService implements OnModuleDestroy {
         );
     }
 
-    private async configurePage(page: Page, params: IScraperRequest): Promise<void> {
-        const { userAgent, headers, cookies, javascriptEnabled, imagesEnabled, cssEnabled } = params;
+    private async configurePage(page: Page, targetConfig: ITargetConfig): Promise<void> {
+        const { userAgent, headers, cookies, javascriptEnabled, imagesEnabled, cssEnabled } = targetConfig;
 
         if (userAgent) {
             await page.setUserAgent(userAgent);

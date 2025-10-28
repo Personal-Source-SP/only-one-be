@@ -2,13 +2,12 @@ import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto } from '../dtos/responses/scrape-item-data-response.dto';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
-import { IScraperRequest } from './scraper.interface';
 import { ITargetConfig } from './target-config.interface';
 
 export interface IGetExtractDataRequest {
+    url: string;
     targetConfig: ITargetConfig;
     htmlContentString?: string;
-    requestOptions?: IScraperRequest;
     dataContent?: Record<string, any>;
 }
 

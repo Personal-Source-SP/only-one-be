@@ -11,7 +11,16 @@ export interface ITargetConfig {
     retryAttempts?: number; // Số lần thử lại khi có lỗi
     userAgent?: string; // Chuỗi user-agent giả lập cho trình duyệt
     headers?: Record<string, string>; // Các header HTTP bổ sung khi request
-    cookies?: Record<string, string>; // Các cookie bổ sung khi truy cập trang
+    cookies?: Array<{
+        // Các cookie bổ sung khi truy cập trang
+        name: string; // Tên cookie
+        value: string; // Giá trị cookie
+        domain?: string; // Domain áp dụng cookie
+        path?: string; // Đường dẫn áp dụng cookie
+    }>; // Các cookie bổ sung khi truy cập trang
+
+    timeout?: number; // Thời gian chờ tối đa cho mỗi request (ms)
+    waitForTimeout?: number; // Thời gian chờ tối đa cho waitForSelector (ms)
 
     stealthMode?: boolean; // Bật chế độ ẩn danh chống bot
     cloudflareBypass?: boolean; // Bật chế độ vượt qua Cloudflare

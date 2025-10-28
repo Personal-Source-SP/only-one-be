@@ -112,7 +112,12 @@ export class UpdateTargetConfigRequestDto {
     @ApiPropertyOptional({ description: 'Cookies to add to the request' })
     @IsOptional()
     @IsObject()
-    cookies?: Record<string, string>;
+    cookies?: Array<{
+        name: string;
+        value: string;
+        domain?: string;
+        path?: string;
+    }>;
 
     @ApiPropertyOptional({ description: 'Enable stealth mode to bypass bot detection' })
     @IsOptional()

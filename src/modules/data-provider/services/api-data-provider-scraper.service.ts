@@ -7,7 +7,6 @@ import {
     IExtractDataResponse,
     IGetExtractDataRequest,
     IScrapeItemDataRequest,
-    IScraperRequest,
     ITargetConfig,
     IValidateParserFunctionRequest,
 } from '../interfaces';
@@ -36,18 +35,14 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
 
         const defaultResponse = new ScrapeItemDataResponseDto({
             status: 'error',
+            request: targetConfig,
             dataProviderId: dataProvider.id,
             itemUrl: dataProviderItem.itemUrl,
             dataProviderItemId: dataProviderItem.id,
         });
 
-        const requestOptions: IScraperRequest = {
-            ...(targetConfig as unknown as IScraperRequest),
-            url: dataProviderItem.itemUrl,
-        };
-
         try {
-            const extractData = await this.getExtractData({ targetConfig, requestOptions });
+            const extractData = await this.getExtractData({ targetConfig, url: dataProviderItem.itemUrl });
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
@@ -72,13 +67,8 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     async validateParserFunction(request: IValidateParserFunctionRequest): Promise<ValidateParserFunctionResponseDto> {
         const { targetConfig, productUrl } = request;
 
-        const requestOptions: IScraperRequest = {
-            ...(targetConfig as unknown as IScraperRequest),
-            url: productUrl,
-        };
-
         try {
-            const extractData = await this.getExtractData({ targetConfig, requestOptions });
+            const extractData = await this.getExtractData({ targetConfig, url: productUrl });
             if (extractData?.error) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
@@ -107,16 +97,16 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     }
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
-        const { targetConfig, dataContent, requestOptions } = request;
+        const { targetConfig, dataContent, url } = request;
         const { functionGenerator, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
             let data = dataContent;
             if (!data) {
-                const dataContent = await this.scraperService.getApiContent(requestOptions);
+                const dataContent = await this.scraperService.getApiContent(url, targetConfig);
                 if (dataContent.status !== 'success') {
-                    return { error: dataContent.error_message || `Not found data content from ${requestOptions.url}` };
+                    return { error: dataContent.error_message || `Not found data content from ${url}` };
                 }
                 data = dataContent.data;
             }

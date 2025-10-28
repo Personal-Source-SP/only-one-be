@@ -8,7 +8,6 @@ import {
     IExtractDataResponse,
     IGetExtractDataRequest,
     IScrapeItemDataRequest,
-    IScraperRequest,
     ITargetConfig,
     IValidateParserFunctionRequest,
 } from '../interfaces';
@@ -37,23 +36,18 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
 
         const defaultResponse = new ScrapeItemDataResponseDto({
             status: 'error',
+            request: targetConfig,
             dataProviderId: dataProvider.id,
             itemUrl: dataProviderItem.itemUrl,
             dataProviderItemId: dataProviderItem.id,
         });
 
-        const requestOptions: IScraperRequest = {
-            url: dataProviderItem.itemUrl,
-            ...(targetConfig as unknown as IScraperRequest),
-        };
-
         try {
-            const extractData = await this.getExtractData({ targetConfig, requestOptions });
+            const extractData = await this.getExtractData({ targetConfig, url: dataProviderItem.itemUrl });
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
                     error: extractData.error,
-                    request: requestOptions,
                 });
             }
 
@@ -61,14 +55,12 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
                 ...defaultResponse,
                 status: 'success',
                 html: extractData.html,
-                request: requestOptions,
                 extractedDataResult: extractData.data,
             });
         } catch (error) {
             console.error(error);
             return new ScrapeItemDataResponseDto({
                 ...defaultResponse,
-                request: requestOptions,
                 error: error?.message || 'Unknown error',
             });
         }
@@ -77,13 +69,8 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
     async validateParserFunction(request: IValidateParserFunctionRequest): Promise<ValidateParserFunctionResponseDto> {
         const { targetConfig, productUrl } = request;
 
-        const requestOptions: IScraperRequest = {
-            url: productUrl,
-            ...(targetConfig as unknown as IScraperRequest),
-        };
-
         try {
-            const extractData = await this.getExtractData({ targetConfig, requestOptions });
+            const extractData = await this.getExtractData({ targetConfig, url: productUrl });
             if (extractData?.error) {
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
@@ -122,16 +109,16 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
     }
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
-        const { targetConfig, requestOptions, htmlContentString } = request;
+        const { targetConfig, url, htmlContentString } = request;
         const { functionGenerator, mainContentSelector, isGetParentElement, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
             let html = htmlContentString;
             if (!html) {
-                const htmlContent = await this.scraperService.getHtmlContent(requestOptions);
+                const htmlContent = await this.scraperService.getHtmlContent(url, targetConfig);
                 if (htmlContent.status !== 'success') {
-                    return { error: htmlContent.error_message || `Not found html content from ${requestOptions.url}` };
+                    return { error: htmlContent.error_message || `Not found html content from ${url}` };
                 }
 
                 html = htmlContent.html;

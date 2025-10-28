@@ -1,4 +1,4 @@
-import { IScraperRequest } from '../../interfaces';
+import { ITargetConfig } from '../../interfaces';
 
 export class ScrapeItemDataResponseDto {
     itemUrl: string;
@@ -9,18 +9,14 @@ export class ScrapeItemDataResponseDto {
     // Html extraction
     html?: string;
 
-    // Vision extraction
-    image?: string;
-
     // Error
     error?: string;
 
     // Item data
-    itemData?: string;
     extractedDataResult?: Record<string, any>;
 
     // Request
-    request?: IScraperRequest;
+    request?: ITargetConfig;
 
     constructor(data?: Partial<ScrapeItemDataResponseDto>) {
         if (data) {
