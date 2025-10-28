@@ -1,6 +1,8 @@
+import { ScrapeItemDataResponseItemDto } from './scrape-item-data-response.dto';
+
 export class ValidateParserFunctionResponseDto {
     status: 'success' | 'error';
-    data?: Record<string, any>;
+    data?: ScrapeItemDataResponseItemDto[];
     error?: string;
 
     constructor(data?: Partial<ValidateParserFunctionResponseDto>) {

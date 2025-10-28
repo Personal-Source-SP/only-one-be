@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-import { IRunFunctionExtractData, IRunApiFunctionExtractData } from '../interfaces/target-config.interface';
-import axios from 'axios';
+import { ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
+import { IRunApiFunctionExtractData, IRunFunctionExtractData } from '../interfaces/target-config.interface';
 
 @Injectable()
 class ExtractDataHelper {
-    async runFunctionExtractData(dto: IRunFunctionExtractData): Promise<Record<string, any>> {
+    async runFunctionExtractData(dto: IRunFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
         const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
 
         try {
@@ -34,7 +35,7 @@ class ExtractDataHelper {
         }
     }
 
-    async runApiFunctionExtractData(dto: IRunApiFunctionExtractData): Promise<Record<string, any>> {
+    async runApiFunctionExtractData(dto: IRunApiFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
         const { functionGenerator, data } = dto;
 
         if (!functionGenerator) {

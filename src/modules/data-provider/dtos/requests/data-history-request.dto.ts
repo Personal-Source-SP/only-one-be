@@ -44,7 +44,7 @@ export class ProcessScrapeDataRequestDto {
     @IsDate()
     lastScrapeTimestamp?: Date;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({ description: 'Check duplicate data', default: true })
     @IsOptional()
     @IsBoolean()
     checkDuplicateData?: boolean;

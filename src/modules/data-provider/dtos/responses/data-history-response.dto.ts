@@ -1,3 +1,5 @@
+import { ScrapeItemDataResponseItemDto } from './scrape-item-data-response.dto';
+
 export class ProcessScrapeDataResponse {
     process: number;
     success: number;
@@ -7,18 +9,20 @@ export class ProcessScrapeDataResponse {
 
     successData?: {
         dataProviderId: string;
+        dataProviderName: string;
         dataProviderItemId: string;
+        dataProviderItemUrl: string;
         data: Record<string, any>;
 
-        type?: string;
         url?: string;
+        mimeType?: string;
         lastModified?: Date;
     }[];
 
     errors?: {
-        dataProviderId: string;
         errorMessage: string;
-        dataProviderItemId?: string;
+        dataProviderName: string;
+        dataProviderItemUrl?: string;
     }[];
 
     constructor(data?: Partial<ProcessScrapeDataResponse>) {
@@ -30,7 +34,7 @@ export class ProcessScrapeDataResponse {
 
 export class ProcessDataProviderItemResponse {
     status: 'success' | 'error';
-    data?: Record<string, any>;
+    data?: ScrapeItemDataResponseItemDto[];
     errorMessage?: string;
 
     constructor(data?: Partial<ProcessDataProviderItemResponse>) {

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
-import { parsePrice } from '../../worker/helpers/price-parser';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
 import {
@@ -75,23 +74,6 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
                 return new ValidateParserFunctionResponseDto({
                     status: 'error',
                     error: extractData.error,
-                });
-            }
-
-            if (!extractData.data?.productPrice) {
-                return new ValidateParserFunctionResponseDto({
-                    status: 'error',
-                    error: 'Function parse price is not valid, cannot parse product price',
-                });
-            }
-
-            const productPrice = parsePrice(extractData.data?.productPrice ?? 0);
-            const regularPrice = parsePrice(extractData.data?.regularPrice ?? 0);
-
-            if (productPrice <= 0 && regularPrice <= 0) {
-                return new ValidateParserFunctionResponseDto({
-                    status: 'error',
-                    error: 'Parse price is not valid',
                 });
             }
 

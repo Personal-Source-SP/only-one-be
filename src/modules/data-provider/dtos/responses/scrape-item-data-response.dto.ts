@@ -1,5 +1,12 @@
 import { ITargetConfig } from '../../interfaces';
 
+export class ScrapeItemDataResponseItemDto {
+    id: string;
+    url: string;
+    mimeType?: string;
+    lastModified?: Date;
+}
+
 export class ScrapeItemDataResponseDto {
     itemUrl: string;
     dataProviderId: string;
@@ -13,7 +20,7 @@ export class ScrapeItemDataResponseDto {
     error?: string;
 
     // Item data
-    extractedDataResult?: Record<string, any>;
+    extractedDataResult?: Array<ScrapeItemDataResponseItemDto>;
 
     // Request
     request?: ITargetConfig;

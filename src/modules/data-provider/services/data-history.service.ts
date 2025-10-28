@@ -139,7 +139,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             if (!dataProviderScraperService) {
                 response.error++;
                 response.errors.push({
-                    dataProviderId: dataProvider.id,
+                    dataProviderName: dataProvider.name,
                     errorMessage: `Scraper service ${dataProvider.scraperService} not found`,
                 });
 
@@ -151,19 +151,25 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
                 if (itemExtractData.status !== 'success') {
                     response.error++;
                     response.errors.push({
-                        dataProviderId: dataProvider.id,
-                        dataProviderItemId: dataProviderItem.id,
+                        dataProviderName: dataProvider.name,
                         errorMessage: itemExtractData.errorMessage,
+                        dataProviderItemUrl: dataProviderItem.itemUrl,
                     });
                 } else {
                     response.success++;
-                    response.successData.push({
-                        dataProviderId: dataProvider.id,
-                        dataProviderItemId: dataProviderItem.id,
-                        data: itemExtractData.data,
-                        type: itemExtractData?.data?.type || null,
-                        url: itemExtractData?.data?.url || null,
-                        lastModified: itemExtractData?.data?.lastModified || null,
+
+                    const data = itemExtractData.data;
+                    data?.forEach((item) => {
+                        response.successData.push({
+                            dataProviderId: dataProvider.id,
+                            dataProviderName: dataProvider.name,
+                            dataProviderItemId: dataProviderItem.id,
+                            dataProviderItemUrl: dataProviderItem.itemUrl,
+                            data: item,
+                            url: item?.url || null,
+                            mimeType: item?.mimeType || null,
+                            lastModified: item?.lastModified || new Date(),
+                        });
                     });
                 }
             }
