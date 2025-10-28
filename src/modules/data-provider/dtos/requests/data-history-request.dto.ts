@@ -25,7 +25,7 @@ export class FilterDataHistoryPaginationDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsUUID()
-    dataProviderItemId?: string;
+    dataProviderId?: string;
 }
 
 export class DataHistoryPaginationRequestDto {

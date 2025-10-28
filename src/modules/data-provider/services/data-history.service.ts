@@ -203,6 +203,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
                 type: successData.mimeType,
                 url: successData.url,
                 lastModified: successData.lastModified,
+                dataProviderId: successData.dataProviderId,
                 dataProviderItemId: successData.dataProviderItemId,
             });
         });

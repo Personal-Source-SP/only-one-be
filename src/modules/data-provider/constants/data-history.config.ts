@@ -7,10 +7,12 @@ const dataHistoryColumns = getColumnNames(DataHistoryEntity);
 
 export const DATA_HISTORY_PAGINATION_CONFIG = createPaginationConfig<DataHistoryEntity>({
     sortableColumns: ['scrapeTimestamp', 'lastModified', 'type', 'url'],
-    searchableColumns: ['type', 'url'],
+    searchableColumns: ['type', 'url', 'dataProviderItemId', 'dataProviderId'],
     filterableColumns: {
         type: [FilterOperator.ILIKE, FilterOperator.EQ],
-        url: [FilterOperator.EQ],
+        url: [FilterOperator.ILIKE, FilterOperator.EQ],
+        dataProviderItemId: [FilterOperator.EQ],
+        dataProviderId: [FilterOperator.EQ],
     },
     defaultSortBy: [['scrapeTimestamp', 'DESC']],
     relations: ['dataProviderItem'],
