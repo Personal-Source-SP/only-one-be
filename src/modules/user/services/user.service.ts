@@ -14,7 +14,7 @@ import { UserEntity } from '../entities/user.entity';
 @Injectable()
 export class UserService extends BaseService<UserEntity, UserDto> {
     constructor(@InjectMapper() mapper: Mapper, @InjectRepository(UserEntity) userRepository: Repository<UserEntity>) {
-        super(userRepository, mapper);
+        super(userRepository, mapper, UserDto);
     }
 
     async getUserLogin(email: string): Promise<UserEntity> {
@@ -43,7 +43,9 @@ export class UserService extends BaseService<UserEntity, UserDto> {
         const existingUser = await this.exists({ email: user.email });
         if (existingUser) throw new ConflictException('Email already exists');
 
-        return await super.create(user);
+        const entity = this.mapper.map(user, CreateUserRequestDto, UserEntity);
+
+        return await super.create(entity);
     }
 
     async update(id: string, user: UpdateUserRequestDto): Promise<boolean> {

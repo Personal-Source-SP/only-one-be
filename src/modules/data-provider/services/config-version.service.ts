@@ -23,7 +23,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         @InjectRepository(ConfigVersionEntity)
         private readonly dataProviderConfigVersionsRepository: Repository<ConfigVersionEntity>,
     ) {
-        super(dataProviderConfigVersionsRepository, mapper);
+        super(dataProviderConfigVersionsRepository, mapper, ConfigVersionDto);
     }
 
     async create(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<ConfigVersionDto> {
@@ -34,7 +34,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
             .select(['dataProviderConfigVersions.versionId'])
             .getOne();
 
-        const dataProviderConfigVersionEntity = this.mapDataToEntity(request);
+        const dataProviderConfigVersionEntity = this.mapper.map(request, CreateConfigVersionRequestDto, ConfigVersionEntity);
         dataProviderConfigVersionEntity.createdBy = user?.id;
         dataProviderConfigVersionEntity.versionId = (latestVersion?.versionId ?? 0) + 1;
 

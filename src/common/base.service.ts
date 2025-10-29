@@ -3,18 +3,22 @@ import { BadRequestException, HttpException, Logger, NotFoundException } from '@
 import { isEmpty } from 'lodash';
 import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { AbstractEntity } from './entities';
 import { IBaseService, IFindOptions } from './interfaces/base-service.interface';
 
 export class BaseService<T extends AbstractEntity, D> implements IBaseService<T, D> {
-    protected mapper: Mapper;
     public repository: Repository<T>;
-    private readonly logger: Logger = new Logger(BaseService.name);
 
-    constructor(repository: Repository<T>, mapper: Mapper) {
+    protected readonly mapper: Mapper;
+    protected readonly dtoMappingKey: any;
+    protected readonly entityMappingKey: any;
+    protected readonly logger: Logger = new Logger(BaseService.name);
+
+    constructor(repository: Repository<T>, mapper: Mapper, dtoMappingKey: any) {
         this.mapper = mapper;
         this.repository = repository;
+        this.dtoMappingKey = dtoMappingKey;
+        this.entityMappingKey = this.repository?.metadata?.target;
     }
 
     async findAll(options?: IFindOptions<T>): Promise<D[]> {
@@ -66,11 +70,9 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async create(data: T | D | any): Promise<D> {
-        const entity = this.mapDataToEntity(data);
-
+    async create(data: T): Promise<D> {
         try {
-            const savedEntity = await this.repository.save(entity);
+            const savedEntity = await this.repository.save(data);
             if (!savedEntity) return null;
 
             return this.mapEntityToDto(savedEntity) as D;
@@ -79,11 +81,9 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async createMany(data: T[] | D[] | any[]): Promise<D[]> {
-        const entities = data.map(this.mapDataToEntity);
-
+    async createMany(data: T[]): Promise<D[]> {
         try {
-            const createdEntities = await this.repository.save(entities);
+            const createdEntities = await this.repository.save(data);
             if (!createdEntities) return [];
 
             return this.mapEntityToDto(createdEntities) as D[];
@@ -92,7 +92,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async update(id: string, data: QueryDeepPartialEntity<T> | any): Promise<boolean> {
+    async update(id: string, data: any): Promise<boolean> {
         try {
             const result = await this.repository.update(id, data);
             return result.affected > 0;
@@ -165,34 +165,28 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    protected mapDataToEntity<K>(data: T | D | K): T {
-        let entity: T;
-
-        if ((data as D) && !(data as T)) {
-            entity = this.mapper.map(data, 'D', 'T');
+    protected mapDataToEntity<K>(data: T | D | K): T | T[] {
+        if (!this.dtoMappingKey || !this.entityMappingKey) {
+            throw new BadRequestException('Automapper mapping keys are not configured for DTO -> Entity');
         }
 
-        if ((data as K) && !(data as T)) {
-            entity = this.mapper.map(data, 'K', 'T');
+        if (Array.isArray(data)) {
+            return this.mapper.mapArray(data, this.entityMappingKey, this.dtoMappingKey);
         }
 
-        return entity;
+        return this.mapper.map(data, this.dtoMappingKey, this.entityMappingKey);
     }
 
     protected mapEntityToDto<K>(entity: T | T[] | K): D | D[] {
+        if (!this.entityMappingKey || !this.dtoMappingKey) {
+            throw new BadRequestException('Automapper mapping keys are not configured for Entity -> DTO');
+        }
+
         if (Array.isArray(entity)) {
-            if ((entity as unknown as K[]) && !(entity as unknown as T[])) {
-                return this.mapper.mapArray(entity, 'K', 'D');
-            }
-
-            return this.mapper.mapArray(entity, 'T', 'D');
+            return this.mapper.mapArray(entity, this.entityMappingKey, this.dtoMappingKey);
         }
 
-        if ((entity as unknown as K) && !(entity as unknown as T)) {
-            return this.mapper.map(entity, 'K', 'D');
-        }
-
-        return this.mapper.map(entity, 'T', 'D');
+        return this.mapper.map(entity, this.entityMappingKey, this.dtoMappingKey);
     }
 
     protected handleError(error: any, result?: any): any {

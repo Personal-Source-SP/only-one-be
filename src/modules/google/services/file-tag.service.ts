@@ -26,7 +26,7 @@ export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
         @InjectMapper() mapper: Mapper,
         @InjectRepository(FileTagEntity) fileTagRepository: Repository<FileTagEntity>,
     ) {
-        super(fileTagRepository, mapper);
+        super(fileTagRepository, mapper, FileTagDto);
     }
 
     async assignTagsToFile(request: AssignTagsToFileByIdsRequestDto): Promise<boolean> {

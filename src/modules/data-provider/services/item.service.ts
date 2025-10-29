@@ -17,7 +17,7 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ItemEntity) itemRepository: Repository<ItemEntity>,
     ) {
-        super(itemRepository, mapper);
+        super(itemRepository, mapper, ItemDto);
     }
 
     async create(request: CreateItemRequestDto): Promise<ItemDto> {
@@ -29,7 +29,9 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
             }
         }
 
-        return await super.create(request);
+        const entity = this.mapper.map(request, CreateItemRequestDto, ItemEntity);
+
+        return await super.create(entity);
     }
 
     async updateItem(id: string, request: UpdateItemRequestDto): Promise<boolean> {

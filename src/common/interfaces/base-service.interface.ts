@@ -1,6 +1,5 @@
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { PayloadDto } from '../dto/payload.dto';
 
 export interface IFindOptions<T> {
@@ -15,10 +14,10 @@ export interface IBaseService<T, D> {
     findOneByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D>;
     findListByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D[]>;
 
-    create(data: T | D | any, user?: PayloadDto): Promise<D>;
-    createMany(data: T[] | D[] | any[], user?: PayloadDto): Promise<D[]>;
+    create(data: T, user?: PayloadDto): Promise<D>;
+    createMany(data: T[], user?: PayloadDto): Promise<D[]>;
 
-    update(id: string, data: QueryDeepPartialEntity<T | any>): Promise<boolean>;
+    update(id: string, data: any): Promise<boolean>;
 
     delete(id: string): Promise<boolean>;
     deleteMany(where: FindOptionsWhere<T>): Promise<boolean>;

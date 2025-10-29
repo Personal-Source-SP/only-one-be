@@ -28,7 +28,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {
-        super(dataHistoryRepository, mapper);
+        super(dataHistoryRepository, mapper, DataHistoryDto);
     }
 
     async processScrapeData(request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {

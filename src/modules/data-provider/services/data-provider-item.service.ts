@@ -23,7 +23,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DataProviderItemEntity) dataProviderItemRepository: Repository<DataProviderItemEntity>,
     ) {
-        super(dataProviderItemRepository, mapper);
+        super(dataProviderItemRepository, mapper, DataProviderItemDto);
     }
 
     async findOneByFilter(
@@ -77,7 +77,9 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
             );
         }
 
-        return await super.create(request);
+        const entity = this.mapper.map(request, CreateDataProviderItemRequestDto, DataProviderItemEntity);
+
+        return await super.create(entity);
     }
 
     async update(id: string, request: UpdateDataProviderItemRequestDto): Promise<boolean> {

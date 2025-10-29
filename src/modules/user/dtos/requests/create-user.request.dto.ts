@@ -6,18 +6,6 @@ import { BasePaginationRequestDto } from '../../../../common/dto/pagination-requ
 
 export class CreateUserRequestDto {
     @ApiProperty()
-    @AutoMap()
-    @IsString()
-    @MaxLength(100)
-    firstName: string;
-
-    @ApiProperty()
-    @IsString()
-    @MaxLength(100)
-    @AutoMap()
-    lastName: string;
-
-    @ApiProperty()
     @IsEmail()
     @AutoMap()
     email: string;
@@ -33,6 +21,20 @@ export class CreateUserRequestDto {
     @MaxLength(100)
     @AutoMap()
     password: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    @AutoMap()
+    firstName?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    @AutoMap()
+    lastName?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

@@ -33,7 +33,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         @Inject(forwardRef(() => DataProviderScraperService))
         private readonly dataProviderScraperService: DataProviderScraperService,
     ) {
-        super(dataProviderRepository, mapper);
+        super(dataProviderRepository, mapper, DataProviderDto);
     }
 
     async create(data: CreateDataProviderRequestDto): Promise<DataProviderDto> {
@@ -54,7 +54,9 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
             }
         }
 
-        return await super.create(data);
+        const entity = this.mapper.map(data, CreateDataProviderRequestDto, DataProviderEntity);
+
+        return await super.create(entity);
     }
 
     async update(id: string, data: UpdateDataProviderRequestDto): Promise<boolean> {
@@ -95,9 +97,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
             }
         }
 
-        const dataProvider = this.mapDataToEntity(data);
-
-        return await super.update(id, dataProvider);
+        return await super.update(id, data);
     }
 
     async updateTargetConfig(id: string, request: UpdateTargetConfigRequestDto): Promise<boolean> {

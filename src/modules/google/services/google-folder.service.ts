@@ -17,7 +17,7 @@ export class GoogleFolderService extends BaseService<GoogleDriveFolderEntity, Go
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleDriveFolderEntity) googleDriveFolderRepository: Repository<GoogleDriveFolderEntity>,
     ) {
-        super(googleDriveFolderRepository, mapper);
+        super(googleDriveFolderRepository, mapper, GoogleDriveFolderDto);
     }
 
     async findAllByUserId(userId: string): Promise<GoogleDriveFolderDto[]> {

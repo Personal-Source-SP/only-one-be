@@ -21,7 +21,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity, GoogleAuthD
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleAuthEntity) googleAuthRepository: Repository<GoogleAuthEntity>,
     ) {
-        super(googleAuthRepository, mapper);
+        super(googleAuthRepository, mapper, GoogleAuthDto);
     }
 
     async getListGoogleAuth(userId: string): Promise<GoogleAuthDto[]> {

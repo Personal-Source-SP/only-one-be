@@ -13,6 +13,6 @@ export class GoogleDriveFileTagService extends BaseService<GoogleDriveFileTagEnt
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleDriveFileTagEntity) googleDriveFileTagRepository: Repository<GoogleDriveFileTagEntity>,
     ) {
-        super(googleDriveFileTagRepository, mapper);
+        super(googleDriveFileTagRepository, mapper, GoogleDriveFileTagDto);
     }
 }

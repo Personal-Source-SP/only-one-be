@@ -13,6 +13,6 @@ export class GoogleFileService extends BaseService<GoogleDriveFileEntity, Google
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleDriveFileEntity) googleDriveFileRepository: Repository<GoogleDriveFileEntity>,
     ) {
-        super(googleDriveFileRepository, mapper);
+        super(googleDriveFileRepository, mapper, GoogleDriveFileDto);
     }
 }

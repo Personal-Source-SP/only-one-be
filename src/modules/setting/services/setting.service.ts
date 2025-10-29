@@ -17,7 +17,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         @InjectMapper() mapper: Mapper,
         @InjectRepository(SettingEntity) settingRepository: Repository<SettingEntity>,
     ) {
-        super(settingRepository, mapper);
+        super(settingRepository, mapper, SettingDto);
     }
 
     async create(request: CreateSettingRequestDto): Promise<SettingDto> {
@@ -27,7 +27,9 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
             throw new ConflictException('Setting key already exists');
         }
 
-        return await super.create(request);
+        const entity = this.mapper.map(request, CreateSettingRequestDto, SettingEntity);
+
+        return await super.create(entity);
     }
 
     async update(key: string, request: UpdateSettingRequestDto): Promise<boolean> {
