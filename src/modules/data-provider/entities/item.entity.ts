@@ -1,11 +1,12 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, OneToMany, Relation } from 'typeorm';
+import { Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { ProductMappingStatus } from '../enums';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 
 @Entity({ name: 'items', synchronize: false })
+@Unique(['code'])
 export class ItemEntity extends AbstractEntity {
     @Column({ length: 255 })
     @AutoMap()

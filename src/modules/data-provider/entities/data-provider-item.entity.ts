@@ -2,7 +2,6 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { ITargetConfig } from '../interfaces';
 import { DataHistoryEntity } from './data-history.entity';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
