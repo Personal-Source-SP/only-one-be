@@ -21,6 +21,10 @@ export class BaseService<T> {
         return this.repository.findOne({ where });
     }
 
+    async findListByFilter(where: FindOptionsWhere<T>): Promise<T[]> {
+        return this.repository.find({ where });
+    }
+
     async create(data: any): Promise<T> {
         return this.repository.save(data);
     }
