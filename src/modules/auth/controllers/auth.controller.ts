@@ -1,7 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { CreateUserRequestDto } from '../../user/dtos/requests';
@@ -12,16 +11,14 @@ import { AuthService } from '../services/auth.service';
 
 @Controller('auth')
 @ApiTags('auth')
-export class AuthController extends BaseController {
-    constructor(private readonly authService: AuthService) {
-        super();
-    }
+export class AuthController {
+    constructor(private readonly authService: AuthService) {}
 
     @ApiOperation({ summary: 'Sign up' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @BaseApiOkResponse(UserDto)
     @Post('signup')
+    @BaseApiOkResponse(UserDto)
     public async signUp(@Body() dto: CreateUserRequestDto): Promise<UserDto> {
         const result = await this.authService.signUp(dto);
         return result;
@@ -30,8 +27,8 @@ export class AuthController extends BaseController {
     @ApiOperation({ summary: 'Sign in' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @BaseApiOkResponse(SignInResponseDto)
     @Post('login')
+    @BaseApiOkResponse(SignInResponseDto)
     public async signIn(@Body() dto: SignInRequestDto): Promise<SignInResponseDto> {
         const result = await this.authService.login(dto);
         return result;
@@ -42,8 +39,8 @@ export class AuthController extends BaseController {
     @Version('1')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @BaseApiOkResponse(RefreshTokenResponseDto)
     @Post('refresh-token')
+    @BaseApiOkResponse(RefreshTokenResponseDto)
     public async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {
         const result = await this.authService.refreshToken(dto);
         return result;

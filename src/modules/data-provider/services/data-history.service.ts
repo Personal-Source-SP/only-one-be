@@ -1,8 +1,7 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
@@ -10,7 +9,7 @@ import { MimeType } from '../../../common/enums/mime-type';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { DataHistoryDto } from '../dtos/data-history.dto';
-import { CreateDataHistoryRequestDto, DataHistoryPaginationRequestDto, ProcessScrapeDataRequestDto } from '../dtos/requests';
+import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessDataProviderItemResponse, ProcessScrapeDataResponse } from '../dtos/responses';
 import { DataHistoryEntity } from '../entities/data-history.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
@@ -20,90 +19,22 @@ import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
 
 @Injectable()
-export class DataHistoryService extends BaseService<DataHistoryEntity> {
+export class DataHistoryService extends BaseService<DataHistoryEntity, DataHistoryDto> {
     constructor(
         private readonly loggerService: LoggerService,
         private readonly dataProviderService: DataProviderService,
-
-        @InjectMapper() private readonly mapper: Mapper,
-
-        @InjectRepository(DataHistoryEntity)
-        private readonly dataHistoryRepository: Repository<DataHistoryEntity>,
-
-        @InjectRepository(DataProviderEntity)
-        private readonly dataProviderRepository: Repository<DataProviderEntity>,
-
+        @InjectMapper() mapper: Mapper,
+        @InjectRepository(DataHistoryEntity) dataHistoryRepository: Repository<DataHistoryEntity>,
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {
-        super(dataHistoryRepository);
-    }
-
-    async getById(id: string): Promise<DataHistoryDto> {
-        const dataHistory = await this.findById(id);
-        if (!dataHistory) {
-            this.loggerService.error(`No data history found with id ${id}`);
-            return null;
-        }
-
-        return this.mapper.map(dataHistory, DataHistoryEntity, DataHistoryDto);
-    }
-
-    async getDataHistoryPagination(
-        query: DataHistoryPaginationRequestDto,
-        globalConfig: PaginateConfig<DataHistoryEntity>,
-    ): Promise<Paginated<DataHistoryDto>> {
-        try {
-            const queryBuilder = this.dataHistoryRepository.createQueryBuilder('dataHistory');
-
-            const paginatedResult: Paginated<DataHistoryEntity> = await this.getPaginationWithCustomQuery(
-                query as unknown as PaginateQuery,
-                queryBuilder,
-                {
-                    ...globalConfig,
-                    relations: globalConfig.relations,
-                },
-            );
-
-            const data = this.mapper.mapArray(paginatedResult.data, DataHistoryEntity, DataHistoryDto);
-            return { ...paginatedResult, data } as Paginated<DataHistoryDto>;
-        } catch (error) {
-            this.loggerService.error(`Get data history pagination error: ${error?.message}`);
-            return {
-                data: [],
-                meta: null,
-                links: null,
-            };
-        }
-    }
-
-    async createDataHistory(request: CreateDataHistoryRequestDto): Promise<DataHistoryDto> {
-        try {
-            const dataHistoryEntity = this.mapper.map(request, CreateDataHistoryRequestDto, DataHistoryEntity);
-            dataHistoryEntity.scrapeTimestamp = new Date();
-
-            const dataHistory = await this.dataHistoryRepository.save(dataHistoryEntity);
-            return this.mapper.map(dataHistory, DataHistoryEntity, DataHistoryDto);
-        } catch (error) {
-            this.loggerService.error(`Create data history error: ${error?.message}`);
-            throw error;
-        }
-    }
-
-    async deleteDataHistory(id: string): Promise<boolean> {
-        const existingDataHistory = await this.exists({ id });
-        if (!existingDataHistory) {
-            this.loggerService.error(`No data history found with id ${id}`);
-            throw new NotFoundException('No data history found with id');
-        }
-
-        return this.delete(id);
+        super(dataHistoryRepository, mapper);
     }
 
     async processScrapeData(request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
         const { dataProviderIds, lastScrapeTimestamp } = request;
 
-        const builder = this.dataProviderRepository
+        const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
             .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
             .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
@@ -183,7 +114,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
 
         if (request.checkDuplicateData) {
             const dataIds = response.successData.map((successData) => successData.dataId);
-            const duplicateData = await this.dataHistoryRepository.find({ where: { dataId: In(dataIds) }, select: ['dataId'] });
+            const duplicateData = await this.findListByFilter({ dataId: In(dataIds) }, { select: { dataId: true } });
 
             const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
             const successDataWithoutDuplicate = response.successData.filter(
@@ -200,7 +131,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
         }
 
         const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
-            return this.dataHistoryRepository.create({
+            return this.repository.create({
                 scrapeTimestamp: new Date(),
                 metadata: successData.data,
                 dataId: successData.dataId,
@@ -221,7 +152,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity> {
             });
         }
 
-        const savedDataHistoryEntities = await this.dataHistoryRepository.save(dataHistoryEntities);
+        const savedDataHistoryEntities = await this.createMany(dataHistoryEntities);
         if (!savedDataHistoryEntities.length) {
             return new ProcessScrapeDataResponse({
                 process: 0,

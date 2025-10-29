@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
@@ -7,60 +7,19 @@ import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
     AssignTagsToFileByIdsRequestDto,
-    CreateFileTagRequestDto,
     RemoveFilesFromTagByIdsRequestDto,
     RemoveTagsFromFileByIdsRequestDto,
-    UpdateFileTagRequestDto,
 } from '../dtos/requests';
+import { FileTagEntity } from '../entities/file-tag.entity';
 import { FileTagService } from '../services/file-tag.service';
 
 @Controller('file-tag')
 @ApiTags('file-tag')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-export class FileTagController extends BaseController {
+export class FileTagController extends BaseController<FileTagEntity, FileTagDto> {
     constructor(private readonly fileTagService: FileTagService) {
-        super();
-    }
-
-    @ApiOperation({ summary: 'Create tag' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post()
-    @ApiOkResponse({ type: FileTagDto })
-    public async createTag(@Body() request: CreateFileTagRequestDto): Promise<FileTagDto> {
-        const result = await this.fileTagService.createTag(request.name);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Get tags' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get()
-    @ApiOkResponse({ type: [FileTagDto] })
-    public async getTags(): Promise<FileTagDto[]> {
-        const result = await this.fileTagService.getTags();
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Update tag' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Put(':tagId')
-    @ApiOkResponse({ type: Boolean })
-    public async updateTag(@Param('tagId', new ParseUUIDPipe()) tagId: string, @Body() request: UpdateFileTagRequestDto): Promise<boolean> {
-        const result = await this.fileTagService.updateTag(tagId, request.name);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Delete tag' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Delete(':tagId')
-    @ApiOkResponse({ type: Boolean })
-    public async deleteTag(@Param('tagId', new ParseUUIDPipe()) tagId: string): Promise<boolean> {
-        const result = await this.fileTagService.deleteTag(tagId);
-        return result;
+        super(fileTagService);
     }
 
     @ApiOperation({ summary: 'Assign tags to file (by ids)' })

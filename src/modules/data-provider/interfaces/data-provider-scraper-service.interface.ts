@@ -1,7 +1,7 @@
+import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
+import { DataProviderDto } from '../dtos/data-provider.dto';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto, ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
-import { DataProviderEntity } from '../entities/data-provider.entity';
 import { ITargetConfig } from './target-config.interface';
 
 export interface IGetExtractDataRequest {
@@ -18,8 +18,8 @@ export interface IExtractDataResponse {
 }
 
 export interface IScrapeItemDataRequest {
-    dataProvider: DataProviderEntity;
-    dataProviderItem: DataProviderItemEntity;
+    dataProvider: DataProviderDto;
+    dataProviderItem: DataProviderItemDto;
 }
 
 export interface IValidateParserFunctionRequest {

@@ -13,19 +13,17 @@ import { QueueService } from '../services/queue.service';
 @ApiTags('queue')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-export class QueueController extends BaseController {
-    constructor(private readonly queueService: QueueService) {
-        super();
-    }
+export class QueueController {
+    constructor(private readonly queueService: QueueService) {}
 
     @ApiOperation({ summary: 'Get status queue' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Get(':queueName/status')
     @BaseApiOkResponse(String)
-    async getQueueStatus(@Param('queueName') queueName: QUEUE_NAME): Promise<ResponseDto<QueueStatusEnum>> {
+    async getQueueStatus(@Param('queueName') queueName: QUEUE_NAME): Promise<QueueStatusEnum> {
         const result = await this.queueService.getQueueStatus(queueName);
-        return this.getResponse(!!result, result);
+        return result;
     }
 
     @ApiOperation({ summary: 'Pause queue' })
@@ -33,9 +31,9 @@ export class QueueController extends BaseController {
     @Version('1')
     @Post(':queueName/pause')
     @BaseApiOkResponse(Boolean)
-    async pauseQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<ResponseDto<boolean>> {
+    async pauseQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<boolean> {
         const result = await this.queueService.pauseQueue(queueName);
-        return this.getResponse(result, result);
+        return result;
     }
 
     @ApiOperation({ summary: 'Resume queue' })
@@ -43,8 +41,8 @@ export class QueueController extends BaseController {
     @Version('1')
     @Post(':queueName/resume')
     @BaseApiOkResponse(Boolean)
-    async resumeQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<ResponseDto<boolean>> {
+    async resumeQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<boolean> {
         const result = await this.queueService.resumeQueue(queueName);
-        return this.getResponse(result, result);
+        return result;
     }
 }

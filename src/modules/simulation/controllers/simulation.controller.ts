@@ -2,7 +2,6 @@ import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai.request';
 
-import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
@@ -10,12 +9,10 @@ import { SimulationService } from '../services/simulation.service';
 
 @Controller('simulations')
 @ApiTags('simulations')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
-export class SimulationController extends BaseController {
-    constructor(private readonly simulationService: SimulationService) {
-        super();
-    }
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+export class SimulationController {
+    constructor(private readonly simulationService: SimulationService) {}
 
     @ApiOperation({ summary: 'Simulate Unlucid AI' })
     @Version('1')

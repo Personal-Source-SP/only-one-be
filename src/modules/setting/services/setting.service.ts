@@ -11,54 +11,33 @@ import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
 
 @Injectable()
-export class SettingService extends BaseService<SettingEntity> {
+export class SettingService extends BaseService<SettingEntity, SettingDto> {
     constructor(
         private readonly loggerService: LoggerService,
-
-        @InjectMapper() private readonly mapper: Mapper,
-
-        @InjectRepository(SettingEntity)
-        private readonly settingRepository: Repository<SettingEntity>,
+        @InjectMapper() mapper: Mapper,
+        @InjectRepository(SettingEntity) settingRepository: Repository<SettingEntity>,
     ) {
-        super(settingRepository);
+        super(settingRepository, mapper);
     }
 
-    async createSetting(request: CreateSettingRequestDto): Promise<SettingDto> {
+    async create(request: CreateSettingRequestDto): Promise<SettingDto> {
         const exists = await this.exists({ key: request.key });
         if (exists) {
             this.loggerService.error(`Setting key already exists: ${request.key}`);
             throw new ConflictException('Setting key already exists');
         }
 
-        try {
-            const entity = this.mapper.map(request, CreateSettingRequestDto, SettingEntity);
-            const created = await this.create(entity);
-
-            return this.mapper.map(created, SettingEntity, SettingDto);
-        } catch (error) {
-            this.loggerService.error(`Error creating setting ${request.key}: ${error?.message}`);
-            throw error;
-        }
+        return await super.create(request);
     }
 
-    async updateSetting(key: string, request: UpdateSettingRequestDto): Promise<boolean> {
+    async update(key: string, request: UpdateSettingRequestDto): Promise<boolean> {
         const existing = await this.findOneByFilter({ key });
         if (!existing) {
             this.loggerService.error(`Setting not found: ${key}`);
             throw new NotFoundException('Setting not found');
         }
 
-        try {
-            return await this.update(existing.id, request);
-        } catch (error) {
-            this.loggerService.error(`Error updating setting ${key}: ${error?.message}`);
-            throw error;
-        }
-    }
-
-    async findAllSettings(): Promise<SettingDto[]> {
-        const settings = await this.findAll();
-        return this.mapper.mapArray(settings, SettingEntity, SettingDto);
+        return await super.update(existing.id, request);
     }
 
     async getByKey(key: string): Promise<SettingDto> {
@@ -68,7 +47,7 @@ export class SettingService extends BaseService<SettingEntity> {
             throw new NotFoundException('Setting not found');
         }
 
-        return this.mapper.map(setting, SettingEntity, SettingDto);
+        return setting;
     }
 
     async deleteByKey(key: string): Promise<boolean> {
@@ -78,6 +57,6 @@ export class SettingService extends BaseService<SettingEntity> {
             throw new NotFoundException('Setting not found');
         }
 
-        return await this.delete(existing.id);
+        return await super.delete(existing.id);
     }
 }

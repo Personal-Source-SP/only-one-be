@@ -6,170 +6,138 @@ import { In, Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { FileTagDto } from '../dtos/file-tag.dto';
-import { FileTagEntity } from '../entities/file-tag.entity';
-import { GoogleDriveFileTagEntity } from '../entities/google-drive-file-tag.entity';
-import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import {
     AssignFilesToTagByIdsRequestDto,
     AssignTagsToFileByIdsRequestDto,
     RemoveFilesFromTagByIdsRequestDto,
     RemoveTagsFromFileByIdsRequestDto,
 } from '../dtos/requests';
+import { FileTagEntity } from '../entities/file-tag.entity';
+import { GoogleDriveFileTagService } from './google-drive-file-tag.service';
+import { GoogleFileService } from './google-file.service';
 
 @Injectable()
-export class FileTagService extends BaseService<FileTagEntity> {
+export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
     constructor(
         private readonly loggerService: LoggerService,
+        private readonly googleFileService: GoogleFileService,
+        private readonly googleDriveFileTagService: GoogleDriveFileTagService,
 
-        @InjectMapper() private readonly mapper: Mapper,
-
-        @InjectRepository(FileTagEntity)
-        private readonly fileTagRepository: Repository<FileTagEntity>,
-
-        @InjectRepository(GoogleDriveFileEntity)
-        private readonly googleDriveFileRepository: Repository<GoogleDriveFileEntity>,
-
-        @InjectRepository(GoogleDriveFileTagEntity)
-        private readonly googleDriveFileTagRepository: Repository<GoogleDriveFileTagEntity>,
+        @InjectMapper() mapper: Mapper,
+        @InjectRepository(FileTagEntity) fileTagRepository: Repository<FileTagEntity>,
     ) {
-        super(fileTagRepository);
-    }
-
-    async createTag(name: string): Promise<FileTagDto> {
-        const saved = await this.create({ name: name.trim() });
-        return this.mapper.map(saved, FileTagEntity, FileTagDto);
-    }
-
-    async getTags(): Promise<FileTagDto[]> {
-        const tags = await this.findAll();
-        return this.mapper.mapArray(tags, FileTagEntity, FileTagDto);
-    }
-
-    async updateTag(tagId: string, name: string): Promise<boolean> {
-        const existing = await this.exists({ id: tagId });
-        if (!existing) {
-            this.loggerService.error(`Tag not found: ${tagId}`);
-            throw new NotFoundException('Tag not found');
-        }
-
-        const updated = await this.update(tagId, { name: name.trim() });
-        return updated;
-    }
-
-    async deleteTag(tagId: string): Promise<boolean> {
-        const existing = await this.exists({ id: tagId });
-        if (!existing) {
-            this.loggerService.error(`Tag not found: ${tagId}`);
-            throw new NotFoundException('Tag not found');
-        }
-
-        const deleted = await this.delete(tagId);
-        return deleted;
+        super(fileTagRepository, mapper);
     }
 
     async assignTagsToFile(request: AssignTagsToFileByIdsRequestDto): Promise<boolean> {
         const { fileId, fileTagIds } = request;
 
-        const googleDriveFileExists = await this.googleDriveFileRepository.exists({ where: { id: fileId } });
+        const googleDriveFileExists = await this.googleFileService.exists({ id: fileId });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileId}`);
             throw new NotFoundException('File not found');
         }
 
-        const fileTagsExists = await this.fileTagRepository.exists({ where: { id: In(fileTagIds) } });
+        const fileTagsExists = await this.exists({ id: In(fileTagIds) });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileTagIds?.join(', ')}`);
             throw new NotFoundException('File tags not found');
         }
 
-        const existing = await this.googleDriveFileTagRepository.find({
-            where: { googleDriveFileId: fileId, fileTagId: In(fileTagIds) },
-            select: ['fileTagId'],
-        });
-        const existingSet = new Set(existing.map((e) => e.fileTagId));
+        const existing = await this.googleDriveFileTagService.findListByFilter(
+            {
+                googleDriveFileId: fileId,
+                fileTagId: In(fileTagIds),
+            },
+            { select: { fileTag: true } },
+        );
+        const existingSet = new Set(existing.map((e) => e.id));
 
         const googleDriveFileTags = fileTagIds
             .filter((fileTagId) => !existingSet.has(fileTagId))
-            .map((fileTagId) => this.googleDriveFileTagRepository.create({ googleDriveFileId: fileId, fileTagId }));
+            .map((fileTagId) => this.googleDriveFileTagService.repository.create({ googleDriveFileId: fileId, fileTagId }));
 
         if (!googleDriveFileTags.length) {
             this.loggerService.warn(`No new file tags to assign: ${fileTagIds?.join(', ')}`);
             return true;
         }
 
-        const saved = await this.googleDriveFileTagRepository.save(googleDriveFileTags);
+        const saved = await this.googleDriveFileTagService.createMany(googleDriveFileTags);
         return !!saved;
     }
 
     async removeTagsFromFile(request: RemoveTagsFromFileByIdsRequestDto): Promise<boolean> {
         const { fileId, fileTagIds } = request;
 
-        const googleDriveFileExists = await this.googleDriveFileRepository.exists({ where: { id: fileId } });
+        const googleDriveFileExists = await this.googleFileService.exists({ id: fileId });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileId}`);
             throw new NotFoundException('File not found');
         }
 
-        const fileTagsExists = await this.fileTagRepository.exists({ where: { id: In(fileTagIds) } });
+        const fileTagsExists = await this.exists({ id: In(fileTagIds) });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileTagIds?.join(', ')}`);
             throw new NotFoundException('File tags not found');
         }
 
-        const removed = await this.googleDriveFileTagRepository.delete({ googleDriveFileId: fileId, fileTagId: In(fileTagIds) });
+        const removed = await this.googleDriveFileTagService.deleteMany({ googleDriveFileId: fileId, fileTagId: In(fileTagIds) });
         return !!removed;
     }
 
     async assignFilesToTag(request: AssignFilesToTagByIdsRequestDto): Promise<boolean> {
         const { fileTagId, fileIds } = request;
 
-        const googleDriveFileExists = await this.googleDriveFileRepository.exists({ where: { id: In(fileIds) } });
+        const googleDriveFileExists = await this.googleFileService.exists({ id: In(fileIds) });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileIds}`);
             throw new NotFoundException('File not found');
         }
 
-        const fileTagsExists = await this.fileTagRepository.exists({ where: { id: fileTagId } });
+        const fileTagsExists = await this.exists({ id: fileTagId });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileIds}`);
             throw new NotFoundException('File tags not found');
         }
 
-        const existing = await this.googleDriveFileTagRepository.find({
-            where: { googleDriveFileId: In(fileIds), fileTagId: fileTagId },
-            select: ['googleDriveFileId'],
-        });
-        const existingSet = new Set(existing.map((e) => e.googleDriveFileId));
+        const existing = await this.googleDriveFileTagService.findListByFilter(
+            {
+                googleDriveFileId: In(fileIds),
+                fileTagId: fileTagId,
+            },
+            { select: { googleDriveFileId: true } },
+        );
+        const existingSet = new Set(existing.map((e) => e.id));
 
         const googleDriveFileTags = fileIds
             .filter((fileId) => !existingSet.has(fileId))
-            .map((fileId) => this.googleDriveFileTagRepository.create({ googleDriveFileId: fileId, fileTagId: fileTagId }));
+            .map((fileId) => this.googleDriveFileTagService.repository.create({ googleDriveFileId: fileId, fileTagId: fileTagId }));
 
         if (!googleDriveFileTags.length) {
             this.loggerService.warn(`No new files to assign: ${fileIds?.join(', ')}`);
             return true;
         }
 
-        const saved = await this.googleDriveFileTagRepository.save(googleDriveFileTags);
+        const saved = await this.googleDriveFileTagService.createMany(googleDriveFileTags);
         return !!saved;
     }
 
     async removeFilesFromTag(request: RemoveFilesFromTagByIdsRequestDto): Promise<boolean> {
         const { fileTagId, fileIds } = request;
 
-        const googleDriveFileExists = await this.googleDriveFileRepository.exists({ where: { id: In(fileIds) } });
+        const googleDriveFileExists = await this.googleFileService.exists({ id: In(fileIds) });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileIds?.join(', ')}`);
             throw new NotFoundException('File not found');
         }
 
-        const fileTagsExists = await this.fileTagRepository.exists({ where: { id: fileTagId } });
+        const fileTagsExists = await this.exists({ id: fileTagId });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileIds}`);
             throw new NotFoundException('File tags not found');
         }
 
-        const removed = await this.googleDriveFileTagRepository.delete({ googleDriveFileId: In(fileIds), fileTagId: fileTagId });
-        return !!removed;
+        const removed = await this.googleDriveFileTagService.deleteMany({ googleDriveFileId: In(fileIds), fileTagId: fileTagId });
+        return removed;
     }
 }

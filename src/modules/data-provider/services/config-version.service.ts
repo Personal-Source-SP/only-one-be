@@ -13,18 +13,20 @@ import { ConfigVersionEntity } from '../entities/config-version.entity';
 import { ConfigVersionType } from '../enums';
 
 @Injectable()
-export class ConfigVersionService extends BaseService<ConfigVersionEntity> {
+export class ConfigVersionService extends BaseService<ConfigVersionEntity, ConfigVersionDto> {
     constructor(
         private readonly dataSource: DataSource,
         private readonly loggerService: LoggerService,
-        @InjectMapper() private readonly mapper: Mapper,
+
+        @InjectMapper() mapper: Mapper,
+
         @InjectRepository(ConfigVersionEntity)
         private readonly dataProviderConfigVersionsRepository: Repository<ConfigVersionEntity>,
     ) {
-        super(dataProviderConfigVersionsRepository);
+        super(dataProviderConfigVersionsRepository, mapper);
     }
 
-    async createConfigVersion(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<boolean> {
+    async create(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<ConfigVersionDto> {
         const latestVersion = await this.dataProviderConfigVersionsRepository
             .createQueryBuilder('dataProviderConfigVersions')
             .where('dataProviderConfigVersions.dataProviderId = :dataProviderId', { dataProviderId: request.dataProviderId })
@@ -32,7 +34,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity> {
             .select(['dataProviderConfigVersions.versionId'])
             .getOne();
 
-        const dataProviderConfigVersionEntity = this.mapper.map(request, CreateConfigVersionRequestDto, ConfigVersionEntity);
+        const dataProviderConfigVersionEntity = this.mapDataToEntity(request);
         dataProviderConfigVersionEntity.createdBy = user?.id;
         dataProviderConfigVersionEntity.versionId = (latestVersion?.versionId ?? 0) + 1;
 
@@ -49,13 +51,12 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity> {
 
                 await dataProviderConfigVersionsRepository.save(dataProviderConfigVersionEntity);
 
-                return true;
+                return this.mapEntityToDto(dataProviderConfigVersionEntity) as ConfigVersionDto;
             });
 
             return result;
         } catch (error) {
-            this.loggerService.error(error);
-            throw error;
+            this.handleError(error);
         }
     }
 
@@ -78,27 +79,15 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity> {
             return [];
         }
 
-        return this.mapper.mapArray(dataProviderConfigVersions, ConfigVersionEntity, ConfigVersionDto);
+        return this.mapEntityToDto(dataProviderConfigVersions) as ConfigVersionDto[];
     }
 
-    async getByVersionId(dataProviderId: string, versionId: number): Promise<ConfigVersionDto> {
+    async rollbackToVersionId(dataProviderId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
         const dataProviderConfigVersion = await this.findOneByFilter({
             dataProviderId,
             versionId,
         });
 
-        if (!dataProviderConfigVersion) {
-            this.loggerService.warn(
-                `No data provider config version found for data provider ID: ${dataProviderId} and version id: ${versionId}`,
-            );
-            throw new NotFoundException('No data provider config version found');
-        }
-
-        return this.mapper.map(dataProviderConfigVersion, ConfigVersionEntity, ConfigVersionDto);
-    }
-
-    async rollbackToVersionId(dataProviderId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
-        const dataProviderConfigVersion = await this.getByVersionId(dataProviderId, versionId);
         if (dataProviderConfigVersion.isActive) return true;
 
         const requestCreate = new CreateConfigVersionRequestDto({
@@ -109,7 +98,8 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity> {
             changeDescription: `Rollback to version id: ${versionId}`,
         });
 
-        return await this.createConfigVersion(requestCreate, user);
+        const configVersion = await this.create(requestCreate, user);
+        return !!configVersion;
     }
 
     async deleteConfigVersion(dataProviderId: string, versionId: number): Promise<boolean> {

@@ -51,7 +51,15 @@ export class DataProviderProfile extends AutomapperProfile {
             createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
 
             createMap(mapper, DataHistoryEntity, DataHistoryDto);
-            createMap(mapper, CreateDataHistoryRequestDto, DataHistoryEntity);
+            createMap(
+                mapper,
+                CreateDataHistoryRequestDto,
+                DataHistoryEntity,
+                forMember(
+                    (d) => d.scrapeTimestamp,
+                    mapFrom((s) => new Date()),
+                ),
+            );
 
             createMap(mapper, ItemEntity, ItemDto);
             createMap(mapper, ItemDto, ItemEntity);

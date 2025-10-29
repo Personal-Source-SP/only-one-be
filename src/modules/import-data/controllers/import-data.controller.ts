@@ -11,13 +11,13 @@ import {
     UseInterceptors,
     Version,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
 import { FileInterceptor } from '@nestjs/platform-express';
-import { BaseController } from '../../../common/base.controller';
+import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ImportDataRequestDto } from '../dtos/requests';
 import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
@@ -28,10 +28,8 @@ import { ImportDataService } from '../import-data.service';
 @ApiTags('import-data')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-export class ImportDataController extends BaseController {
-    constructor(private readonly importDataService: ImportDataService) {
-        super();
-    }
+export class ImportDataController {
+    constructor(private readonly importDataService: ImportDataService) {}
 
     @ApiOperation({
         summary: 'Preview import data from file',
@@ -69,7 +67,7 @@ export class ImportDataController extends BaseController {
             },
         }),
     )
-    @ApiOkResponse({ type: PreviewImportDataResponseDto })
+    @BaseApiOkResponse(PreviewImportDataResponseDto)
     async previewImportData(
         @UploadedFile() file: Express.Multer.File,
         @Param('dataType') dataType: ImportDataType,
@@ -100,7 +98,7 @@ export class ImportDataController extends BaseController {
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Post('import-data')
-    @ApiOkResponse({ type: ImportDataResponseDto })
+    @BaseApiOkResponse(ImportDataResponseDto)
     public async importData(@Body() request: ImportDataRequestDto): Promise<ImportDataResponseDto> {
         const result = await this.importDataService.importData(request);
         return result;

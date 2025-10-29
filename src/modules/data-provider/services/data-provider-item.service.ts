@@ -1,129 +1,65 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
-import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
+import { IFindOptions } from '../../../common/interfaces/base-service.interface';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
-import { CreateDataProviderItemRequestDto, DataProviderItemPaginationRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
+import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
-import { DataProviderEntity } from '../entities/data-provider.entity';
-import { ItemEntity } from '../entities/item.entity';
+import { DataProviderService } from './data-provider.service';
+import { ItemService } from './item.service';
 
 @Injectable()
-export class DataProviderItemService extends BaseService<DataProviderItemEntity> {
+export class DataProviderItemService extends BaseService<DataProviderItemEntity, DataProviderItemDto> {
     constructor(
-        private readonly loggerService: LoggerService,
+        private readonly itemService: ItemService,
 
-        @InjectMapper() private readonly mapper: Mapper,
+        @Inject(forwardRef(() => DataProviderService))
+        private readonly dataProviderService: DataProviderService,
 
-        @InjectRepository(DataProviderItemEntity)
-        private readonly dataProviderItemRepository: Repository<DataProviderItemEntity>,
-
-        @InjectRepository(DataProviderEntity)
-        private readonly dataProviderRepository: Repository<DataProviderEntity>,
-
-        @InjectRepository(ItemEntity)
-        private readonly itemRepository: Repository<ItemEntity>,
+        @InjectMapper() mapper: Mapper,
+        @InjectRepository(DataProviderItemEntity) dataProviderItemRepository: Repository<DataProviderItemEntity>,
     ) {
-        super(dataProviderItemRepository);
+        super(dataProviderItemRepository, mapper);
     }
 
-    async getOneByFilter(
+    async findOneByFilter(
         filter: FindOptionsWhere<DataProviderItemEntity>,
-        options?: { isRandom?: boolean; relations?: string[] },
-    ): Promise<DataProviderItemEntity> {
-        const queryBuilder = this.dataProviderItemRepository
+        options?: IFindOptions<DataProviderItemEntity>,
+    ): Promise<DataProviderItemDto> {
+        const queryBuilder = this.repository
             .createQueryBuilder('dataProviderItem')
             .leftJoinAndSelect('dataProviderItem.dataProvider', 'dataProvider')
             .where(filter);
 
-        if (options?.isRandom) {
-            queryBuilder.limit(20).orderBy('RANDOM()').addOrderBy('dataProviderItem.createdAt', 'DESC');
-        }
-
-        if (options?.relations?.length) {
-            options.relations.forEach((relation) => {
-                queryBuilder.leftJoinAndSelect(`dataProviderItem.${relation}`, relation);
-            });
-        }
+        // Build query builder with options
+        this.buildQueryBuilder(queryBuilder, options);
 
         try {
             const result = await queryBuilder.getOne();
-            return result;
+            if (!result) return null;
+
+            return this.mapEntityToDto(result) as DataProviderItemDto;
         } catch (error) {
-            this.loggerService.error(`Error fetching DataProviderItem with filter ${JSON.stringify(filter)}: ${error.message}`);
-            throw error;
+            this.handleError(error);
         }
     }
 
-    async getById(id: string): Promise<DataProviderItemDto> {
-        const dataProviderItem = await this.dataProviderItemRepository.findOne({
-            where: { id },
-            relations: ['dataProvider', 'item'],
-        });
-
-        if (!dataProviderItem) {
-            throw new NotFoundException('DataProviderItem with ID not found');
-        }
-
-        return this.mapper.map(dataProviderItem, DataProviderItemEntity, DataProviderItemDto);
-    }
-
-    async getByDataProviderId(dataProviderId: string): Promise<DataProviderItemDto[]> {
-        const dataProviderItems = await this.dataProviderItemRepository.find({
-            where: { dataProviderId },
-            relations: ['item', 'dataProvider'],
-        });
-
-        return this.mapper.mapArray(dataProviderItems, DataProviderItemEntity, DataProviderItemDto);
-    }
-
-    async getDataProviderItemsPagination(
-        query: DataProviderItemPaginationRequestDto,
-        globalConfig: PaginateConfig<DataProviderItemEntity>,
-    ): Promise<Paginated<DataProviderItemDto>> {
-        try {
-            const paginatedResult: Paginated<DataProviderItemEntity> = await this.getPaginationWithCustomQuery(
-                query as unknown as PaginateQuery,
-                this.dataProviderItemRepository,
-                {
-                    ...globalConfig,
-                    relations: globalConfig.relations,
-                },
-            );
-
-            const data = this.mapper.mapArray(paginatedResult.data, DataProviderItemEntity, DataProviderItemDto);
-            return { ...paginatedResult, data } as Paginated<DataProviderItemDto>;
-        } catch (error) {
-            this.loggerService.error(`Get data provider items pagination error: ${error?.message}`);
-
-            return {
-                data: [],
-                meta: null,
-                links: null,
-            };
-        }
-    }
-
-    async createDataProviderItem(request: CreateDataProviderItemRequestDto): Promise<DataProviderItemDto> {
+    async create(request: CreateDataProviderItemRequestDto): Promise<DataProviderItemDto> {
         // Verify that product exists
-        const item = await this.itemRepository.exists({ where: { id: request.itemId } });
+        const item = await this.exists({ id: request.itemId });
         if (!item) {
             throw new NotFoundException(`Item with ID ${request.itemId} not found`);
         }
 
         // Verify that data provider exists and get its details for validation
-        const dataProvider = await this.dataProviderRepository.findOne({
-            select: ['id', 'baseUrl'],
-            where: { id: request.dataProviderId },
-        });
-        if (!dataProvider) {
-            throw new NotFoundException(`Data Provider with ID ${request.dataProviderId} not found`);
-        }
+        const dataProvider = await this.dataProviderService.findOneByFilter(
+            { id: request.dataProviderId },
+            { select: { id: true, baseUrl: true } },
+        );
 
         // Validate that product URL matches data provider base URL
         const isValidUrl = await this.validateItemUrlMatchesBaseUrl(request.itemUrl, dataProvider.baseUrl);
@@ -141,36 +77,25 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity>
             );
         }
 
-        // Create new entity
-        const entity = this.mapper.map(request, CreateDataProviderItemRequestDto, DataProviderItemEntity);
-        const dataProviderItem = await this.create(entity);
-
-        return this.mapper.map(dataProviderItem, DataProviderItemEntity, DataProviderItemDto);
+        return await super.create(request);
     }
 
-    async updateDataProviderItem(id: string, request: UpdateDataProviderItemRequestDto): Promise<boolean> {
-        const existing = await this.dataProviderItemRepository.findOne({
-            where: { id },
-            relations: ['dataProvider'],
-        });
-
+    async update(id: string, request: UpdateDataProviderItemRequestDto): Promise<boolean> {
+        const existing = await this.findOneByFilter({ id }, { relations: { dataProvider: true } });
         if (!existing) throw new NotFoundException('DataProviderItem with ID not found');
 
         // Verify product exists if updating
         if (request.itemId) {
-            const itemExists = await this.itemRepository.exists({
-                where: { id: request.itemId },
-            });
-
+            const itemExists = await this.itemService.exists({ id: request.itemId });
             if (!itemExists) throw new NotFoundException(`Item with ID ${request.itemId} not found`);
         }
 
         let dataProvider = existing.dataProvider;
         if (request.dataProviderId) {
-            dataProvider = await this.dataProviderRepository.findOne({
-                select: ['id', 'baseUrl'],
-                where: { id: request.dataProviderId },
-            });
+            dataProvider = await this.dataProviderService.findOneByFilter(
+                { id: request.dataProviderId },
+                { select: { id: true, baseUrl: true } },
+            );
 
             if (!dataProvider) throw new NotFoundException(`Data Provider with ID ${request.dataProviderId} not found`);
         }
@@ -184,18 +109,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity>
             }
         }
 
-        const result = await this.update(id, request);
-        return result;
-    }
-
-    async deleteDataProviderItem(id: string): Promise<boolean> {
-        const existingItem = await this.exists({ id });
-        if (!existingItem) {
-            this.loggerService.error(`No data provider item found with id ${id}`);
-            throw new NotFoundException('No data provider item found with id');
-        }
-
-        return this.delete(id);
+        return await super.update(id, request);
     }
 
     private validateItemUrlMatchesBaseUrl(itemUrl: string, baseUrl: string): boolean {

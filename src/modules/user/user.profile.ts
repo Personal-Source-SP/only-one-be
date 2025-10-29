@@ -1,4 +1,4 @@
-import { createMap, Mapper, MappingProfile } from '@automapper/core';
+import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
@@ -6,6 +6,7 @@ import { SignInResponseDto } from '../auth/dtos/responses/auth.response.dto';
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos/requests';
 import { UserDto } from './dtos/user.dto';
 import { UserEntity } from './entities/user.entity';
+import { UtilsService } from '../../shared/services/utils.service';
 
 @Injectable()
 export class UserProfile extends AutomapperProfile {
@@ -18,7 +19,15 @@ export class UserProfile extends AutomapperProfile {
             createMap(mapper, UserEntity, UserDto);
             createMap(mapper, UserEntity, SignInResponseDto);
 
-            createMap(mapper, CreateUserRequestDto, UserEntity);
+            createMap(
+                mapper,
+                CreateUserRequestDto,
+                UserEntity,
+                forMember(
+                    (d) => d.password,
+                    mapFrom((s) => UtilsService.generateHash(s.password)),
+                ),
+            );
             createMap(mapper, UpdateUserRequestDto, UserEntity);
         };
     }

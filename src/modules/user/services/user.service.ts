@@ -5,27 +5,21 @@ import * as bcrypt from 'bcrypt';
 import { Brackets, Not, Repository } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
-import { ChangePasswordRequestDto, CreateUserRequestDto, UpdateUserRequestDto, UserPaginationRequestDto } from '../dtos/requests';
+import { ChangePasswordRequestDto, CreateUserRequestDto, UpdateUserRequestDto } from '../dtos/requests';
 import { UserDto } from '../dtos/user.dto';
 import { UserEntity } from '../entities/user.entity';
 
 @Injectable()
-export class UserService extends BaseService<UserEntity> {
-    constructor(
-        private readonly loggerService: LoggerService,
-        @InjectMapper() private readonly mapper: Mapper,
-        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
-    ) {
-        super(userRepository);
+export class UserService extends BaseService<UserEntity, UserDto> {
+    constructor(@InjectMapper() mapper: Mapper, @InjectRepository(UserEntity) userRepository: Repository<UserEntity>) {
+        super(userRepository, mapper);
     }
 
     async getUserLogin(email: string): Promise<UserEntity> {
         try {
-            const user = await this.userRepository
+            const user = await this.repository
                 .createQueryBuilder('user')
                 .where(new Brackets((qb) => qb.orWhere('email = :email', { email }).orWhere('user_name = :userName', { userName: email })))
                 .getOne();
@@ -34,61 +28,25 @@ export class UserService extends BaseService<UserEntity> {
 
             return user;
         } catch (error) {
-            this.loggerService.error(`Error getting user login: ${error.message}`);
-            throw error;
+            this.handleError(error);
         }
     }
 
-    async getUsersPagination(query: UserPaginationRequestDto, globalConfig: PaginateConfig<UserEntity>): Promise<Paginated<UserDto>> {
-        try {
-            const paginatedResult: Paginated<UserEntity> = await this.getPaginationWithCustomQuery(
-                query as unknown as PaginateQuery,
-                this.userRepository,
-                {
-                    ...globalConfig,
-                    relations: globalConfig.relations,
-                },
-            );
+    async getUserRefreshToken(id: string): Promise<UserEntity> {
+        const user = await this.repository.findOneBy({ id });
+        if (!user) throw new NotFoundException('User not found');
 
-            const data = this.mapper.mapArray(paginatedResult.data, UserEntity, UserDto);
-            return { ...paginatedResult, data } as Paginated<UserDto>;
-        } catch (error) {
-            this.loggerService.error(`Get users pagination error: ${error?.message}`);
-            return {
-                data: [],
-                meta: null,
-                links: null,
-            };
-        }
+        return user;
     }
 
-    async getUserById(id: string): Promise<UserDto> {
-        const user = await this.findById(id);
-        if (!user) {
-            this.loggerService.error(`User not found with id ${id}`);
-            return null;
-        }
-
-        return this.mapper.map(user, UserEntity, UserDto);
-    }
-
-    async createUser(user: CreateUserRequestDto): Promise<UserDto> {
+    async create(user: CreateUserRequestDto): Promise<UserDto> {
         const existingUser = await this.exists({ email: user.email });
         if (existingUser) throw new ConflictException('Email already exists');
 
-        const userEntity = this.mapper.map(user, CreateUserRequestDto, UserEntity);
-        userEntity.password = UtilsService.generateHash(user.password);
-
-        try {
-            const result = await this.create(userEntity);
-            return this.mapper.map(result, UserEntity, UserDto);
-        } catch (error) {
-            this.loggerService.error(`Error creating user: ${error.message}`);
-            throw error;
-        }
+        return await super.create(user);
     }
 
-    async updateUser(id: string, user: UpdateUserRequestDto): Promise<boolean> {
+    async update(id: string, user: UpdateUserRequestDto): Promise<boolean> {
         const existingUser = await this.findById(id);
         if (!existingUser) throw new NotFoundException('User not found');
 
@@ -97,32 +55,16 @@ export class UserService extends BaseService<UserEntity> {
             if (emailExists) throw new ConflictException('Email already in use');
         }
 
-        try {
-            const updatedUser = this.mapper.map(user, UpdateUserRequestDto, UserEntity);
-            const result = await this.update(id, updatedUser);
-
-            return result;
-        } catch (error) {
-            this.loggerService.error(`Error updating user: ${error.message}`);
-            throw error;
-        }
+        return await super.update(id, user);
     }
 
     async changePassword(dto: ChangePasswordRequestDto): Promise<boolean> {
-        const user = await this.findById(dto.userId);
+        const user = await this.repository.findOneBy({ id: dto.userId });
         if (!user) throw new NotFoundException('User not found');
 
         const isPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
         if (!isPasswordValid) throw new UnauthorizedException('Current password is incorrect');
 
-        try {
-            const hashedPassword = UtilsService.generateHash(dto.newPassword);
-            const result = await this.update(dto.userId, { password: hashedPassword });
-
-            return result;
-        } catch (error) {
-            this.loggerService.error(`Error changing password: ${error.message}`);
-            throw error;
-        }
+        return await super.update(user.id, { password: UtilsService.generateHash(dto.newPassword) });
     }
 }

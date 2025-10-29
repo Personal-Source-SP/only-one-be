@@ -17,10 +17,11 @@ import { GoogleAuthService } from './services/google-auth.service';
 import { GoogleDriveService } from './services/google-drive.service';
 import { GoogleFileService } from './services/google-file.service';
 import { GoogleFolderService } from './services/google-folder.service';
+import { GoogleDriveFileTagService } from './services/google-drive-file-tag.service';
 
-const services = [GoogleDriveService, FileTagService, GoogleAuthService, GoogleFileService, GoogleFolderService];
 const entities = [GoogleDriveFileEntity, GoogleDriveFolderEntity, GoogleDriveFileTagEntity, GoogleAuthEntity, FileTagEntity];
 const controllers = [GoogleDriveController, GoogleAuthController, FileTagController, GoogleFileController, GoogleFolderController];
+const services = [GoogleDriveService, FileTagService, GoogleAuthService, GoogleFileService, GoogleFolderService, GoogleDriveFileTagService];
 
 @Module({
     imports: [TypeOrmModule.forFeature(entities), UserModule],

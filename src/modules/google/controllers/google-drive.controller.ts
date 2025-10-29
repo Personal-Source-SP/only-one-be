@@ -1,7 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Put, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { User } from '../../../decorators/user.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
@@ -13,10 +12,8 @@ import { GoogleDriveService } from '../services/google-drive.service';
 @ApiTags('google-drive')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-export class GoogleDriveController extends BaseController {
-    constructor(private readonly googleDriveService: GoogleDriveService) {
-        super();
-    }
+export class GoogleDriveController {
+    constructor(private readonly googleDriveService: GoogleDriveService) {}
 
     @ApiOperation({ summary: 'Preview data sync' })
     @HttpCode(HttpStatus.OK)

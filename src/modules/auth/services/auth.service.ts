@@ -24,7 +24,7 @@ export class AuthService {
     ) {}
 
     async signUp(dto: CreateUserRequestDto): Promise<UserDto> {
-        const user = await this.userService.createUser(dto);
+        const user = await this.userService.create(dto);
         return user;
     }
 
@@ -57,7 +57,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token');
         }
 
-        const user = await this.userService.findById(payload.userId);
+        const user = await this.userService.getUserRefreshToken(payload.userId);
 
         if (!user) throw new UnauthorizedException('User not found');
 

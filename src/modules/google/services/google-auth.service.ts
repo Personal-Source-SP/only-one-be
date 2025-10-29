@@ -14,31 +14,27 @@ import { GoogleApiType, GoogleApiUrl } from '../enums';
 import { IGoogleApiRequest, IGoogleApiResponse } from '../interfaces';
 
 @Injectable()
-export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
+export class GoogleAuthService extends BaseService<GoogleAuthEntity, GoogleAuthDto> {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly httpClient: BaseHttpService,
-
-        @InjectMapper() private readonly mapper: Mapper,
-
-        @InjectRepository(GoogleAuthEntity)
-        private readonly googleAuthRepository: Repository<GoogleAuthEntity>,
+        private readonly loggerService: LoggerService,
+        @InjectMapper() mapper: Mapper,
+        @InjectRepository(GoogleAuthEntity) googleAuthRepository: Repository<GoogleAuthEntity>,
     ) {
-        super(googleAuthRepository);
+        super(googleAuthRepository, mapper);
     }
 
     async getListGoogleAuth(userId: string): Promise<GoogleAuthDto[]> {
-        const googleAuths = await this.googleAuthRepository.findBy({ userId });
+        const googleAuths = await this.findListByFilter({ userId });
         if (!googleAuths?.length) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
             return null;
         }
 
-        const dto = this.mapper.mapArray(googleAuths, GoogleAuthEntity, GoogleAuthDto);
-        return dto;
+        return googleAuths;
     }
 
-    async updateGoogleAuth(request: UpdateGoogleAuthRequestDto, userId: string): Promise<boolean> {
+    async update(userId: string, request: UpdateGoogleAuthRequestDto): Promise<boolean> {
         const { email, accessToken, expiresIn, scope, tokenType, refreshToken, refreshTokenExpiresIn } = request;
 
         const existingGoogleAuth = await this.findOneByFilter({ userId, email });
@@ -48,7 +44,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
         const googleRefreshTokenExpiresAt = refreshTokenExpiresIn ? this.generateExpiresAt(refreshTokenExpiresIn) : null;
 
         if (existingGoogleAuth) {
-            await this.update(existingGoogleAuth.id, {
+            return await super.update(existingGoogleAuth.id, {
                 isActive: true,
                 googleExpiresAt,
                 googleScope: scope,
@@ -57,11 +53,9 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
                 googleRefreshToken: refreshToken,
                 googleRefreshTokenExpiresAt,
             });
-
-            return true;
         }
 
-        const entity = this.googleAuthRepository.create({
+        const entity = this.repository.create({
             email,
             userId,
             isActive: true,
@@ -73,7 +67,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity> {
             googleRefreshTokenExpiresAt,
         });
 
-        const saved = await this.create(entity);
+        const saved = await super.create(entity);
         return !!saved;
     }
 
