@@ -50,7 +50,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
 
     async create(request: CreateDataProviderItemRequestDto): Promise<DataProviderItemDto> {
         // Verify that product exists
-        const item = await this.exists({ id: request.itemId });
+        const item = await this.itemService.exists({ id: request.itemId });
         if (!item) {
             throw new NotFoundException(`Item with ID ${request.itemId} not found`);
         }
