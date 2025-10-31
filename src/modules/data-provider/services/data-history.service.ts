@@ -32,22 +32,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
     }
 
     async processScrapeData(request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
-        const { dataProviderIds, lastScrapeTimestamp } = request;
-
-        const builder = this.dataProviderService.repository
-            .createQueryBuilder('dataProvider')
-            .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
-            .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
-
-        if (dataProviderIds?.length) {
-            builder.andWhere('dataProvider.id IN (:...dataProviderIds)', { dataProviderIds });
-        }
-
-        if (lastScrapeTimestamp) {
-            builder.andWhere('dataProvider.lastScrapeTimestamp < :lastScrapeTimestamp', { lastScrapeTimestamp });
-        }
-
-        const dataProviders = await builder.getMany();
+        const dataProviders = await this.getDataProvidersForScrape(request);
         if (!dataProviders.length) {
             this.loggerService.error('No data providers available to scrape');
             return new ProcessScrapeDataResponse({
@@ -112,25 +97,8 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             }
         }
 
-        if (request.checkDuplicateData) {
-            const dataIds = response.successData.map((successData) => successData.dataId);
-            const duplicateData = await this.findListByFilter({ dataId: In(dataIds) }, { select: { dataId: true } });
-
-            const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
-            const successDataWithoutDuplicate = response.successData.filter(
-                (successData) => !duplicateDataIds.includes(String(successData.dataId)),
-            );
-            response.successData = successDataWithoutDuplicate;
-        }
-
-        if (request.mimeTypes?.length) {
-            const successDataWithoutMimeType = response.successData.filter((successData) =>
-                request.mimeTypes.includes(successData.mimeType as MimeType),
-            );
-            response.successData = successDataWithoutMimeType;
-        }
-
-        const dataHistoryEntities: DataHistoryEntity[] = response.successData.map((successData) => {
+        const validatedResponse = await this.validateResponseForScrape(request, response);
+        const dataHistoryEntities: DataHistoryEntity[] = validatedResponse.successData.map((successData) => {
             return this.repository.create({
                 scrapeTimestamp: new Date(),
                 metadata: successData.data,
@@ -162,7 +130,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             });
         }
 
-        return response;
+        return validatedResponse;
     }
 
     private async processDataProviderItem(
@@ -189,5 +157,62 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
                 errorMessage: error?.message || 'Unknown error',
             });
         }
+    }
+
+    private async getDataProvidersForScrape(request: ProcessScrapeDataRequestDto): Promise<DataProviderEntity[]> {
+        const { dataProviderIds, dataProviderItemIds, lastScrapeTimestamp } = request;
+
+        const builder = this.dataProviderService.repository
+            .createQueryBuilder('dataProvider')
+            .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
+            .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
+
+        if (dataProviderIds?.length) {
+            builder.andWhere('dataProvider.id IN (:...dataProviderIds)', { dataProviderIds });
+        }
+
+        if (dataProviderItemIds?.length) {
+            builder.andWhere('dataProviderItem.id IN (:...dataProviderItemIds)', { dataProviderItemIds });
+        }
+
+        if (lastScrapeTimestamp) {
+            builder.andWhere('dataProvider.lastScrapeTimestamp < :lastScrapeTimestamp', { lastScrapeTimestamp });
+        }
+
+        try {
+            const dataProviders = await builder.getMany();
+            return dataProviders;
+        } catch (error) {
+            this.loggerService.error(`Failed to get data providers for scrape: ${error?.message}`);
+            return [];
+        }
+    }
+
+    private async validateResponseForScrape(
+        request: ProcessScrapeDataRequestDto,
+        response: ProcessScrapeDataResponse,
+    ): Promise<ProcessScrapeDataResponse> {
+        const { checkDuplicateData, mimeTypes } = request;
+
+        let successData = [...(response?.successData ?? [])];
+
+        if (checkDuplicateData) {
+            const dataIds = successData.map((successData) => successData.dataId);
+            const duplicateData = await this.findListByFilter({ dataId: In(dataIds) }, { select: { dataId: true } });
+
+            const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
+            const successDataWithoutDuplicate = successData.filter((successData) => !duplicateDataIds.includes(String(successData.dataId)));
+            successData = successDataWithoutDuplicate;
+        }
+
+        if (mimeTypes?.length) {
+            const successDataWithoutMimeType = successData.filter((successData) => mimeTypes.includes(successData.mimeType as MimeType));
+            successData = successDataWithoutMimeType;
+        }
+
+        return new ProcessScrapeDataResponse({
+            ...response,
+            successData,
+        });
     }
 }
