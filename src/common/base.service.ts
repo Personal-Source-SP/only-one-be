@@ -234,7 +234,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         if (isEmpty(options)) return queryBuilder;
 
         if (options?.isRandom) {
-            queryBuilder.limit(20).orderBy('RANDOM()').addOrderBy('createdAt', 'DESC');
+            queryBuilder.limit(20).orderBy('RANDOM()');
         }
 
         if (!isEmpty(options?.relations)) {
