@@ -112,7 +112,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
             }
 
             const extractData = await this.extractDataHelper.runApiFunctionExtractData({
-                data: data,
+                data,
                 functionGenerator,
             });
 

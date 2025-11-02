@@ -26,7 +26,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         super(dataProviderItemRepository, mapper, DataProviderItemDto);
     }
 
-    async findOneByFilter(
+    async findOneByFilterAndOptions(
         filter: FindOptionsWhere<DataProviderItemEntity>,
         options?: IFindOptions<DataProviderItemEntity>,
     ): Promise<DataProviderItemDto> {
@@ -103,7 +103,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         }
 
         if (request.itemUrl) {
-            const isValidUrl = await this.validateItemUrlMatchesBaseUrl(request.itemUrl, dataProvider.baseUrl);
+            const isValidUrl = this.validateItemUrlMatchesBaseUrl(request.itemUrl, dataProvider.baseUrl);
             if (!isValidUrl) {
                 throw new BadRequestException(
                     `Item URL must start with data provider base URL. Expected: ${dataProvider.baseUrl}, Got: ${request.itemUrl}`,

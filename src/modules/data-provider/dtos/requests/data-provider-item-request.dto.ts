@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateDataProviderItemRequestDto {
     @ApiProperty({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -20,6 +20,7 @@ export class CreateDataProviderItemRequestDto {
     @ApiProperty({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
     @IsNotEmpty()
     @IsString()
+    @Transform(({ value }) => value?.trim())
     @AutoMap()
     itemUrl: string;
 }
@@ -38,6 +39,7 @@ export class UpdateDataProviderItemRequestDto {
     @ApiPropertyOptional({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
     @IsOptional()
     @IsString()
+    @Transform(({ value }) => value?.trim())
     itemUrl?: string;
 }
 

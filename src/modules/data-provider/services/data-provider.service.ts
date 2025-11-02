@@ -184,7 +184,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
     }
 
     private async getProviderItemRandom(dataProviderId: string): Promise<DataProviderItemDto> {
-        const dataProviderItem = await this.dataProviderItemService.findOneByFilter({ dataProviderId }, { isRandom: true });
+        const dataProviderItem = await this.dataProviderItemService.findOneByFilterAndOptions({ dataProviderId }, { isRandom: true });
         if (!dataProviderItem) throw new BadRequestException('Mapping item not found for validation');
 
         return dataProviderItem;

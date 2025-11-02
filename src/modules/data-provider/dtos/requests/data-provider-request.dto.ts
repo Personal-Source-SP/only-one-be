@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, Matches, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { ScraperServiceEnum } from '../../enums';
 
@@ -15,6 +15,7 @@ export class CreateDataProviderRequestDto {
     @ApiProperty()
     @IsString()
     @MaxLength(255)
+    @Transform(({ value }) => value?.trim())
     @AutoMap()
     baseUrl: string;
 
@@ -52,8 +53,9 @@ export class UpdateDataProviderRequestDto {
 
     @ApiPropertyOptional({ description: 'Base URL of the Data Provider' })
     @IsOptional()
+    @Transform(({ value }) => value?.trim())
     @MaxLength(255)
-    @IsUrl()
+    @IsString()
     @AutoMap()
     baseUrl?: string;
 }
