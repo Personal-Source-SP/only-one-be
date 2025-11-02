@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { BadRequestException, HttpException, Logger, NotFoundException } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { DeepPartial, FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
 import { AbstractEntity } from './entities';
 import { IBaseService, IFindOptions } from './interfaces/base-service.interface';
 
@@ -68,13 +68,14 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
     }
 
     async findListByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D[]> {
-        const { relations, select } = options ?? {};
+        const { relations, select, withDeleted } = options ?? {};
 
         try {
             const entities = await this.repository.find({
                 where,
                 select: select ?? undefined,
                 relations: relations ?? undefined,
+                withDeleted: withDeleted ?? false,
             });
             if (!entities) return [];
 

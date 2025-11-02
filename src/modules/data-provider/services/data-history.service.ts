@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { MimeType } from '../../../common/enums/mime-type';
@@ -198,7 +198,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
 
         if (checkDuplicateData) {
             const dataIds = successData.map((successData) => successData.dataId);
-            const duplicateData = await this.findListByFilter({ dataId: In(dataIds) }, { select: { dataId: true } });
+            const duplicateData = await this.findListByFilter({ dataId: In(dataIds) }, { select: { dataId: true }, withDeleted: true });
 
             const duplicateDataIds = duplicateData.map((entity) => entity.dataId);
             const successDataWithoutDuplicate = successData.filter((successData) => !duplicateDataIds.includes(String(successData.dataId)));

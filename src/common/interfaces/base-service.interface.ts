@@ -4,6 +4,7 @@ import { PayloadDto } from '../dto/payload.dto';
 
 export interface IFindOptions<T> {
     isRandom?: boolean;
+    withDeleted?: boolean;
     select?: FindOptionsSelect<T>;
     relations?: FindOptionsRelations<T>;
 }
