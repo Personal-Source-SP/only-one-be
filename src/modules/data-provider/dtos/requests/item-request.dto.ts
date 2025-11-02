@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 
@@ -22,6 +22,15 @@ export class CreateItemRequestDto {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return value
+                .split(',')
+                .map((tag: string) => tag.trim())
+                .filter(Boolean);
+        }
+        return value;
+    })
     @AutoMap()
     tags?: string[];
 }
