@@ -14,7 +14,7 @@ import { DataHistoryService } from '../services/data-history.service';
 @Controller('data-history')
 export class DataHistoryController extends BaseController<DataHistoryEntity, DataHistoryDto> {
     constructor(private readonly dataHistoryService: DataHistoryService) {
-        super(dataHistoryService, DATA_HISTORY_PAGINATION_CONFIG);
+        super(dataHistoryService, DATA_HISTORY_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
     @ApiOperation({ summary: 'Process scrape data' })

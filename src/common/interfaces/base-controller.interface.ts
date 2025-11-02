@@ -5,6 +5,7 @@ export interface BaseControllerOptions {
     enableGetAll?: boolean;
     enableGetById?: boolean;
     enablePagination?: boolean;
+    enableDeleteMany?: boolean;
 }
 
 export interface IBaseController<T, D> {

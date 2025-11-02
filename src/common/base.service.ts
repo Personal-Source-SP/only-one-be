@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { BadRequestException, HttpException, Logger, NotFoundException } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
 import { AbstractEntity } from './entities';
 import { IBaseService, IFindOptions } from './interfaces/base-service.interface';
 
@@ -131,7 +131,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
 
     async deleteMany(where: FindOptionsWhere<T>): Promise<boolean> {
         try {
-            const result = await this.repository.delete(where);
+            const result = await this.repository.update(where, { deletedAt: new Date() } as any);
             return result.affected > 0;
         } catch (error) {
             this.handleError(error);

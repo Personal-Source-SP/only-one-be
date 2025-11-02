@@ -1,9 +1,24 @@
-import { Delete, Get, HttpCode, HttpStatus, Inject, NotFoundException, Param, ParseUUIDPipe, Query, Type, Version } from '@nestjs/common';
+import {
+    Body,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Inject,
+    NotFoundException,
+    Param,
+    ParseUUIDPipe,
+    Query,
+    Type,
+    Version,
+} from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { ApiOperation } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
 import { PaginateConfig, PaginateQuery, Paginated } from 'nestjs-paginate';
+import { DeleteManyRequestDto } from 'src/common/dto/base-request.dto.';
+import { In } from 'typeorm';
 import { BaseApiOkResponse } from '../decorators/base-response.decorator';
 import { PayloadDto } from './dto/payload.dto';
 import { BaseControllerOptions, IBaseController } from './interfaces/base-controller.interface';
@@ -26,6 +41,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
             enableGetAll: options?.enableGetAll ?? true,
             enableGetById: options?.enableGetById ?? true,
             enablePagination: options?.enablePagination ?? true,
+            enableDeleteMany: options?.enableDeleteMany ?? false,
         };
     }
 
@@ -88,6 +104,20 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         }
 
         const result = await this.service.delete(id);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Delete many entities' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Delete()
+    @BaseApiOkResponse(Boolean)
+    async deleteMany(@Body() request: DeleteManyRequestDto): Promise<boolean> {
+        if (!this.options.enableDeleteMany) {
+            throw new NotFoundException('Endpoint not supported');
+        }
+
+        const result = await this.service.deleteMany({ id: In(request.ids) } as any);
         return result;
     }
 }
