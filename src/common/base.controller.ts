@@ -17,9 +17,9 @@ import { ApiOperation } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
 import { PaginateConfig, PaginateQuery, Paginated } from 'nestjs-paginate';
-import { DeleteManyRequestDto } from 'src/common/dto/base-request.dto.';
 import { In } from 'typeorm';
 import { BaseApiOkResponse } from '../decorators/base-response.decorator';
+import { DeleteManyRequestDto } from './dto/base-request.dto.';
 import { PayloadDto } from './dto/payload.dto';
 import { BaseControllerOptions, IBaseController } from './interfaces/base-controller.interface';
 import { IBaseService } from './interfaces/base-service.interface';
