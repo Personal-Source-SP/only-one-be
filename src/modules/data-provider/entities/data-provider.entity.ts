@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
+import { Check, Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
@@ -13,6 +13,10 @@ import { DataProviderItemEntity } from './data-provider-item.entity';
 @Unique(['baseUrl'])
 @Check(`"identifier" is null OR "identifier" ~ '^[a-z0-9-]+$'`)
 export class DataProviderEntity extends AbstractEntity {
+    @Column({ length: 255 })
+    @AutoMap()
+    identifier: string;
+
     @Column({ length: 255 })
     @AutoMap()
     name: string;
@@ -29,9 +33,13 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     status: DataProviderStatus;
 
-    @Column({ length: 255, nullable: true, comment: 'Group identifier for region-specific providers' })
+    @Column({ type: 'varchar', length: 50, default: 'generic' })
     @AutoMap()
-    identifier?: string;
+    searchService: string;
+
+    @Column({ type: 'varchar', length: 100, default: DataProviderSearchStatus.UNCONFIGURED })
+    @AutoMap()
+    searchStatus: DataProviderSearchStatus;
 
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
@@ -45,13 +53,9 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     searchConfig?: ISearchConfig;
 
-    @Column({ type: 'varchar', length: 50, default: 'generic' })
+    @Column({ type: 'uuid', nullable: true })
     @AutoMap()
-    searchService: string;
-
-    @Column({ type: 'varchar', length: 100, default: DataProviderSearchStatus.UNCONFIGURED })
-    @AutoMap()
-    searchStatus: DataProviderSearchStatus;
+    parentId?: string;
 
     @OneToMany(() => DataProviderItemEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [DataProviderItemEntity])
@@ -64,4 +68,13 @@ export class DataProviderEntity extends AbstractEntity {
     @OneToMany(() => DataHistoryEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [DataHistoryEntity])
     dataHistory?: Relation<DataHistoryEntity>[];
+
+    @OneToMany(() => DataProviderEntity, (entity) => entity.parent)
+    @AutoMap(() => [DataProviderEntity])
+    children?: Relation<DataProviderEntity>[];
+
+    @ManyToOne(() => DataProviderEntity, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'parent_id' })
+    @AutoMap(() => DataProviderEntity)
+    parent?: Relation<DataProviderEntity>;
 }

@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, Matches, MaxLength, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUUID, Matches, MaxLength, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { ScraperServiceEnum } from '../../enums';
 
@@ -15,7 +15,7 @@ export class CreateDataProviderRequestDto {
     @ApiProperty()
     @IsString()
     @MaxLength(255)
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => value?.trim()?.replace(/[\\/]+$/, ''))
     @AutoMap()
     baseUrl: string;
 
@@ -26,6 +26,12 @@ export class CreateDataProviderRequestDto {
     @Matches(/^[a-z0-9-]+$/, { message: 'Identifier can only contain lowercase letters, numbers, and dashes' })
     @AutoMap()
     identifier?: string;
+
+    @ApiPropertyOptional({ description: 'Parent data provider ID' })
+    @IsOptional()
+    @IsUUID()
+    @AutoMap()
+    parentId?: string;
 }
 
 export class UpdateDataProviderRequestDto {
@@ -58,6 +64,12 @@ export class UpdateDataProviderRequestDto {
     @IsString()
     @AutoMap()
     baseUrl?: string;
+
+    @ApiPropertyOptional({ description: 'Parent data provider ID' })
+    @IsOptional()
+    @IsUUID()
+    @AutoMap()
+    parentId?: string;
 }
 
 export class UpdateTargetConfigRequestDto {

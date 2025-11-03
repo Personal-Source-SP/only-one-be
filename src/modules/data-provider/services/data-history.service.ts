@@ -164,6 +164,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
 
         const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
+            .leftJoinAndSelect('dataProvider.parent', 'parent')
             .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
             .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
 

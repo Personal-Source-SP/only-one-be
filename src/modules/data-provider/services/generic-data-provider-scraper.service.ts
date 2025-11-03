@@ -22,7 +22,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
         const { dataProvider, dataProviderItem } = request;
 
-        const targetConfig: ITargetConfig = dataProvider.targetConfig;
+        const targetConfig: ITargetConfig = dataProvider?.parent?.targetConfig ?? dataProvider.targetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',

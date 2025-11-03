@@ -2,10 +2,11 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { IFindOptions } from '../../../common/interfaces/base-service.interface';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DataProviderDto } from '../dtos/data-provider.dto';
@@ -36,22 +37,40 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         super(dataProviderRepository, mapper, DataProviderDto);
     }
 
+    async findById(id: string, options?: IFindOptions<DataProviderEntity>): Promise<DataProviderDto> {
+        const dataProviderDto = await super.findById(id, { ...options, relations: { parent: true } });
+        if (!dataProviderDto) return null;
+
+        if (dataProviderDto.parentId) {
+            dataProviderDto.targetConfig = dataProviderDto?.parent?.targetConfig ?? null;
+            dataProviderDto.searchConfig = dataProviderDto?.parent?.searchConfig ?? null;
+        }
+
+        return dataProviderDto;
+    }
+
     async create(data: CreateDataProviderRequestDto): Promise<DataProviderDto> {
         if (data?.identifier && !/^[a-z0-9-]+$/.test(data.identifier)) {
             throw new BadRequestException('Identifier must contain lowercase letters, numbers, and dashes');
         }
 
         if (data?.baseUrl) {
-            data.baseUrl = this.removeTrailingSlashes(data.baseUrl);
-
-            const existingDataProviderWithBaseUrl = await this.exists({
-                baseUrl: data.baseUrl,
-            });
+            const existingDataProviderWithBaseUrl = await this.exists({ baseUrl: data.baseUrl });
 
             if (existingDataProviderWithBaseUrl) {
                 this.loggerService.error(`Data provider with baseUrl ${data.baseUrl} already exists`);
                 throw new ConflictException(`Data provider with baseUrl ${data.baseUrl} already exists`);
             }
+        }
+
+        if (data?.parentId) {
+            const parent = await this.findById(data.parentId);
+            if (!parent) {
+                this.loggerService.error(`Parent Data Provider with ID ${data.parentId} not found`);
+                throw new NotFoundException(`Parent Data Provider with ID ${data.parentId} not found`);
+            }
+
+            data.identifier = parent.identifier;
         }
 
         const entity = this.mapper.map(data, CreateDataProviderRequestDto, DataProviderEntity);
@@ -66,6 +85,25 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
             throw new NotFoundException(`Data provider with ID ${id} not found`);
         }
 
+        if (existingDataProvider.parentId) {
+            if (!data.parentId) throw new BadRequestException('Child data provider must have a parent data provider');
+            delete data.identifier;
+        }
+
+        const isParentDataProvider = await this.exists({ parentId: id });
+        if (isParentDataProvider) delete data.parentId;
+
+        // Check parent data provider exists
+        if (data?.parentId) {
+            if (data.parentId === id) throw new BadRequestException('A data provider cannot be its own parent.');
+
+            const parentExists = await this.exists({ id: data.parentId, parentId: IsNull() });
+            if (!parentExists) {
+                this.loggerService.error(`Parent data provider with ID ${data.parentId} not found`);
+                throw new NotFoundException(`Parent data provider with ID ${data.parentId} not found`);
+            }
+        }
+
         // Check if identifier is valid
         if (data?.identifier && !/^[a-z0-9-]+$/.test(data.identifier)) {
             throw new BadRequestException('Identifier must contain lowercase letters, numbers, and dashes');
@@ -75,6 +113,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         if (data?.identifier) {
             const countExistingDataProvider = await this.exists({
                 id: Not(id),
+                parentId: IsNull(),
                 identifier: data.identifier,
             });
 
@@ -177,10 +216,6 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         }
 
         return await super.update(id, { status });
-    }
-
-    private removeTrailingSlashes(url: string): string {
-        return url.trim().replace(/[\\/]+$/, '');
     }
 
     private async getProviderItemRandom(dataProviderId: string): Promise<DataProviderItemDto> {
