@@ -7,7 +7,6 @@ import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
 
 @Entity({ name: 'data_provider_items', synchronize: false })
-@Unique(['itemId', 'dataProviderId'])
 export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()

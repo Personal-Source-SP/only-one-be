@@ -69,14 +69,6 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
             );
         }
 
-        // Check if a record with the same productId and dataProviderId already exists
-        const existing = await this.findOneByFilter({ itemId: request.itemId, dataProviderId: request.dataProviderId });
-        if (existing) {
-            throw new ConflictException(
-                `DataProviderItem for item ${request.itemId} and provider ${request.dataProviderId} already exists`,
-            );
-        }
-
         const entity = this.mapper.map(request, CreateDataProviderItemRequestDto, DataProviderItemEntity);
 
         return await super.create(entity);
