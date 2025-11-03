@@ -140,7 +140,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
     }
 
     async updateTargetConfig(id: string, request: UpdateTargetConfigRequestDto): Promise<boolean> {
-        const dataProvider = await this.findById(id);
+        const dataProvider = await this.findOneByFilter({ id, parentId: IsNull() });
         if (!dataProvider) throw new NotFoundException(`Data provider with ID ${id} not found`);
 
         const { scraperService, ...targetConfig } = request;
@@ -199,19 +199,52 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         const dataProvider = await this.findById(id);
         if (!dataProvider) throw new BadRequestException(`No data provider found with ID ${id}`);
 
-        switch (status) {
-            case DataProviderStatus.READY: {
-                if (dataProvider.status !== DataProviderStatus.TESTING) {
-                    throw new BadRequestException('Not allowed to switch status to READY');
+        if (!dataProvider.parentId) {
+            switch (status) {
+                case DataProviderStatus.READY: {
+                    if (dataProvider.status !== DataProviderStatus.TESTING) {
+                        throw new BadRequestException('Not allowed to switch status to READY');
+                    }
+                    break;
                 }
-                break;
-            }
 
-            case DataProviderStatus.TESTING: {
-                if (dataProvider.status !== DataProviderStatus.READY) {
-                    throw new BadRequestException('Not allowed to switch status to TESTING');
+                case DataProviderStatus.TESTING: {
+                    if (dataProvider.status !== DataProviderStatus.READY) {
+                        throw new BadRequestException('Not allowed to switch status to TESTING');
+                    }
+                    break;
                 }
-                break;
+            }
+        } else {
+            const parent = dataProvider.parent;
+            if (!parent) throw new BadRequestException(`No parent data provider found for ID ${id}`);
+
+            switch (status) {
+                case DataProviderStatus.READY: {
+                    if (dataProvider.status !== DataProviderStatus.TESTING || parent?.status !== DataProviderStatus.READY) {
+                        throw new BadRequestException('Not allowed to switch status to READY');
+                    }
+
+                    const product = await this.getProviderItemRandom(id);
+                    const validateParserFunction = await this.validateTargetConfig({
+                        itemUrl: product.itemUrl,
+                        targetConfig: parent?.targetConfig,
+                        scraperService: parent?.scraperService,
+                    });
+
+                    if (validateParserFunction.status !== 'success') {
+                        throw new BadRequestException(validateParserFunction?.error ?? 'Function parser is not valid');
+                    }
+
+                    break;
+                }
+
+                case DataProviderStatus.TESTING: {
+                    if (![DataProviderStatus.READY, DataProviderStatus.UNCONFIGURED].includes(parent?.status)) {
+                        throw new BadRequestException('Not allowed to switch status to TESTING');
+                    }
+                    break;
+                }
             }
         }
 
