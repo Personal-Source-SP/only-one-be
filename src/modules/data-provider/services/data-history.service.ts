@@ -169,7 +169,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
 
         if (dataProviderIds?.length) {
-            builder.andWhere('dataProvider.id IN (:...dataProviderIds)', { dataProviderIds });
+            builder.andWhere('dataProvider.id IN :(...dataProviderIds)', { dataProviderIds });
         }
 
         if (dataProviderItemIds?.length) {
