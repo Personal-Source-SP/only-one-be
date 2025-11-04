@@ -15,6 +15,7 @@ import { DataProviderEntity } from './entities/data-provider.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { IDataProviderScraperService } from './interfaces';
+import { DataHistoryListener } from './listeners/data-history.listener';
 import { ApiDataProviderScraperService } from './services/api-data-provider-scraper.service';
 import { ConfigVersionService } from './services/config-version.service';
 import { DataHistoryService } from './services/data-history.service';
@@ -27,6 +28,7 @@ import { ParserService } from './services/parser.service';
 import { ScraperService } from './services/scraper.service';
 
 const helpers = [ExtractDataHelper];
+const listeners = [DataHistoryListener];
 const entities = [DataProviderEntity, DataProviderItemEntity, DataHistoryEntity, ItemEntity, ConfigVersionEntity];
 const controllers = [ItemController, DataHistoryController, DataProviderController, DataProviderItemController, ParserController];
 const services = [
@@ -48,6 +50,7 @@ const services = [
     providers: [
         ...helpers,
         ...services,
+        ...listeners,
         DataProviderProfile,
         {
             provide: DATA_PROVIDER_SCRAPER_SERVICE_MAP,
@@ -61,6 +64,6 @@ const services = [
             inject: [ApiDataProviderScraperService, GenericDataProviderScraperService],
         },
     ],
-    exports: [...helpers, ...services, DataProviderProfile],
+    exports: [...helpers, ...services, ...listeners, DataProviderProfile],
 })
 export class DataProviderModule {}

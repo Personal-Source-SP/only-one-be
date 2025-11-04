@@ -1,8 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
-import { Transform, Type } from 'class-transformer';
 
 export class CreateDataProviderItemRequestDto {
     @ApiProperty({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -29,6 +29,16 @@ export class CreateDataProviderItemRequestDto {
     @IsBoolean()
     @AutoMap()
     isActive?: boolean;
+
+    @ApiPropertyOptional({ description: 'Auto process scraping of the data provider item' })
+    @IsOptional()
+    @IsBoolean()
+    autoProcessScraping?: boolean;
+
+    @ApiPropertyOptional({ description: 'Check duplicate data', default: true })
+    @IsOptional()
+    @IsBoolean()
+    checkDuplicateData?: boolean;
 }
 
 export class UpdateDataProviderItemRequestDto {

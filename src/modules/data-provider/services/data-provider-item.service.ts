@@ -4,11 +4,14 @@ import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BaseService } from '../../../common/base.service';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
+import { DATA_HISTORY_EVENTS } from '../constants/data-history-event.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
+import { DataHistoryService } from './data-history.service';
 import { DataProviderService } from './data-provider.service';
 import { ItemService } from './item.service';
 
@@ -16,9 +19,13 @@ import { ItemService } from './item.service';
 export class DataProviderItemService extends BaseService<DataProviderItemEntity, DataProviderItemDto> {
     constructor(
         private readonly itemService: ItemService,
+        private readonly eventEmitter: EventEmitter2,
 
         @Inject(forwardRef(() => DataProviderService))
         private readonly dataProviderService: DataProviderService,
+
+        @Inject(forwardRef(() => DataHistoryService))
+        private readonly dataHistoryService: DataHistoryService,
 
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DataProviderItemEntity) dataProviderItemRepository: Repository<DataProviderItemEntity>,
@@ -71,8 +78,17 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         }
 
         const entity = this.mapper.map(request, CreateDataProviderItemRequestDto, DataProviderItemEntity);
+        const result = await super.create(entity);
 
-        return await super.create(entity);
+        if (result && request.autoProcessScraping) {
+            // Handle auto process scraping data provider item
+            this.eventEmitter.emit(DATA_HISTORY_EVENTS.PROCESS_SCRAPE_DATA, {
+                dataProviderItemIds: [result.id],
+                checkDuplicateData: request.checkDuplicateData ?? true,
+            });
+        }
+
+        return result;
     }
 
     async update(id: string, request: UpdateDataProviderItemRequestDto): Promise<boolean> {
