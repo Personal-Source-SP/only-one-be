@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
@@ -106,7 +106,34 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         return await super.update(id, request);
     }
 
+    async updateItemUrlByDataProviderId(dataProviderId: string, newBaseUrl: string): Promise<boolean> {
+        const dataProvider = await this.dataProviderService.findOneByFilter(
+            { id: dataProviderId },
+            { select: { id: true, baseUrl: true } },
+        );
+
+        if (!dataProvider) throw new NotFoundException(`Data Provider with ID ${dataProviderId} not found`);
+
+        const dataProviderItems = await this.findListByFilter({ dataProviderId }, { relations: { item: true } });
+        if (!dataProviderItems.length) throw new NotFoundException(`Data Provider Item with Data Provider ID ${dataProviderId} not found`);
+
+        for (const dataProviderItem of dataProviderItems) {
+            dataProviderItem.itemUrl = this.updateItemUrlWithBaseUrl(dataProviderItem.itemUrl, dataProvider.baseUrl, newBaseUrl);
+        }
+
+        try {
+            const updated = await this.repository.save(dataProviderItems);
+            return updated.length > 0;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
     private validateItemUrlMatchesBaseUrl(itemUrl: string, baseUrl: string): boolean {
         return itemUrl.startsWith(baseUrl);
+    }
+
+    private updateItemUrlWithBaseUrl(itemUrl: string, oldBaseUrl: string, newBaseUrl: string): string {
+        return itemUrl.replace(oldBaseUrl, newBaseUrl);
     }
 }

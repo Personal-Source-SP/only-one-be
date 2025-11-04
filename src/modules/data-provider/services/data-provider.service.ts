@@ -134,6 +134,11 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
                 this.loggerService.error(`Data provider with baseUrl ${data.baseUrl} already exists`);
                 throw new ConflictException(`Data provider with baseUrl ${data.baseUrl} already exists`);
             }
+
+            // Update item URL if base URL is changed
+            if (existingDataProvider.baseUrl !== data.baseUrl) {
+                await this.dataProviderItemService.updateItemUrlByDataProviderId(id, data.baseUrl);
+            }
         }
 
         return await super.update(id, data);
