@@ -167,7 +167,8 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             .leftJoinAndSelect('dataProvider.parent', 'parent')
             .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
             .leftJoinAndSelect('dataProviderItem.item', 'item')
-            .where('dataProvider.status = :status', { status: DataProviderStatus.READY });
+            .where('dataProvider.status = :status', { status: DataProviderStatus.READY })
+            .andWhere('dataProviderItem.isActive = :isActive', { isActive: true });
 
         if (dataProviderIds?.length) {
             builder.andWhere('dataProvider.id IN :(...dataProviderIds)', { dataProviderIds });

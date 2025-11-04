@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { DataHistoryEntity } from './data-history.entity';
@@ -19,6 +19,10 @@ export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'text' })
     @AutoMap()
     itemUrl: string;
+
+    @Column({ type: 'boolean', default: true })
+    @AutoMap()
+    isActive: boolean;
 
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()

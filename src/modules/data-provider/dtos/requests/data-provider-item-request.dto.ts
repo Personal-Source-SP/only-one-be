@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
 import { Transform, Type } from 'class-transformer';
 
@@ -23,6 +23,12 @@ export class CreateDataProviderItemRequestDto {
     @Transform(({ value }) => value?.trim())
     @AutoMap()
     itemUrl: string;
+
+    @ApiPropertyOptional({ description: 'Active status of the data provider item' })
+    @IsOptional()
+    @IsBoolean()
+    @AutoMap()
+    isActive?: boolean;
 }
 
 export class UpdateDataProviderItemRequestDto {
@@ -41,6 +47,12 @@ export class UpdateDataProviderItemRequestDto {
     @IsString()
     @Transform(({ value }) => value?.trim())
     itemUrl?: string;
+
+    @ApiPropertyOptional({ description: 'Active status of the data provider item' })
+    @IsOptional()
+    @IsBoolean()
+    @AutoMap()
+    isActive?: boolean;
 }
 
 export class CreateManuallyTriggerScrapingRequestDto {

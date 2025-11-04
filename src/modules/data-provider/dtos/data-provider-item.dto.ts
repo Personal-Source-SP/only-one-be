@@ -21,6 +21,10 @@ export class DataProviderItemDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
+    isActive: boolean;
+
+    @ApiResponseProperty()
+    @AutoMap()
     lastScrapedTimestamp?: Date;
 
     @ApiResponseProperty()

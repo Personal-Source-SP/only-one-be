@@ -129,6 +129,13 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         }
     }
 
+    async switchActiveStatus(id: string, activeStatus: boolean): Promise<boolean> {
+        const existing = await this.findOneByFilter({ id });
+        if (!existing) throw new NotFoundException('DataProviderItem with ID not found');
+
+        return await super.update(id, { isActive: activeStatus });
+    }
+
     private validateItemUrlMatchesBaseUrl(itemUrl: string, baseUrl: string): boolean {
         return itemUrl.startsWith(baseUrl);
     }

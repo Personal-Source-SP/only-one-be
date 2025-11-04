@@ -1,4 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    ParseBoolPipe,
+    ParseUUIDPipe,
+    Post,
+    Put,
+    UseGuards,
+    Version,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
@@ -36,6 +49,19 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
     @BaseApiOkResponse(DataProviderItemDto)
     public async create(@Body() request: CreateDataProviderItemRequestDto): Promise<DataProviderItemDto> {
         const result = await this.dataProviderItemService.create(request);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Switch active status data provider item' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Put(':id/switch-status/:activeStatus')
+    @BaseApiOkResponse(Boolean)
+    public async switchActiveStatus(
+        @Param('activeStatus', new ParseBoolPipe()) activeStatus: boolean,
+        @Param('id', new ParseUUIDPipe()) id: string,
+    ): Promise<boolean> {
+        const result = await this.dataProviderItemService.switchActiveStatus(id, activeStatus);
         return result;
     }
 
