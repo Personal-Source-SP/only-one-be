@@ -5,6 +5,7 @@ export interface ITargetConfig {
     isGetParentElement?: boolean; // Lấy phần tử cha của nội dung chính
 
     queryParams?: string; //  Tham số truyền vào API
+    firstQueryParams?: string; //  Tham số truyền vào API
 
     maxResults?: number; // Số lượng kết quả tối đa
     retryDelay?: number; // Thời gian delay giữa mỗi lần retry (ms)

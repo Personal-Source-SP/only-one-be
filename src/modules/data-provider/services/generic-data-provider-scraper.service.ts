@@ -42,7 +42,12 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
         });
 
         try {
-            const extractData = await this.getExtractData({ targetConfig, url: dataProviderItem.itemUrl });
+            const extractData = await this.getExtractData({
+                targetConfig,
+                url: dataProviderItem.itemUrl,
+                lastScrapedTimestamp: dataProviderItem.lastScrapedTimestamp,
+            });
+
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,

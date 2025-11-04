@@ -98,6 +98,11 @@ export class UpdateTargetConfigRequestDto {
     @IsString()
     queryParams?: string;
 
+    @ApiPropertyOptional({ description: 'First query parameters to add to the request' })
+    @IsOptional()
+    @IsString()
+    firstQueryParams?: string;
+
     @ApiPropertyOptional({ description: 'Maximum number of results to return' })
     @IsOptional()
     @IsNumber()

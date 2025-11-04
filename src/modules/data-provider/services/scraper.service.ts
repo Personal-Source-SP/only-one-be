@@ -100,8 +100,9 @@ export class ScraperService implements OnModuleDestroy {
         }
     }
 
-    async getApiContent(url: string, targetConfig: ITargetConfig): Promise<IScraperResponse> {
-        const { retryAttempts, retryDelay, timeout, userAgent, headers, cookies, queryParams } = this.transformTargetConfig(targetConfig);
+    async getApiContent(url: string, targetConfig: ITargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
+        const { retryAttempts, retryDelay, timeout, userAgent, headers, cookies, queryParams, firstQueryParams } =
+            this.transformTargetConfig(targetConfig);
 
         const startTime = Date.now();
 
@@ -127,7 +128,8 @@ export class ScraperService implements OnModuleDestroy {
                     config.headers['Cookie'] = cookieString;
                 }
 
-                const requestUrl = queryParams ? `${url}${queryParams}` : url;
+                const params = lastScrapedTimestamp ? queryParams : (firstQueryParams ?? queryParams);
+                const requestUrl = params ? `${url}${params}` : url;
                 const response = await this.baseHttpService.get<Record<string, any>>(requestUrl, config);
 
                 return {

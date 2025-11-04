@@ -42,7 +42,12 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
         });
 
         try {
-            const extractData = await this.getExtractData({ targetConfig, url: dataProviderItem.itemUrl });
+            const extractData = await this.getExtractData({
+                targetConfig,
+                url: dataProviderItem.itemUrl,
+                lastScrapedTimestamp: dataProviderItem.lastScrapedTimestamp,
+            });
+
             if (extractData?.error) {
                 return new ScrapeItemDataResponseDto({
                     ...defaultResponse,
@@ -97,14 +102,14 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     }
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
-        const { targetConfig, dataContent, url } = request;
+        const { targetConfig, dataContent, url, lastScrapedTimestamp } = request;
         const { functionGenerator, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
             let data = dataContent;
             if (!data) {
-                const dataContent = await this.scraperService.getApiContent(url, targetConfig);
+                const dataContent = await this.scraperService.getApiContent(url, targetConfig, lastScrapedTimestamp);
                 if (dataContent.status !== 'success') {
                     return { error: dataContent.error_message || `Not found data content from ${url}` };
                 }

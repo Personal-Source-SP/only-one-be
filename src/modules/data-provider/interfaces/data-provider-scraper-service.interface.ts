@@ -7,6 +7,7 @@ import { ITargetConfig } from './target-config.interface';
 export interface IGetExtractDataRequest {
     url: string;
     targetConfig: ITargetConfig;
+    lastScrapedTimestamp?: Date;
     htmlContentString?: string;
     dataContent?: Record<string, any>;
 }
