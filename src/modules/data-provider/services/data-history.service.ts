@@ -160,7 +160,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
     }
 
     private async getDataProvidersForScrape(request: ProcessScrapeDataRequestDto): Promise<DataProviderEntity[]> {
-        const { dataProviderIds, dataProviderItemIds, itemIds, lastScrapeTimestamp } = request;
+        const { dataProviderItemIds, itemIds, lastScrapeTimestamp } = request;
 
         const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
@@ -169,10 +169,6 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             .leftJoinAndSelect('dataProviderItem.item', 'item')
             .where('dataProvider.status = :status', { status: DataProviderStatus.READY })
             .andWhere('dataProviderItem.isActive = :isActive', { isActive: true });
-
-        if (dataProviderIds?.length) {
-            builder.andWhere('dataProvider.id IN :(...dataProviderIds)', { dataProviderIds });
-        }
 
         if (dataProviderItemIds?.length) {
             builder.andWhere('dataProviderItem.id IN (:...dataProviderItemIds)', { dataProviderItemIds });

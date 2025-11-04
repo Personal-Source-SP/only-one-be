@@ -38,11 +38,6 @@ export class ProcessScrapeDataRequestDto {
     @ApiProperty()
     @IsOptional()
     @IsArray()
-    dataProviderIds?: string[];
-
-    @ApiProperty()
-    @IsOptional()
-    @IsArray()
     dataProviderItemIds?: string[];
 
     @ApiProperty()

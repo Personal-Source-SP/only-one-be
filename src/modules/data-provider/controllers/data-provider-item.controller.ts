@@ -42,6 +42,16 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
         return result;
     }
 
+    @ApiOperation({ summary: 'Get data provider items by item id' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('item/:itemId')
+    @BaseApiOkResponse(DataProviderItemDto, { isArray: true })
+    public async getByItemId(@Param('itemId', new ParseUUIDPipe()) itemId: string): Promise<DataProviderItemDto[]> {
+        const result = await this.dataProviderItemService.findListByFilter({ itemId }, { relations: { item: true } });
+        return result;
+    }
+
     @ApiOperation({ summary: 'Create data provider item' })
     @HttpCode(HttpStatus.OK)
     @Version('1')

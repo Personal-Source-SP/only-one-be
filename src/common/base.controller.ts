@@ -89,6 +89,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         if (!this.options.enablePagination) {
             throw new NotFoundException('Endpoint not supported');
         }
+
         const result = await this.service.getPaginationWithCustomQuery(query, this.configPagination);
         return result;
     }
