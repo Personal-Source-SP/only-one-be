@@ -33,7 +33,8 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         const queryBuilder = this.repository
             .createQueryBuilder('dataProviderItem')
             .leftJoinAndSelect('dataProviderItem.dataProvider', 'dataProvider')
-            .where(filter);
+            .where(filter)
+            .andWhere('dataProviderItem.isActive = :isActive', { isActive: true });
 
         // Build query builder with options
         this.buildQueryBuilder(queryBuilder, options);
