@@ -1,14 +1,39 @@
 #!/bin/sh
+set -e  # Exit on error
 
-# ---- Substitute environment variables from .buildenv ----
-export $(grep -v '^#' .buildenv | xargs)
+echo "=========================================="
+echo "Starting NestJS Application"
+echo "=========================================="
 
-# ---- Set default values ----
-export NODE_PORT=${NODE_PORT:-'3001'}
-export NODE_ENV=${NODE_ENV:-'development'}
+# Load build environment
+if [ -f .buildenv ]; then
+    echo "📦 Loading build info..."
+    export $(grep -v '^#' .buildenv | xargs)
+fi
 
-# ---- Substitute environment variables ----
-envsubst < .env.sample > .env
+# Set default values
+export PORT=${PORT:-3001}
+export NODE_ENV=${NODE_ENV:-production}
 
-# ---- Start the application ----
-node dist/src/main.js
+# Tạo .env từ template
+if [ -f .env.sample ]; then
+    echo "📝 Creating .env from template..."
+    envsubst < .env.sample > .env
+    echo "✅ Environment file created"
+fi
+
+# Log configuration
+echo "=========================================="
+echo "🚀 Configuration:"
+echo "   Environment:     ${NODE_ENV}"
+echo "   Port:            ${PORT}"
+echo "   Swagger Version: ${SWAGGER_VERSION:-N/A}"
+echo "=========================================="
+
+# Database migration (nếu cần)
+# echo "🔄 Running database migrations..."
+# npm run migration:run || echo "⚠️  Migration skipped or failed"
+
+# Start NestJS application
+echo "🎯 Starting NestJS server..."
+exec node dist/main.js

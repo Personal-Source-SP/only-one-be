@@ -1,7 +1,55 @@
-.git
-dist
+# Dependencies
 node_modules
-db-data
-.vuepress
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist
+build
+coverage
+
+# Environment files
+.env
+.env.local
+.env*.local
+!.env.sample
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
 .vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+.nyc_output
+**/*.spec.ts
+**/*.test.ts
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Documentation
+README.md
 docs
+*.md
+!package.json
+
+# Misc
+*.log
+.cache
+temp
+tmp
