@@ -1,12 +1,12 @@
 # ---- Base Node ----
 FROM public.ecr.aws/docker/library/node:20.1.0-slim AS base
 
-RUN apt-get update && apt-get install -y \
-   git gettext python \
-   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# ---- Clean apt ----
+RUN apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# ---- Workdir ----
 WORKDIR /app
-RUN mkdir src templates
+RUN mkdir src
 RUN chown -R node:node /app
 USER node
 
@@ -32,24 +32,28 @@ RUN npm install
 # --- Release with Alpine ----
 FROM base AS release
 
+# ---- Arguments ----
 ARG SWAGGER_VERSION
 ENV SWAGGER_VERSION $SWAGGER_VERSION
 
+# ---- Workdir ----
 WORKDIR /app
 RUN echo "SWAGGER_VERSION=$SWAGGER_VERSION" >> .buildenv
-RUN mkdir -p dist templates node_modules
+RUN mkdir -p dist node_modules
 RUN chown -R node:node /app
 RUN echo "Build with version:" ${SWAGGER_VERSION}
 
+# ---- Copy dependencies ----
 USER node
 COPY --from=polishing app/node_modules node_modules/
 COPY --from=build app/dist dist/
-COPY --from=build app/templates templates/
 COPY --from=build app/ormconfig.ts ./
 
+# ---- Copy entrypoint ----
 COPY ./docker/entrypoint.sh ./entrypoint.sh
 COPY .env.sample ./.env.sample
 COPY package.json ./package.json
 
+# ---- CMD ----
 CMD ["/bin/sh", "/app/entrypoint.sh"]
-EXPOSE 3000
+EXPOSE 3001
