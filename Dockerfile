@@ -18,10 +18,8 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Tạo user non-root
-RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs node && \
-    chown -R node:nodejs /app
+# Sử dụng user 'node' có sẵn trong base image và cấp quyền thư mục làm việc
+RUN chown -R node:node /app
 
 # ==========================================
 # Stage 1: Dependencies
@@ -32,7 +30,7 @@ FROM base AS dependencies
 USER node
 
 # Copy package files
-COPY --chown=node:nodejs package*.json ./
+COPY --chown=node:node package*.json ./
 
 # Cài tất cả dependencies (bao gồm devDependencies để build)
 RUN npm ci
@@ -46,16 +44,16 @@ FROM base AS build
 USER node
 
 # Copy node_modules từ dependencies stage
-COPY --from=dependencies --chown=node:nodejs /app/node_modules ./node_modules
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 
 # Copy package files
-COPY --chown=node:nodejs package*.json ./
+COPY --chown=node:node package*.json ./
 
 # Copy source code và config files
-COPY --chown=node:nodejs src ./src
-COPY --chown=node:nodejs tsconfig*.json ./
-COPY --chown=node:nodejs nest-cli.json ./
-COPY --chown=node:nodejs ormconfig.ts ./
+COPY --chown=node:node src ./src
+COPY --chown=node:node tsconfig*.json ./
+COPY --chown=node:node nest-cli.json ./
+COPY --chown=node:node ormconfig.ts ./
 
 # Set build environment
 ENV NODE_ENV=production
@@ -77,7 +75,7 @@ USER node
 COPY --chown=node:nodejs package*.json ./
 
 # Chỉ cài production dependencies
-RUN npm ci --omit=dev && \
+RUN npm ci && \
     npm cache clean --force
 
 # ==========================================
@@ -123,7 +121,8 @@ COPY --chown=node:nodejs .env.sample ./
 
 # Copy và set permission cho entrypoint
 COPY --chown=node:nodejs docker/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+# Normalize line endings (fix CRLF issues from Windows)
+RUN sed -i 's/\r$//' ./entrypoint.sh && chmod +x ./entrypoint.sh
 
 # Expose port
 EXPOSE 3001
