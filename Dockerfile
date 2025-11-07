@@ -89,5 +89,9 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 CMD node -e "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
 
 # Start application
+RUN sed -i 's/\r$//' ./entrypoint.sh && \
+    chmod +x ./entrypoint.sh && \
+    chown node:node ./entrypoint.sh
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/sh", "/app/entrypoint.sh"]
+CMD ["/bin/sh", "entrypoint.sh"]
