@@ -28,6 +28,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         private readonly configService: AppConfigService,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly scheduleJobService: ScheduleJobService,
+
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScheduleEntity) scheduleRepository: Repository<ScheduleEntity>,
     ) {

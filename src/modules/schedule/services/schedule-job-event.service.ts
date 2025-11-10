@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
@@ -16,7 +16,10 @@ import { ScheduleJobService } from './schedule-job.service';
 export class ScheduleJobEventService extends BaseService<ScheduleJobEventEntity, ScheduleJobEventDto> {
     constructor(
         private readonly loggerService: LoggerService,
+
+        @Inject(forwardRef(() => ScheduleJobService))
         private readonly scheduleJobService: ScheduleJobService,
+
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScheduleJobEventEntity) scheduleJobEventRepository: Repository<ScheduleJobEventEntity>,
     ) {

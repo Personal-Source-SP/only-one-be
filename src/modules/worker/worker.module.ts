@@ -4,6 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AppConfigService } from '../../shared/services/app-config.service';
 import { QueueModule } from '../queue/queue.module';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
+import { ScheduleExecutorModule } from '../schedule/schedule.module';
+import { DataProviderModule } from '../data-provider/data-provider.module';
 
 const processors = [ScrapingWorkerProcessor];
 
@@ -24,10 +26,7 @@ export class WorkerModule {
 
         return {
             module: WorkerModule,
-            imports: [
-                QueueModule,
-                ConfigModule, // For ConfigService, if needed by processor
-            ],
+            imports: [QueueModule, ConfigModule, ScheduleExecutorModule, DataProviderModule],
             controllers: [],
             providers: providers,
             exports: [],
