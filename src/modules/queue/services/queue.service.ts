@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Job, JobOptions, Queue } from 'bull';
 
 import { LoggerService } from '../../../shared/services/logger.service';
+import { ProcessScrapeDataRequestDto } from '../../data-provider/dtos/requests';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
 
@@ -12,16 +13,16 @@ export class QueueService implements OnModuleInit {
 
     constructor(
         private readonly logger: LoggerService,
-        @InjectQueue(QUEUE_NAME.DATA_PROVIDER_QUEUE) private readonly dataProviderQueue: Queue,
+        @InjectQueue(QUEUE_NAME.SCRAPING_JOB_QUEUE) private readonly scrapingJobQueue: Queue<ProcessScrapeDataRequestDto>,
     ) {
-        this.registerQueue(QUEUE_NAME.DATA_PROVIDER_QUEUE, this.dataProviderQueue);
+        this.registerQueue(QUEUE_NAME.SCRAPING_JOB_QUEUE, this.scrapingJobQueue);
     }
 
     async onModuleInit() {
-        // verbose QUEUE_NAME.SCRAPING_JOB_QUEUE status
-        const queue = this.getQueue(QUEUE_NAME.DATA_PROVIDER_QUEUE);
+        // Verbose the status of the QUEUE_NAME.SCRAPING_JOB_QUEUE
+        const queue = this.getQueue(QUEUE_NAME.SCRAPING_JOB_QUEUE);
         const queueStatus = await queue.isPaused();
-        this.logger.log(`Current queue ${QUEUE_NAME.DATA_PROVIDER_QUEUE} status: ${queueStatus}`);
+        this.logger.log(`Verbose the status of the ${QUEUE_NAME.SCRAPING_JOB_QUEUE} queue: ${queueStatus}`);
     }
 
     getQueue(queueName: QUEUE_NAME): Queue | undefined {

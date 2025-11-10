@@ -174,4 +174,14 @@ export class AppConfigService {
             secretKey: this.get('SCRAPER_SECRET_KEY'),
         };
     }
+
+    get scheduleConfig(): {
+        enabled: boolean;
+        removedOnCompleted: boolean;
+    } {
+        return {
+            enabled: this.getBoolean('SCHEDULE_ENABLED'),
+            removedOnCompleted: this.getBoolean('SCHEDULE_JOB_QUEUE_REMOVED_ON_COMPLETED'),
+        };
+    }
 }

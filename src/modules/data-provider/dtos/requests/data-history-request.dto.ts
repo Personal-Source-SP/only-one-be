@@ -1,7 +1,10 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsDate, IsOptional, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDate, IsObject, IsOptional, IsUUID } from 'class-validator';
 import { MimeType } from '../../../../common/enums/mime-type';
+import { DataProviderItemEntity } from '../../entities/data-provider-item.entity';
+import { DataProviderEntity } from '../../entities/data-provider.entity';
+import { IDataProviderScraperService } from '../../interfaces/data-provider-scraper-service.interface';
 
 export class CreateDataHistoryRequestDto {
     @ApiProperty()
@@ -38,6 +41,11 @@ export class ProcessScrapeDataRequestDto {
     @ApiProperty()
     @IsOptional()
     @IsArray()
+    dataProviderIds?: string[];
+
+    @ApiProperty()
+    @IsOptional()
+    @IsArray()
     dataProviderItemIds?: string[];
 
     @ApiProperty()
@@ -59,4 +67,10 @@ export class ProcessScrapeDataRequestDto {
     @IsOptional()
     @IsArray()
     mimeTypes?: MimeType[];
+
+    constructor(data?: Partial<ProcessScrapeDataRequestDto>) {
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
 }

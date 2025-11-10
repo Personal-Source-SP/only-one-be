@@ -10,9 +10,17 @@ export class AbstractEntity extends BaseEntity {
     @AutoMap()
     createdAt?: Date;
 
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    createdBy?: string;
+
     @UpdateDateColumn({ name: 'updated_at' })
     @AutoMap()
     updatedAt?: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    updatedBy?: string;
 
     @Column({ type: 'uuid', nullable: true })
     @AutoMap()

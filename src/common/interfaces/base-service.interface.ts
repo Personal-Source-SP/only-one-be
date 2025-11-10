@@ -18,7 +18,7 @@ export interface IBaseService<T, D> {
     create(data: T, user?: PayloadDto): Promise<D>;
     createMany(data: T[], user?: PayloadDto): Promise<D[]>;
 
-    update(id: string, data: any): Promise<boolean>;
+    update(id: string, data: any, user?: PayloadDto): Promise<boolean>;
 
     delete(id: string): Promise<boolean>;
     deleteMany(where: FindOptionsWhere<T>): Promise<boolean>;

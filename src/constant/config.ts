@@ -25,5 +25,3 @@ export const PERMISSION_ACTION = {
     DELETE: 'delete',
     SHOW: 'show',
 };
-
-const { LIST, EDIT, DELETE, CREATE, SHOW } = PERMISSION_ACTION;

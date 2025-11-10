@@ -3,8 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppConfigService } from '../../shared/services/app-config.service';
 import { QueueModule } from '../queue/queue.module';
+import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
 
-const processors = [];
+const processors = [ScrapingWorkerProcessor];
 
 @Module({})
 export class WorkerModule {

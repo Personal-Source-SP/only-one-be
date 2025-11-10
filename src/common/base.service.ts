@@ -5,6 +5,7 @@ import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-pagin
 import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
 import { AbstractEntity } from './entities';
 import { IBaseService, IFindOptions } from './interfaces/base-service.interface';
+import { PayloadDto } from './dto/payload.dto';
 
 export class BaseService<T extends AbstractEntity, D> implements IBaseService<T, D> {
     public repository: Repository<T>;
@@ -85,7 +86,11 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async create(data: T): Promise<D> {
+    async create(data: T, user?: PayloadDto): Promise<D> {
+        if (user) {
+            data.createdBy = user.id;
+        }
+
         try {
             const savedEntity = await this.repository.save(data);
             if (!savedEntity) return null;
@@ -96,7 +101,13 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async createMany(data: T[]): Promise<D[]> {
+    async createMany(data: T[], user?: PayloadDto): Promise<D[]> {
+        if (user) {
+            data.forEach((item) => {
+                item.createdBy = user.id;
+            });
+        }
+
         try {
             const createdEntities = await this.repository.save(data);
             if (!createdEntities) return [];
@@ -107,7 +118,11 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async update(id: string, data: any): Promise<boolean> {
+    async update(id: string, data: any, user?: PayloadDto): Promise<boolean> {
+        if (user) {
+            data.updatedBy = user.id;
+        }
+
         try {
             const result = await this.repository.update(id, data);
             return result.affected > 0;
@@ -116,7 +131,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         }
     }
 
-    async delete(id: string): Promise<boolean> {
+    async delete(id: string, user?: PayloadDto): Promise<boolean> {
         try {
             const exists = await this.exists({ id } as unknown as FindOptionsWhere<T>);
             if (!exists) {
