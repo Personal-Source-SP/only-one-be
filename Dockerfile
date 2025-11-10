@@ -1,5 +1,5 @@
 # ==========================================
-# Stage 0: Base (Minimal)
+# Stage 1: Base (Minimal)
 # Chỉ cài tools cần thiết cho runtime
 # ==========================================
 FROM public.ecr.aws/docker/library/node:20.1.0-slim AS base
@@ -14,7 +14,7 @@ WORKDIR /app
 RUN chown -R node:node /app
 
 # ==========================================
-# Stage 1: Dependencies
+# Stage 2: Dependencies
 # Cài đặt ALL dependencies
 # ==========================================
 FROM base AS dependencies
@@ -25,7 +25,7 @@ COPY --chown=node:node package*.json ./
 RUN npm ci
 
 # ==========================================
-# Stage 2: Build
+# Stage 3: Build
 # Build ứng dụng NestJS
 # ==========================================
 FROM dependencies AS build
@@ -44,7 +44,7 @@ RUN npm run build
 RUN npm prune --production
 
 # ==========================================
-# Stage 3: Runner (Final Image)
+# Stage 4: Runner (Final Image)
 # Image cuối cùng - production ready
 # ==========================================
 FROM base AS runner
