@@ -27,7 +27,7 @@ export class ScheduleJobEventEntity extends AbstractEntity {
     payload?: Record<string, any>;
 
     @Column({ type: 'jsonb', nullable: true })
-    @AutoMap()
+    @AutoMap(() => Object)
     metaData?: Record<string, any>;
 
     @Column({ type: 'timestamptz', nullable: true })
