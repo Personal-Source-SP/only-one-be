@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { type BrowserContext, type Page } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 import { SimulateUnlucidAiRequest } from '../dtos/requests/simulate-unlucid-ai.request';
-import { LoggerService } from './../../../shared/services/logger.service';
-import { PuppeteerService } from './../../../shared/services/puppeteer.service';
-import { SimulateResponse } from './../dtos/responses/simulate.response';
-import { PageSite } from './../enums/page-site.enum';
+import { LoggerService } from '../../../shared/services/logger.service';
+import { PuppeteerService } from '../../../shared/services/puppeteer.service';
+import { SimulateResponse } from '../dtos/responses/simulate.response';
+import { PageSite } from '../enums/page-site.enum';
 
 @Injectable()
-export class SimulationService {
+export class SimulationExecutionService {
     constructor(
         private readonly loggerService: LoggerService,
         private readonly puppeteerService: PuppeteerService,

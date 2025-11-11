@@ -5,7 +5,7 @@ import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
-import { SimulationService } from '../services/simulation.service';
+import { SimulationService } from '../services/simulation-execution.service';
 
 @Controller('simulations')
 @ApiTags('simulations')

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import puppeteer, { type Browser } from 'puppeteer';
-import { IPuppeteerOptions } from './../interfaces/index';
+import puppeteer, { type Browser, type BrowserContext, type Page } from 'puppeteer';
+import { IPuppeteerOptions, IPuppeteerSession } from './../interfaces/index';
 
 @Injectable()
 export class PuppeteerService {
@@ -61,8 +61,31 @@ export class PuppeteerService {
         if (this.browserSessions.has(pageId)) {
             await this.browserSessions.get(pageId)!.close();
             this.browserSessions.delete(pageId);
+            return;
         }
 
         throw new NotFoundException('browser_session_not_found');
+    }
+
+    async ensureSessionAndPage(pageId: string): Promise<IPuppeteerSession> {
+        const browser = await this.getBrowserSession(pageId);
+
+        const contexts = browser.browserContexts();
+        const incognitoContext = contexts.find((c: BrowserContext) => !c.off);
+        const context = incognitoContext ?? (await browser.createBrowserContext());
+
+        const pages = await context.pages();
+        const page: Page = pages.length > 0 ? pages[0] : await context.newPage();
+
+        await page.setViewport({ width: 1366, height: 768 });
+
+        const wsEndpoint = this.getWsEndpoint(browser);
+
+        return { browser, context, page, wsEndpoint };
+    }
+
+    getWsEndpoint(browser: Browser): string | undefined {
+        const maybe = (browser as any).wsEndpoint;
+        return typeof maybe === 'function' ? maybe() : undefined;
     }
 }

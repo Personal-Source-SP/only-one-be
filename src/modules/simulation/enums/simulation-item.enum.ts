@@ -3,4 +3,6 @@ export enum SimulationItemStatus {
     PROCESSING = 'processing',
     COMPLETED = 'completed',
     FAILED = 'failed',
+    PAUSED = 'paused',
+    STOPPED = 'stopped',
 }
