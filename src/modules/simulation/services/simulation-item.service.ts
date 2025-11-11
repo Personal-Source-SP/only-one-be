@@ -1,7 +1,9 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import dayjs from 'dayjs';
+import { Browser } from 'puppeteer';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { LoggerService } from '../../../shared/services/logger.service';
@@ -11,7 +13,7 @@ import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemStatus } from '../enums';
 
 @Injectable()
-export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> {
+export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> implements OnModuleInit {
     constructor(
         private readonly loggerService: LoggerService,
         private readonly puppeteerService: PuppeteerService,
@@ -19,6 +21,10 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         @InjectRepository(SimulationItemEntity) simulationItemRepository: Repository<SimulationItemEntity>,
     ) {
         super(simulationItemRepository, mapper, SimulationItemDto);
+    }
+
+    async onModuleInit() {
+        await this.loadSimulationItems();
     }
 
     async createManyFromPayloads(simulationContextId: string, payloads: Record<string, any>[]): Promise<SimulationItemEntity[]> {
@@ -83,5 +89,50 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         }
 
         return await super.delete(id);
+    }
+
+    private async loadSimulationItems(): Promise<void> {
+        const simulationItems = await this.findAll();
+        if (!simulationItems?.length) {
+            this.loggerService.log('[SimulationItemService] No simulation items found or all simulation items are not pending.');
+            return;
+        }
+
+        const browserSessions = this.puppeteerService.getBrowserSessions();
+
+        const initBrowserPromises: Promise<Browser>[] = [];
+        simulationItems.forEach((simulationItem) => {
+            const existing = browserSessions.get(simulationItem.id);
+
+            if (
+                !existing &&
+                simulationItem.status === SimulationItemStatus.PROCESSING &&
+                (simulationItem.expiresAt === null || dayjs(simulationItem.expiresAt).isBefore(dayjs()))
+            ) {
+                initBrowserPromises.push(this.puppeteerService.getBrowserSession(simulationItem.id));
+            }
+        });
+
+        try {
+            await Promise.all(initBrowserPromises);
+        } catch (error) {
+            this.loggerService.error(`[SimulationItemService] Failed to initialize browsers: ${error?.message}`);
+            throw new NotFoundException('Failed to initialize browsers');
+        }
+
+        const removeBrowserPromises: Promise<boolean>[] = [];
+        simulationItems.forEach((simulationItem) => {
+            const existing = browserSessions.get(simulationItem.id);
+            if (existing) {
+                removeBrowserPromises.push(this.puppeteerService.closePageSession(simulationItem.id));
+            }
+        });
+
+        try {
+            await Promise.all(removeBrowserPromises);
+        } catch (error) {
+            this.loggerService.error(`[SimulationItemService] Failed to remove browsers: ${error?.message}`);
+            throw new NotFoundException('Failed to initialize browsers');
+        }
     }
 }

@@ -1,10 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import puppeteer, { type Browser, type BrowserContext, type Page } from 'puppeteer';
 import { IPuppeteerOptions, IPuppeteerSession } from './../interfaces/index';
 
 @Injectable()
 export class PuppeteerService {
     private browserSessions: Map<string, Browser> = new Map();
+    private readonly logger = new Logger(PuppeteerService.name);
+
+    getBrowserSessions(): Map<string, Browser> {
+        return this.browserSessions;
+    }
+
+    getWsEndpoint(browser: Browser): string | undefined {
+        const maybe = (browser as any).wsEndpoint;
+        return typeof maybe === 'function' ? maybe() : undefined;
+    }
 
     async getBrowserSession(pageId: string, options?: IPuppeteerOptions): Promise<Browser> {
         if (!this.browserSessions.has(pageId)) {
@@ -57,14 +67,18 @@ export class PuppeteerService {
         return this.browserSessions.get(pageId)!;
     }
 
-    async closePageSession(pageId: string) {
+    async closePageSession(pageId: string): Promise<boolean> {
         if (this.browserSessions.has(pageId)) {
             await this.browserSessions.get(pageId)!.close();
+
             this.browserSessions.delete(pageId);
-            return;
+
+            return true;
         }
 
-        throw new NotFoundException('browser_session_not_found');
+        this.logger.error(`[PuppeteerService] Browser session not found for page id ${pageId}`);
+
+        return false;
     }
 
     async ensureSessionAndPage(pageId: string): Promise<IPuppeteerSession> {
@@ -82,10 +96,5 @@ export class PuppeteerService {
         const wsEndpoint = this.getWsEndpoint(browser);
 
         return { browser, context, page, wsEndpoint };
-    }
-
-    getWsEndpoint(browser: Browser): string | undefined {
-        const maybe = (browser as any).wsEndpoint;
-        return typeof maybe === 'function' ? maybe() : undefined;
     }
 }
