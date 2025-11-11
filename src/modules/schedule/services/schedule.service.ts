@@ -16,7 +16,7 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
-import { ScheduleJobTriggerType, ScheduleType } from '../enums';
+import { ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
 import { ScheduleJobService } from './schedule-job.service';
 import { RedisLockService } from './redis-lock.service';
 
@@ -179,6 +179,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         } catch (error) {
             this.loggerService.error(`[ScheduleService] Error creating schedule job: ${error.message}`);
         } finally {
+            await super.update(scheduleId, { lastRunAt: new Date() });
             await this.redisLockService.releaseLock(lock);
         }
     }

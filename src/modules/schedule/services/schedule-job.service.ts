@@ -63,9 +63,14 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
 
         switch (scheduleType) {
             case ScheduleType.GLOBAL: {
-                const dataProviders = await this.dataProviderService.findListByFilter({
-                    status: DataProviderStatus.READY,
-                });
+                const dataProviders = await this.dataProviderService.findListByFilter(
+                    {
+                        status: DataProviderStatus.READY,
+                    },
+                    {
+                        relations: { dataProviderItems: true },
+                    },
+                );
 
                 if (!dataProviders.length) {
                     this.loggerService.error(`[ScheduleJobService] No data providers available to scrape: ${scheduleType}`);
