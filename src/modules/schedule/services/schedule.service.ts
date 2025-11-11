@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as cron from 'cron';
 import { CronJob } from 'cron';
@@ -73,6 +73,18 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         entity.nextRunAt = nextRun;
 
         return await super.create(entity, user);
+    }
+
+    async switchStatus(id: string, enabled: boolean): Promise<boolean> {
+        const schedule = await this.exists({ id });
+        if (!schedule) throw new NotFoundException('Schedule with ID not found');
+
+        try {
+            return await super.update(id, { enabled });
+        } catch (error) {
+            this.loggerService.error(`[ScheduleService] Error switching status for schedule ${id}: ${error.message}`);
+            throw new BadRequestException('Error switching status for schedule');
+        }
     }
 
     private isValidCronExpression(value: string): boolean {

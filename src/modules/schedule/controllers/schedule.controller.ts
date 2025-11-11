@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseBoolPipe, ParseUUIDPipe, Post, Put, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
@@ -25,6 +25,19 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
     @BaseApiOkResponse(ScheduleDto)
     public async create(@Body() request: CreateScheduleRequestDto, @User() user: PayloadDto): Promise<ScheduleDto> {
         const result = await this.scheduleService.create(request, user);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Switch schedule status' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Put(':id/switch-status/:status')
+    @BaseApiOkResponse(Boolean)
+    public async switchStatus(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Param('status', new ParseBoolPipe()) status: boolean,
+    ): Promise<boolean> {
+        const result = await this.scheduleService.switchStatus(id, status);
         return result;
     }
 }
