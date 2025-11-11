@@ -18,6 +18,7 @@ import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ScheduleJobTriggerType, ScheduleType } from '../enums';
 import { ScheduleJobService } from './schedule-job.service';
+import { RedisLockService } from './redis-lock.service';
 
 @Injectable()
 export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> implements OnModuleInit {
@@ -26,6 +27,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     constructor(
         private readonly loggerService: LoggerService,
         private readonly configService: AppConfigService,
+        private readonly redisLockService: RedisLockService,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly scheduleJobService: ScheduleJobService,
 
@@ -136,7 +138,13 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     }
 
     private async handleCronTrigger(scheduleId: string): Promise<void> {
-        const schedule = await this.lastLoadedSchedules.get(scheduleId);
+        const lock = await this.redisLockService.acquireLock(scheduleId);
+        if (!lock) {
+            this.loggerService.warn(`[ScheduleService] Failed to acquire lock for schedule ${scheduleId}. Skipping execution.`);
+            return;
+        }
+
+        const schedule = this.lastLoadedSchedules.get(scheduleId);
         if (!schedule) {
             this.loggerService.error(`[ScheduleService] Schedule not found: ${scheduleId}`);
             return;
