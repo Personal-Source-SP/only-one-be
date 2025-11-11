@@ -1,5 +1,4 @@
 import { AutoMap } from '@automapper/classes';
-import { Optional } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ScheduleType } from '../../enums';
@@ -36,13 +35,46 @@ export class CreateScheduleRequestDto {
     cronExpression: string;
 
     @ApiPropertyOptional()
-    @Optional()
+    @IsOptional()
     @IsNumber()
     @AutoMap()
     minScrapeIntervalMinutes?: number = 60;
 
     @ApiPropertyOptional({ description: 'Payload to pass to the schedule' })
-    @Optional()
+    @IsOptional()
+    @IsObject()
+    @AutoMap(() => PayloadScheduleDto)
+    payload?: PayloadScheduleDto;
+}
+
+export class UpdateScheduleRequestDto {
+    @ApiPropertyOptional({ description: 'Type of the schedule', enum: ScheduleType, example: ScheduleType.GLOBAL })
+    @IsOptional()
+    @IsEnum(ScheduleType)
+    @AutoMap()
+    type?: ScheduleType;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsBoolean()
+    @AutoMap()
+    enabled?: boolean;
+
+    @ApiProperty({ description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    @AutoMap()
+    cronExpression?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @AutoMap()
+    minScrapeIntervalMinutes?: number;
+
+    @ApiPropertyOptional({ description: 'Payload to pass to the schedule' })
+    @IsOptional()
     @IsObject()
     @AutoMap(() => PayloadScheduleDto)
     payload?: PayloadScheduleDto;

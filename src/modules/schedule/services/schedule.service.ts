@@ -13,7 +13,7 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { SCHEDULE_JOB_NAME, SCHEDULE_TIMEZONE } from '../../../constant';
 import { AppConfigService } from '../../../shared/services/app-config.service';
 import { LoggerService } from '../../../shared/services/logger.service';
-import { CreateScheduleJobRequestDto, CreateScheduleRequestDto } from '../dtos/requests';
+import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ScheduleJobTriggerType, ScheduleType } from '../enums';
@@ -21,7 +21,7 @@ import { ScheduleJobService } from './schedule-job.service';
 
 @Injectable()
 export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> implements OnModuleInit {
-    private lastLoadedSchedules: Map<string, ScheduleEntity> = new Map();
+    private lastLoadedSchedules: Map<string, ScheduleDto> = new Map();
 
     constructor(
         private readonly loggerService: LoggerService,
@@ -49,7 +49,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     }
 
     async create(request: CreateScheduleRequestDto, user: PayloadDto): Promise<ScheduleDto> {
-        const { cronExpression } = request;
+        const { cronExpression, type } = request;
 
         const isValidCronExpression = this.isValidCronExpression(cronExpression);
         if (!isValidCronExpression) {
@@ -57,22 +57,56 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             throw new BadRequestException('Invalid cron expression');
         }
 
-        const isDuplicate = await this.checkDuplicateSchedule(request.type, cronExpression);
+        const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
         if (isDuplicate) {
-            this.loggerService.error(
-                `[ScheduleService] Duplicate schedule with type ${request.type} and cron expression ${cronExpression}`,
-            );
+            this.loggerService.error(`[ScheduleService] Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
             throw new BadRequestException('Duplicate schedule');
         }
 
         const entity = this.mapper.map(request, CreateScheduleRequestDto, ScheduleEntity);
 
-        // Calculate the next run time
         const interval = cronParser.parseExpression(entity.cronExpression, { tz: 'UTC' });
         const nextRun = interval.next().toDate();
         entity.nextRunAt = nextRun;
 
         return await super.create(entity, user);
+    }
+
+    async update(id: string, request: UpdateScheduleRequestDto, user: PayloadDto): Promise<boolean> {
+        const existingSchedule = await this.findById(id);
+        if (!existingSchedule) {
+            this.loggerService.error(`Schedule with ID ${id} not found`);
+            throw new NotFoundException(`Schedule with ID ${id} not found`);
+        }
+
+        const { cronExpression, type } = request;
+
+        if (cronExpression) {
+            const isValidCronExpression = this.isValidCronExpression(cronExpression);
+            if (!isValidCronExpression) {
+                this.loggerService.error(`[ScheduleService] Invalid cron expression: ${cronExpression}`);
+                throw new BadRequestException('Invalid cron expression');
+            }
+        }
+
+        if (type && cronExpression) {
+            const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
+            if (isDuplicate) {
+                this.loggerService.error(`[ScheduleService] Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
+                throw new BadRequestException('Duplicate schedule');
+            }
+        }
+
+        const entity = this.mapper.map(request, UpdateScheduleRequestDto, ScheduleEntity);
+
+        if (cronExpression && cronExpression !== existingSchedule.cronExpression) {
+            const interval = cronParser.parseExpression(entity.cronExpression, { tz: 'UTC' });
+            const nextRun = interval.next().toDate();
+
+            entity.nextRunAt = nextRun;
+        }
+
+        return await super.update(id, entity, user);
     }
 
     async switchStatus(id: string, enabled: boolean): Promise<boolean> {
@@ -163,14 +197,14 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     }
 
     private async loadSchedules(): Promise<void> {
-        const schedules = await this.repository.find({ where: { enabled: true } });
+        const schedules = await this.findListByFilter({ enabled: true });
         if (!schedules?.length) {
             this.loggerService.log('[ScheduleService] No schedules found or all schedules are disabled.');
             return;
         }
 
         try {
-            const currentSchedules = new Map<string, ScheduleEntity>();
+            const currentSchedules = new Map<string, ScheduleDto>();
             schedules.forEach((schedule) => currentSchedules.set(schedule.id, schedule));
 
             // Check for new or changed schedules

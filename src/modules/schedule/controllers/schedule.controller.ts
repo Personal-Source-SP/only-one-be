@@ -6,7 +6,7 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { User } from '../../../decorators/user.decorator';
 import { SCHEDULE_PAGINATION_CONFIG } from '../constants/schedule.config';
-import { CreateScheduleRequestDto } from '../dtos/requests';
+import { CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ScheduleService } from '../services/schedule.service';
@@ -38,6 +38,20 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         @Param('status', new ParseBoolPipe()) status: boolean,
     ): Promise<boolean> {
         const result = await this.scheduleService.switchStatus(id, status);
+        return result;
+    }
+
+    @ApiOperation({ summary: 'Update schedule' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Put(':id')
+    @BaseApiOkResponse(Boolean)
+    public async update(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() request: UpdateScheduleRequestDto,
+        @User() user: PayloadDto,
+    ): Promise<boolean> {
+        const result = await this.scheduleService.update(id, request, user);
         return result;
     }
 }
