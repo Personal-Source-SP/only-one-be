@@ -1,6 +1,7 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import dayjs from 'dayjs';
 import { Browser } from 'puppeteer';
@@ -24,6 +25,11 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
     }
 
     async onModuleInit() {
+        await this.loadSimulationItems();
+    }
+
+    @Cron(CronExpression.EVERY_HOUR)
+    async checkForSimulationItemChanges() {
         await this.loadSimulationItems();
     }
 
