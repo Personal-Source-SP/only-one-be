@@ -80,7 +80,7 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         return await super.update(id, { status: SimulationItemStatus.STOPPED });
     }
 
-    async deleteWithSession(id: string): Promise<boolean> {
+    async delete(id: string): Promise<boolean> {
         try {
             await this.puppeteerService.closePageSession(id);
         } catch {
