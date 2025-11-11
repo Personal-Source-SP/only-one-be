@@ -18,6 +18,16 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         super(scheduleService, SCHEDULE_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
+    @ApiOperation({ summary: 'Manual trigger schedule' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post(':id/manual-trigger')
+    @BaseApiOkResponse(Boolean)
+    public async manualTrigger(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
+        const result = await this.scheduleService.manualTrigger(id);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Create schedule' })
     @HttpCode(HttpStatus.OK)
     @Version('1')

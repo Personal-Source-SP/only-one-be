@@ -73,14 +73,16 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
                 }
 
                 for (const dataProvider of dataProviders) {
-                    requests.push(
-                        new ProcessScrapeDataRequestDto({
-                            mimeTypes: [],
-                            checkDuplicateData: true,
-                            lastScrapeTimestamp: new Date(),
-                            dataProviderIds: [dataProvider.id],
-                        }),
-                    );
+                    for (const dataProviderItem of dataProvider.dataProviderItems) {
+                        requests.push(
+                            new ProcessScrapeDataRequestDto({
+                                mimeTypes: [],
+                                checkDuplicateData: true,
+                                lastScrapeTimestamp: new Date(),
+                                dataProviderItemIds: [dataProviderItem.id],
+                            }),
+                        );
+                    }
                 }
 
                 break;

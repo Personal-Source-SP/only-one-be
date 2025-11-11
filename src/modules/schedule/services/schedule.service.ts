@@ -123,6 +123,22 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         }
     }
 
+    async manualTrigger(id: string): Promise<boolean> {
+        const schedule = await this.findById(id);
+        if (!schedule) {
+            this.loggerService.error(`[ScheduleService] Schedule with ID ${id} not found`);
+            throw new NotFoundException(`Schedule with ID ${id} not found`);
+        }
+
+        try {
+            await this.handleCronTrigger(id);
+            return true;
+        } catch (error) {
+            this.loggerService.error(`[ScheduleService] Error triggering schedule ${id}: ${error.message}`);
+            throw new BadRequestException('Error triggering schedule');
+        }
+    }
+
     private isValidCronExpression(value: string): boolean {
         const validation = cron.validateCronExpression(value);
         return validation.valid;
