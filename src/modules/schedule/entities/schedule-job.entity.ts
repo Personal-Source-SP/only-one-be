@@ -19,10 +19,6 @@ export class ScheduleJobEntity extends AbstractEntity {
     @AutoMap()
     triggerType: ScheduleJobTriggerType;
 
-    @Column({ type: 'varchar', length: 50 })
-    @AutoMap()
-    workerService: string;
-
     @Column({ type: 'varchar', length: 20, default: ScheduleJobType.PENDING })
     @AutoMap()
     status: ScheduleJobType;

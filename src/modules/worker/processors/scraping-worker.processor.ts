@@ -17,7 +17,7 @@ export type ScrapingWorkerProcessorType = Job<{
     request: ProcessScrapeDataRequestDto;
 }>;
 
-@Processor(QUEUE_NAME.SCRAPING_JOB_QUEUE)
+@Processor(QUEUE_NAME.SCRAPING_JOB)
 @Injectable()
 export class ScrapingWorkerProcessor {
     private readonly workerProcessName: string;

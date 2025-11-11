@@ -18,10 +18,6 @@ export class ScheduleEntity extends AbstractEntity {
     @AutoMap()
     enabled: boolean;
 
-    @Column({ type: 'varchar', length: 50 })
-    @AutoMap()
-    workerService: string;
-
     @Column({ default: 60 })
     @AutoMap()
     minScrapeIntervalMinutes: number;

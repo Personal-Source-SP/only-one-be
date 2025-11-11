@@ -11,12 +11,6 @@ export class PayloadScheduleDto {
     @AutoMap()
     dataProviderIds?: string[];
 
-    @ApiPropertyOptional({ description: 'Data provider item IDs to pass to the schedule' })
-    @IsOptional()
-    @IsArray()
-    @AutoMap()
-    dataProviderItemIds?: string[];
-
     @ApiPropertyOptional({ description: 'Item IDs to pass to the schedule' })
     @IsOptional()
     @IsArray()
@@ -34,12 +28,6 @@ export class CreateScheduleRequestDto {
     @IsBoolean()
     @AutoMap()
     enabled: boolean;
-
-    @ApiProperty({ description: 'Worker service for the schedule', example: 'scraping-service' })
-    @IsString()
-    @MaxLength(255)
-    @AutoMap()
-    workerService: string;
 
     @ApiProperty({ description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
     @IsString()

@@ -11,7 +11,7 @@ import { QueueService } from './services/queue.service';
     imports: [
         forwardRef(() => SharedModule),
         BullModule.registerQueue({
-            name: QUEUE_NAME.SCRAPING_JOB_QUEUE,
+            name: QUEUE_NAME.SCRAPING_JOB,
         }),
     ],
     controllers: [QueueController],

@@ -1,26 +1,22 @@
 import { FilterOperator } from 'nestjs-paginate';
 import { createPaginationConfig } from '../../../common/pagination/pagination-config.factory';
-import { getColumnNames } from '../../../shared/helpers/typeorm.helper';
-import { ScheduleJobEventEntity } from '../entities/schedule-job-event.entity';
+import { getColumnNames, getRelationColumns } from '../../../shared/helpers/typeorm.helper';
 import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 import { ScheduleEntity } from '../entities/schedule.entity';
 
 const scheduleColumns = getColumnNames(ScheduleEntity);
-const scheduleJobColumns = getColumnNames(ScheduleJobEntity);
-const scheduleJobEventColumns = getColumnNames(ScheduleJobEventEntity);
+const scheduleJobColumns = getRelationColumns(ScheduleJobEntity, 'schedule', ['scheduleId']);
 
 export const SCHEDULE_PAGINATION_CONFIG = createPaginationConfig<ScheduleEntity>({
-    sortableColumns: ['type', 'cronExpression', 'enabled', 'workerService'],
-    searchableColumns: ['type', 'cronExpression', 'enabled', 'workerService'],
+    sortableColumns: ['type', 'cronExpression', 'enabled'],
+    searchableColumns: ['type', 'cronExpression', 'enabled'],
     filterableColumns: {
         type: [FilterOperator.ILIKE, FilterOperator.EQ],
-        cronExpression: [FilterOperator.ILIKE, FilterOperator.EQ],
         enabled: [FilterOperator.EQ],
-        workerService: [FilterOperator.ILIKE, FilterOperator.EQ],
     },
+    relations: ['scheduleJobs'],
     defaultSortBy: [['createdAt', 'DESC']],
-    relations: ['scheduleJobs', 'scheduleJobs.scheduleJobEvents'],
-    select: [...scheduleColumns, ...scheduleJobColumns, ...scheduleJobEventColumns],
+    select: [...scheduleColumns, ...scheduleJobColumns],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });
