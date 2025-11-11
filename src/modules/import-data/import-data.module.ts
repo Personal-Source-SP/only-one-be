@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ItemEntity } from '../data-provider/entities/item.entity';
-import { ImportDataService } from './import-data.service';
+import { ImportDataService } from './services/import-data.service';
 import { DataProviderModule } from '../data-provider/data-provider.module';
 import { ImportDataController } from './controllers/import-data.controller';
 

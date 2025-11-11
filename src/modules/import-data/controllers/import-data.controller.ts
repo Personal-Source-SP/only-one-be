@@ -22,7 +22,7 @@ import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ImportDataRequestDto } from '../dtos/requests';
 import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ExcelFileTypes, ImportDataType } from '../enums';
-import { ImportDataService } from '../import-data.service';
+import { ImportDataService } from '../services/import-data.service';
 
 @Controller('import-data')
 @ApiTags('import-data')
