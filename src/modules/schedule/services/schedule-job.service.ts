@@ -84,6 +84,7 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
                                 mimeTypes: [],
                                 checkDuplicateData: true,
                                 lastScrapeTimestamp: new Date(),
+                                dataProviderIds: [dataProvider.id],
                                 dataProviderItemIds: [dataProviderItem.id],
                             }),
                         );

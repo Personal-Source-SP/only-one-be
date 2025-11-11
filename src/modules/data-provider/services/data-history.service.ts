@@ -155,7 +155,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
     }
 
     async getDataProvidersForScrape(request: ProcessScrapeDataRequestDto): Promise<DataProviderEntity[]> {
-        const { dataProviderIds, dataProviderItemIds, itemIds, lastScrapeTimestamp } = request;
+        const { dataProviderIds, dataProviderItemIds, itemIds } = request;
 
         const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
@@ -175,10 +175,6 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
 
         if (itemIds?.length) {
             builder.andWhere('item.id IN (:...itemIds)', { itemIds });
-        }
-
-        if (lastScrapeTimestamp) {
-            builder.andWhere('dataProvider.lastScrapeTimestamp < :lastScrapeTimestamp', { lastScrapeTimestamp });
         }
 
         try {

@@ -91,6 +91,7 @@ export class ScrapingWorkerProcessor {
                     retryCount: job.attemptsMade,
                     finishedAt: UtilsService.getUtcNow(),
                     eventType: ScheduleJobEventType.COMPLETED,
+                    eventMessage: 'Scraping worker completed',
                 });
 
             case ScheduleJobEventType.FAILED:
