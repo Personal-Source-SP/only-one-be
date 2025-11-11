@@ -4,18 +4,15 @@ import { Job } from 'bull';
 
 import { CustomError } from '../../../exceptions/custom-error.exception';
 import { UtilsService } from '../../../shared/services/utils.service';
-import { ProcessScrapeDataRequestDto } from '../../data-provider/dtos/requests';
 import { ProcessScrapeDataResponse } from '../../data-provider/dtos/responses';
 import { DataHistoryService } from '../../data-provider/services/data-history.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
-import { ScheduleJobEventType, ScheduleJobType } from '../../schedule/enums';
+import { IScrapingJobQueueInterface } from '../../queue/interfaces';
+import { ScheduleJobEventType } from '../../schedule/enums';
 import { ScheduleJobEventService } from '../../schedule/services/schedule-job-event.service';
 import { SCRAPING_WORKER_MESSAGE } from '../constants/message';
 
-export type ScrapingWorkerProcessorType = Job<{
-    jobId: string;
-    request: ProcessScrapeDataRequestDto;
-}>;
+export type ScrapingWorkerProcessorType = Job<IScrapingJobQueueInterface>;
 
 @Processor(QUEUE_NAME.SCRAPING_JOB)
 @Injectable()
@@ -57,24 +54,28 @@ export class ScrapingWorkerProcessor {
 
     @OnQueueCompleted()
     async onCompleted(job: ScrapingWorkerProcessorType, scrapingData: ProcessScrapeDataResponse): Promise<void> {
-        this.logger.log(`[${this.workerProcessName}] Job ${job.id} completed. Scraping data: ${scrapingData}`);
-        await this.updateScheduleJobEvent(job, ScheduleJobEventType.COMPLETED);
+        this.logger.log(`[${this.workerProcessName}] Job ${job.data.scheduleJobEventId} completed. Scraping data: ${scrapingData}`);
+        await this.updateScheduleJobEvent(job, ScheduleJobEventType.COMPLETED, scrapingData);
     }
 
     @OnQueueFailed()
     async onError(job: ScrapingWorkerProcessorType, err: Error): Promise<void> {
-        const scrapingJobId = job.id;
+        const scrapingJobEventId = job.data.scheduleJobEventId;
         const meta = err instanceof CustomError ? err.data : { name: err?.name, stack: err?.stack };
 
-        this.logger.error(`[${this.workerProcessName}] Job ${scrapingJobId} failed. Error: ${err?.message}`, meta);
+        this.logger.error(`[${this.workerProcessName}] Job ${scrapingJobEventId} failed. Error: ${err?.message}`, meta);
 
         if (job.attemptsMade >= job.opts.attempts) {
             await this.updateScheduleJobEvent(job, ScheduleJobEventType.FAILED);
         }
     }
 
-    private async updateScheduleJobEvent(job: ScrapingWorkerProcessorType, status: ScheduleJobEventType): Promise<boolean> {
-        const scrapingJobEventId = job.id.toString();
+    private async updateScheduleJobEvent(
+        job: ScrapingWorkerProcessorType,
+        status: ScheduleJobEventType,
+        scrapingData?: ProcessScrapeDataResponse,
+    ): Promise<boolean> {
+        const scrapingJobEventId = job.data.scheduleJobEventId;
 
         switch (status) {
             case ScheduleJobEventType.PROCESSING:
@@ -86,16 +87,17 @@ export class ScrapingWorkerProcessor {
 
             case ScheduleJobEventType.COMPLETED:
                 return await this.scheduleJobEventService.update(scrapingJobEventId, {
+                    metaData: scrapingData,
                     retryCount: job.attemptsMade,
                     finishedAt: UtilsService.getUtcNow(),
-                    status: ScheduleJobType.COMPLETED,
+                    eventType: ScheduleJobEventType.COMPLETED,
                 });
 
             case ScheduleJobEventType.FAILED:
                 return await this.scheduleJobEventService.update(scrapingJobEventId, {
                     retryCount: job.attemptsMade,
                     errorMessage: job.failedReason,
-                    status: ScheduleJobType.FAILED,
+                    eventType: ScheduleJobEventType.FAILED,
                 });
         }
     }

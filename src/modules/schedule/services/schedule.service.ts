@@ -162,6 +162,8 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             this.loggerService.log(`[ScheduleService] Schedule job created successfully for schedule: ${scheduleId}`);
         } catch (error) {
             this.loggerService.error(`[ScheduleService] Error creating schedule job: ${error.message}`);
+        } finally {
+            await this.redisLockService.releaseLock(lock);
         }
     }
 
@@ -178,7 +180,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         }
     }
 
-    private async createCronJob(schedule: ScheduleEntity): Promise<void> {
+    private async createCronJob(schedule: ScheduleDto): Promise<void> {
         if (!schedule.enabled) return;
 
         try {
@@ -191,7 +193,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         }
     }
 
-    private async handleScheduleChanged(schedule: ScheduleEntity): Promise<void> {
+    private async handleScheduleChanged(schedule: ScheduleDto): Promise<void> {
         await this.removeCronJob(schedule.id);
         await this.createCronJob(schedule);
 
@@ -216,21 +218,22 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             schedules.forEach((schedule) => currentSchedules.set(schedule.id, schedule));
 
             // Check for new or changed schedules
-            const changePromises = Object.values(currentSchedules)?.map((schedule) => {
+            const changePromises: Promise<void>[] = [];
+            currentSchedules.forEach((schedule) => {
                 const { id, cronExpression, enabled } = schedule;
 
                 const existing = this.lastLoadedSchedules.get(id);
                 if (!existing || existing.cronExpression !== cronExpression || existing.enabled !== enabled) {
-                    return this.handleScheduleChanged(schedule);
+                    changePromises.push(this.handleScheduleChanged(schedule));
                 }
             });
-
             await Promise.all(changePromises);
 
             // Check for deleted schedules
-            const removePromises = Object.values(this.lastLoadedSchedules)?.map(({ id }) => {
-                if (!currentSchedules.has(id)) {
-                    return this.handleScheduleRemoved(id);
+            const removePromises: Promise<void>[] = [];
+            this.lastLoadedSchedules.forEach((schedule) => {
+                if (!currentSchedules.has(schedule.id)) {
+                    removePromises.push(this.handleScheduleRemoved(schedule.id));
                 }
             });
             await Promise.all(removePromises);

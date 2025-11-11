@@ -18,9 +18,25 @@ export class ScheduleJobEventEntity extends AbstractEntity {
     @AutoMap()
     eventMessage: string;
 
+    @Column({ default: 0 })
+    @AutoMap()
+    retryCount: number;
+
+    @Column({ type: 'jsonb', nullable: true })
+    @AutoMap(() => Object)
+    payload?: Record<string, any>;
+
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
     metaData?: Record<string, any>;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    @AutoMap()
+    startedAt?: Date;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    @AutoMap()
+    finishedAt?: Date;
 
     @ManyToOne(() => ScheduleJobEntity, (entity) => entity.scheduleJobEvents, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'schedule_job_id' })

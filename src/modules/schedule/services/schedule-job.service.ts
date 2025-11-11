@@ -15,8 +15,9 @@ import { DataProviderService } from '../../data-provider/services/data-provider.
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IScrapingJobQueueInterface } from '../../queue/interfaces';
 import { QueueService } from '../../queue/services/queue.service';
-import { CreateScheduleJobEventRequestDto, CreateScheduleJobRequestDto, PayloadScheduleDto } from '../dtos/requests';
+import { CreateScheduleJobRequestDto, PayloadScheduleDto } from '../dtos/requests';
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
+import { ScheduleJobEventEntity } from '../entities/schedule-job-event.entity';
 import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 import { ScheduleJobEventType, ScheduleType } from '../enums';
 import { ScheduleJobEventService } from './schedule-job-event.service';
@@ -38,22 +39,16 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
     }
 
     async create(request: CreateScheduleJobRequestDto, user?: PayloadDto): Promise<ScheduleJobDto> {
-        const schedule = await this.findOneByFilter({ id: request.scheduleId });
-        if (!schedule) {
-            this.loggerService.error(`[ScheduleJobService] Schedule not found: ${request.scheduleId}`);
-            throw new NotFoundException('Schedule not found');
-        }
-
         const entity = this.mapper.map(request, CreateScheduleJobRequestDto, ScheduleJobEntity);
         const result = await super.create(entity, user);
 
         const jobPayload = request.jobPayload;
         const jobs = await this.getJobData(result.id, result.scheduleType, jobPayload);
 
-        const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, [{ data: jobs }]);
+        const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
         if (!queues.length) {
-            this.loggerService.error(`[ScheduleJobService] Error adding job to queue: ${request.scheduleId}`);
-            throw new Error('Error adding job to queue');
+            this.loggerService.error(`[ScheduleJobService] Error adding job to queue: ${result.id}`);
+            throw new BadRequestException('Error adding job to queue');
         }
 
         return result;
@@ -62,7 +57,7 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
     private async getJobData(
         scheduleJobId: string,
         scheduleType: ScheduleType,
-        jobPayload: PayloadScheduleDto,
+        jobPayload?: PayloadScheduleDto,
     ): Promise<Job<IScrapingJobQueueInterface>[]> {
         const requests: ProcessScrapeDataRequestDto[] = [];
 
@@ -137,12 +132,13 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
             }
         }
 
-        const scheduleJobEventEntities: CreateScheduleJobEventRequestDto[] = [];
+        const scheduleJobEventEntities: ScheduleJobEventEntity[] = [];
         const jobs: Job<IScrapingJobQueueInterface>[] = requests.map((request) => {
             const scheduleJobEventId = uuidv4();
             const scheduleJobEventEntity = this.scheduleJobEventService.repository.create({
-                id: scheduleJobEventId,
                 scheduleJobId,
+                payload: request,
+                id: scheduleJobEventId,
                 eventMessage: 'Scraping worker created',
                 eventType: ScheduleJobEventType.PENDING,
             });

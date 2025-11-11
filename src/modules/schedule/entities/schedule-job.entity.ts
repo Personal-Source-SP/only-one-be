@@ -23,13 +23,9 @@ export class ScheduleJobEntity extends AbstractEntity {
     @AutoMap()
     status: ScheduleJobType;
 
-    @Column({ default: 0 })
-    @AutoMap()
-    retryCount: number;
-
-    @Column({ type: 'jsonb' })
+    @Column({ type: 'jsonb', nullable: true })
     @AutoMap(() => Object)
-    jobPayload: Record<string, any>;
+    jobPayload?: Record<string, any>;
 
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()

@@ -24,11 +24,7 @@ export class ScheduleJobDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    retryCount: number;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    jobPayload: Record<string, any>;
+    jobPayload?: Record<string, any>;
 
     @ApiResponseProperty()
     @AutoMap()
