@@ -7,12 +7,10 @@
     "license": "UNLICENSED",
     "scripts": {
         "clean": "rimraf dist",
-        "clean:swc": "rimraf dist-swc",
+        "clean-logs": "rimraf logs",
         "copy-assets": "node copy-assets.js",
         "postinstall": "husky install",
         "build": "rimraf dist && tsc -p tsconfig.build.json && nest build",
-        "build:swc": "npm run clean:swc && swc src -d dist-swc --copy-files",
-        "build:typecheck:swc": "npm run typecheck && npm run build:swc",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "prettier:write": "prettier --write .",
         "migration:generate": "cross-var npm run typeorm -- migration:generate ./src/migrations/$npm_config_name",
@@ -23,9 +21,7 @@
         "start": "ts-node -r tsconfig-paths/register src/main.ts",
         "dev": "npm run start:dev",
         "start:dev": "nest start --watch",
-        "start:dev:swc": "nest start -b swc --type-check --watch",
         "start:debug": "nest start --watch --debug",
-        "start:debug:swc": "nest start -b swc --watch --debug",
         "start:prod": "node dist/src/main.js",
         "lint": "eslint \"{src,test}/**/*.ts\"",
         "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
@@ -93,8 +89,6 @@
         "winston-daily-rotate-file": "^5.0.0"
     },
     "devDependencies": {
-        "@swc/cli": "^0.7.8",
-        "@swc/core": "^1.7.42",
         "@types/bcrypt": "^6.0.0",
         "@types/eslint": "^9.6.1",
         "@types/express": "^5.0.0",
