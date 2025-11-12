@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
-import { ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
+import { ExecutionServiceEnum, ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
 import { ScheduleJobEventEntity } from './schedule-job-event.entity';
 import { ScheduleEntity } from './schedule.entity';
 
@@ -14,6 +14,10 @@ export class ScheduleJobEntity extends AbstractEntity {
     @Column({ type: 'varchar', length: 20, default: ScheduleType.GLOBAL })
     @AutoMap()
     scheduleType: ScheduleType;
+
+    @Column({ type: 'varchar', length: 20, default: ExecutionServiceEnum.DATA_PROVIDER })
+    @AutoMap()
+    executionService: ExecutionServiceEnum;
 
     @Column({ type: 'varchar', length: 20, default: ScheduleJobTriggerType.CRON })
     @AutoMap()

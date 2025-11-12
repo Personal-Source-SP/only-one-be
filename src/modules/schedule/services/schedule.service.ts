@@ -16,9 +16,9 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
-import { ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
-import { ScheduleJobService } from './schedule-job.service';
+import { ScheduleJobTriggerType, ScheduleType } from '../enums';
 import { RedisLockService } from './redis-lock.service';
+import { ScheduleJobService } from './schedule-job.service';
 
 @Injectable()
 export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> implements OnModuleInit {
@@ -131,7 +131,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         }
 
         try {
-            await this.handleCronTrigger(id);
+            await this.handleCronTrigger(id, ScheduleJobTriggerType.MANUAL);
             return true;
         } catch (error) {
             this.loggerService.error(`[ScheduleService] Error triggering schedule ${id}: ${error.message}`);
@@ -153,7 +153,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         return existingSchedule;
     }
 
-    private async handleCronTrigger(scheduleId: string): Promise<void> {
+    private async handleCronTrigger(scheduleId: string, triggerType?: ScheduleJobTriggerType): Promise<void> {
         const lock = await this.redisLockService.acquireLock(scheduleId);
         if (!lock) {
             this.loggerService.warn(`[ScheduleService] Failed to acquire lock for schedule ${scheduleId}. Skipping execution.`);
@@ -169,7 +169,8 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         const request: CreateScheduleJobRequestDto = {
             scheduleId,
             jobPayload: schedule.payload,
-            triggerType: ScheduleJobTriggerType.CRON,
+            executionService: schedule.executionService,
+            triggerType: triggerType || ScheduleJobTriggerType.CRON,
         };
 
         try {

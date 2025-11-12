@@ -3,7 +3,7 @@ import { Optional } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsObject, IsString } from 'class-validator';
 import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
-import { ScheduleJobTriggerType } from '../../enums';
+import { ExecutionServiceEnum, ScheduleJobTriggerType } from '../../enums';
 
 export class CreateScheduleJobRequestDto {
     @ApiProperty({ description: 'Schedule ID' })
@@ -15,6 +15,15 @@ export class CreateScheduleJobRequestDto {
     @IsEnum(ScheduleJobTriggerType)
     @AutoMap()
     triggerType: ScheduleJobTriggerType;
+
+    @ApiProperty({
+        description: 'Execution service of the schedule job',
+        enum: ExecutionServiceEnum,
+        example: ExecutionServiceEnum.DATA_PROVIDER,
+    })
+    @IsEnum(ExecutionServiceEnum)
+    @AutoMap()
+    executionService: ExecutionServiceEnum;
 
     @ApiPropertyOptional({ description: 'Job payload to pass to the schedule job' })
     @Optional()

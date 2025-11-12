@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
-import { ScheduleType } from '../../enums';
+import { ExecutionServiceEnum, ScheduleType } from '../../enums';
 
 export class PayloadScheduleDto {
     @ApiPropertyOptional({ description: 'Data provider IDs to pass to the schedule' })
@@ -22,6 +22,15 @@ export class CreateScheduleRequestDto {
     @IsEnum(ScheduleType)
     @AutoMap()
     type: ScheduleType;
+
+    @ApiProperty({
+        description: 'Execution service of the schedule',
+        enum: ExecutionServiceEnum,
+        example: ExecutionServiceEnum.DATA_PROVIDER,
+    })
+    @IsEnum(ExecutionServiceEnum)
+    @AutoMap()
+    executionService: ExecutionServiceEnum;
 
     @ApiProperty()
     @IsBoolean()
@@ -53,6 +62,16 @@ export class UpdateScheduleRequestDto {
     @IsEnum(ScheduleType)
     @AutoMap()
     type?: ScheduleType;
+
+    @ApiPropertyOptional({
+        description: 'Execution service of the schedule',
+        enum: ExecutionServiceEnum,
+        example: ExecutionServiceEnum.DATA_PROVIDER,
+    })
+    @IsOptional()
+    @IsEnum(ExecutionServiceEnum)
+    @AutoMap()
+    executionService?: ExecutionServiceEnum;
 
     @ApiPropertyOptional()
     @IsOptional()
