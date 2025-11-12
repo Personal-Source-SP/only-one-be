@@ -26,6 +26,8 @@ import { AppLoggerMiddleware } from './shared/middleware/app.logger.middleware';
 import { AppConfigService } from './shared/services/app-config.service';
 import { SharedModule } from './shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { NotificationModule } from './modules/notification/notification.module';
+import { WebsocketModule } from './modules/websocket/websocket.module';
 
 @Module({
     imports: [
@@ -68,7 +70,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         QueueModule,
         ScheduleExecutorModule,
         WorkerModule.register(),
-        // WebsocketModule,
+        NotificationModule,
+        WebsocketModule,
     ],
     controllers: [AppController],
     providers: [AppService, JwtService],

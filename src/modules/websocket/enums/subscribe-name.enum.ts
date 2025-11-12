@@ -28,7 +28,7 @@ export enum WebSocketEvent {
     SUBSCRIBE = 'subscribe',
     UNSUBSCRIBE = 'unsubscribe',
 
-    // Scout Request Events
+    // Notification Events
     SCOUT_REQUEST_PROCESSING = 'scout.request.processing',
     SCOUT_REQUEST_PROGRESS = 'scout.request.progress',
     SCOUT_REQUEST_COMPLETED = 'scout.request.completed',
@@ -42,4 +42,9 @@ export enum WebSocketEvent {
     AI_VALIDATION_FAILED = 'ai.validation.failed',
     AI_VALIDATION_CANCELLED = 'ai.validation.cancelled',
     AI_URL_VALIDATION_UPDATE = 'ai.url.validation.update',
+
+    // Notification Events
+    NOTIFICATION_CREATED = 'notification.created',
+    NOTIFICATION_UPDATED = 'notification.updated',
+    NOTIFICATION_DELETED = 'notification.deleted',
 }
