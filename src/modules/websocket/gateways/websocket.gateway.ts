@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
@@ -9,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { LoggerService } from '../../../shared/services/logger.service';
 import { SubscribeName, WebSocketEvent } from '../enums/subscribe-name.enum';
 import { WebSocketMessage, WebSocketResponse } from '../interfaces/websocket.interface';
 
@@ -17,13 +17,13 @@ import { WebSocketMessage, WebSocketResponse } from '../interfaces/websocket.int
         credentials: true,
         origin: process.env.WEBSOCKET_CORS_ORIGIN || '*',
     },
-    port: parseInt(process.env.WEBSOCKET_PORT || '3000'),
+    transports: ['websocket', 'polling'],
     path: process.env.WEBSOCKET_PATH || '/socket.io',
     namespace: process.env.WEBSOCKET_NAMESPACE || '/',
-    transports: ['websocket', 'polling'],
+    port: parseInt(process.env.WEBSOCKET_PORT || '3000'),
 })
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    private readonly logger: Logger = new Logger(WebsocketGateway.name);
+    private readonly loggerService: LoggerService = new LoggerService(WebsocketGateway.name);
 
     private readonly connectedClients: Map<string, Socket> = new Map();
     private readonly clientRooms: Map<string, Set<string>> = new Map();
@@ -33,7 +33,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     handleConnection(client: Socket) {
         try {
-            this.logger.log(`Client connected: ${client.id}`);
+            this.loggerService.log(`[WebsocketGateway] Client connected: ${client.id}`);
             this.connectedClients.set(client.id, client);
 
             // Send connection confirmation
@@ -49,9 +49,9 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             client.join('default');
             this.addClientToRoom(client.id, 'default');
 
-            this.logger.log(`Client ${client.id} joined default room`);
+            this.loggerService.log(`[WebsocketGateway] Client ${client.id} joined default room`);
         } catch (error) {
-            this.logger.error(`Error handling connection for client ${client.id}: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error handling connection for client ${client.id}: ${error.message}`);
             client.emit(SubscribeName.ERROR_OCCURRED, {
                 status: 'error',
                 message: 'Connection failed',
@@ -63,20 +63,20 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     handleDisconnect(client: Socket) {
         try {
             this.connectedClients.delete(client.id);
-            this.logger.log(`Client disconnected: ${client.id}`);
+            this.loggerService.log(`[WebsocketGateway] Client disconnected: ${client.id}`);
 
             // Remove client from all rooms
             const clientRooms = this.clientRooms.get(client.id);
             if (clientRooms) {
                 clientRooms.forEach((room) => {
                     client.leave(room);
-                    this.logger.log(`Client ${client.id} left room: ${room}`);
+                    this.loggerService.log(`[WebsocketGateway] Client ${client.id} left room: ${room}`);
                 });
 
                 this.clientRooms.delete(client.id);
             }
         } catch (error) {
-            this.logger.error(`Error handling disconnect for client ${client.id}: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error handling disconnect for client ${client.id}: ${error.message}`);
         }
     }
 
@@ -92,23 +92,25 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
             const response: WebSocketResponse = {
                 status: 'success',
-                data: { room: roomName, clientId: client.id },
-                message: `Joined room: ${roomName}`,
                 timestamp: Date.now(),
+                message: `Joined room: ${roomName}`,
+                data: { room: roomName, clientId: client.id },
             };
 
             client.emit(SubscribeName.CLIENT_JOINED_ROOM, response);
-            this.logger.log(`Client ${client.id} joined room: ${roomName}`);
+            this.loggerService.log(`[WebsocketGateway] Client ${client.id} joined room: ${roomName}`);
 
             return response;
         } catch (error) {
-            this.logger.error(`Error joining room: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error joining room: ${error.message}`);
+
             const errorResponse: WebSocketResponse = {
                 status: 'error',
                 message: error.message,
                 timestamp: Date.now(),
             };
             client.emit(SubscribeName.ERROR_OCCURRED, errorResponse);
+
             throw new WsException(error.message);
         }
     }
@@ -125,23 +127,25 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
             const response: WebSocketResponse = {
                 status: 'success',
-                data: { room: roomName, clientId: client.id },
-                message: `Left room: ${roomName}`,
                 timestamp: Date.now(),
+                message: `Left room: ${roomName}`,
+                data: { room: roomName, clientId: client.id },
             };
-
             client.emit(SubscribeName.CLIENT_LEFT_ROOM, response);
-            this.logger.log(`Client ${client.id} left room: ${roomName}`);
+
+            this.loggerService.log(`[WebsocketGateway] Client ${client.id} left room: ${roomName}`);
 
             return response;
         } catch (error) {
-            this.logger.error(`Error leaving room: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error leaving room: ${error.message}`);
+
             const errorResponse: WebSocketResponse = {
                 status: 'error',
                 message: error.message,
                 timestamp: Date.now(),
             };
             client.emit(SubscribeName.ERROR_OCCURRED, errorResponse);
+
             throw new WsException(error.message);
         }
     }
@@ -149,7 +153,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     @SubscribeMessage(WebSocketEvent.MESSAGE)
     handleMessage<T>(client: Socket, message: WebSocketMessage<T>): WebSocketResponse {
         try {
-            this.logger.log(`Message received from client ${client.id}: ${message.event}`);
+            this.loggerService.log(`[WebsocketGateway] Message received from client ${client.id}: ${message.event}`);
 
             // Broadcast message to all clients in the same room
             const clientRooms = this.clientRooms.get(client.id);
@@ -164,14 +168,14 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             }
 
             const response: WebSocketResponse = {
-                status: 'success',
                 data: message,
+                status: 'success',
                 timestamp: Date.now(),
             };
 
             return response;
         } catch (error) {
-            this.logger.error(`Error handling message: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error handling message: ${error.message}`);
             const errorResponse: WebSocketResponse = {
                 status: 'error',
                 message: error.message,
@@ -186,60 +190,34 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     handleHeartbeat(client: Socket): WebSocketResponse {
         const response: WebSocketResponse = {
             status: 'success',
-            data: { timestamp: Date.now() },
-            message: 'Heartbeat received',
             timestamp: Date.now(),
+            message: 'Heartbeat received',
+            data: { timestamp: Date.now() },
         };
 
         client.emit(SubscribeName.HEARTBEAT, response);
+
         return response;
     }
 
-    // common function to send message to all clients
-    public sendMessageToAllClients<T>(event: string, data: T): void {
-        this.logger.log(`Sending message to all clients: ${event}`);
+    sendMessageToAllClients<T>(event: string, data: T): void {
         try {
-            this.server.emit(event, {
-                data,
-                timestamp: Date.now(),
-            });
+            this.loggerService.log(`[WebsocketGateway] Sending message to all clients: ${event}`);
+            this.server.emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.logger.error(`Error sending message to all clients: ${error.message}`);
+            this.loggerService.error(`[WebsocketGateway] Error sending message to all clients: ${error.message}`);
         }
     }
 
-    // common function to send message to specific room
-    public sendMessageToRoom<T>(roomName: string, event: string, data: T): void {
-        this.logger.log(`Sending message to room: ${roomName}`);
+    sendMessageToRoom<T>(roomName: string, event: string, data: T): void {
         try {
-            this.server.to(roomName).emit(event, {
-                data,
-                timestamp: Date.now(),
-            });
+            this.loggerService.log(`[WebsocketGateway] Sending message to room: ${roomName}`);
+            this.server.to(roomName).emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.logger.error(`Error sending message to room: ${roomName}`);
+            this.loggerService.error(`[WebsocketGateway] Error sending message to room: ${roomName}: ${error.message}`);
         }
     }
 
-    // Utility Methods
-    private addClientToRoom(clientId: string, roomName: string): void {
-        if (!this.clientRooms.has(clientId)) {
-            this.clientRooms.set(clientId, new Set());
-        }
-        this.clientRooms.get(clientId)?.add(roomName);
-    }
-
-    private removeClientFromRoom(clientId: string, roomName: string): void {
-        const clientRooms = this.clientRooms.get(clientId);
-        if (clientRooms) {
-            clientRooms.delete(roomName);
-            if (clientRooms.size === 0) {
-                this.clientRooms.delete(clientId);
-            }
-        }
-    }
-
-    // Public methods for external services
     getConnectedClientsCount(): number {
         return this.connectedClients.size;
     }
@@ -250,16 +228,40 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     broadcastToRoom<T>(roomName: string, event: string, data: T): void {
-        this.server.to(roomName).emit(event, {
-            data,
-            timestamp: Date.now(),
-        });
+        try {
+            this.loggerService.log(`[WebsocketGateway] Broadcasting to room: ${roomName}`);
+            this.server.to(roomName).emit(event, { data, timestamp: Date.now() });
+        } catch (error) {
+            this.loggerService.error(`[WebsocketGateway] Error broadcasting to room: ${roomName}: ${error.message}`);
+        }
     }
 
     broadcastToAll<T>(event: string, data: T): void {
-        this.server.emit(event, {
-            data,
-            timestamp: Date.now(),
-        });
+        try {
+            this.loggerService.log(`[WebsocketGateway] Broadcasting to all clients`);
+            this.server.emit(event, { data, timestamp: Date.now() });
+        } catch (error) {
+            this.loggerService.error(`[WebsocketGateway] Error broadcasting to all clients: ${error.message}`);
+        }
+    }
+
+    private addClientToRoom(clientId: string, roomName: string): void {
+        if (!this.clientRooms.has(clientId)) {
+            this.clientRooms.set(clientId, new Set());
+        }
+
+        this.clientRooms.get(clientId)?.add(roomName);
+    }
+
+    private removeClientFromRoom(clientId: string, roomName: string): void {
+        const clientRooms = this.clientRooms.get(clientId);
+
+        if (clientRooms) {
+            clientRooms.delete(roomName);
+
+            if (clientRooms.size === 0) {
+                this.clientRooms.delete(clientId);
+            }
+        }
     }
 }

@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
-import * as winston from 'winston';
-import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
 import { IJwtConfig } from '../interfaces/app-config.interface';
@@ -103,52 +101,6 @@ export class AppConfigService {
             logging: this.getBoolean('DATABASE_LOGGING') || false,
             namingStrategy: new SnakeNamingStrategy(),
             migrationsTableName: 'migrations_crawler',
-        };
-    }
-
-    get winstonConfig(): winston.LoggerOptions {
-        return {
-            transports: [
-                new DailyRotateFile({
-                    level: 'debug',
-                    filename: `./logs/${this.nodeEnv}/debug-%DATE%.log`,
-                    datePattern: 'YYYY-MM-DD',
-                    zippedArchive: true,
-                    maxSize: '20m',
-                    maxFiles: '14d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-                }),
-                new DailyRotateFile({
-                    level: 'info',
-                    filename: `./logs/${this.nodeEnv}/info-%DATE%.log`,
-                    datePattern: 'YYYY-MM-DD',
-                    zippedArchive: true,
-                    maxSize: '20m',
-                    maxFiles: '14d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-                }),
-                new DailyRotateFile({
-                    level: 'error',
-                    filename: `./logs/${this.nodeEnv}/error-%DATE%.log`,
-                    datePattern: 'YYYY-MM-DD',
-                    zippedArchive: false,
-                    maxSize: '20m',
-                    maxFiles: '30d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-                }),
-                new winston.transports.Console({
-                    level: 'debug',
-                    handleExceptions: true,
-                    format: winston.format.combine(
-                        winston.format.colorize(),
-                        winston.format.timestamp({
-                            format: 'DD-MM-YYYY HH:mm:ss',
-                        }),
-                        winston.format.simple(),
-                    ),
-                }),
-            ],
-            exitOnError: false,
         };
     }
 

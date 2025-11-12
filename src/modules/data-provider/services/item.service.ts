@@ -5,19 +5,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { ItemDto } from '../dtos/item.dto';
 import { CreateItemRequestDto, UpdateItemRequestDto } from '../dtos/requests';
 import { ItemEntity } from '../entities/item.entity';
 
 @Injectable()
 export class ItemService extends BaseService<ItemEntity, ItemDto> {
-    constructor(
-        private readonly loggerService: LoggerService,
-        @InjectMapper() mapper: Mapper,
-        @InjectRepository(ItemEntity) itemRepository: Repository<ItemEntity>,
-    ) {
-        super(itemRepository, mapper, ItemDto);
+    constructor(@InjectMapper() mapper: Mapper, @InjectRepository(ItemEntity) itemRepository: Repository<ItemEntity>) {
+        super(itemRepository, mapper, ItemDto, ItemService.name);
     }
 
     async create(request: CreateItemRequestDto): Promise<ItemDto> {

@@ -6,7 +6,6 @@ import { isEmpty } from 'lodash';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
@@ -17,11 +16,10 @@ import { IGoogleApiRequest, IGoogleApiResponse } from '../interfaces';
 export class GoogleAuthService extends BaseService<GoogleAuthEntity, GoogleAuthDto> {
     constructor(
         private readonly httpClient: BaseHttpService,
-        private readonly loggerService: LoggerService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleAuthEntity) googleAuthRepository: Repository<GoogleAuthEntity>,
     ) {
-        super(googleAuthRepository, mapper, GoogleAuthDto);
+        super(googleAuthRepository, mapper, GoogleAuthDto, GoogleAuthService.name);
     }
 
     async getListGoogleAuth(userId: string): Promise<GoogleAuthDto[]> {

@@ -7,7 +7,6 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto, UpdateTargetConfigRequestDto } from '../dtos/requests';
@@ -22,7 +21,6 @@ import { DataProviderScraperService } from './data-provider-scraper.service';
 @Injectable()
 export class DataProviderService extends BaseService<DataProviderEntity, DataProviderDto> {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly configVersionService: ConfigVersionService,
 
         @InjectMapper() mapper: Mapper,
@@ -34,7 +32,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         @Inject(forwardRef(() => DataProviderScraperService))
         private readonly dataProviderScraperService: DataProviderScraperService,
     ) {
-        super(dataProviderRepository, mapper, DataProviderDto);
+        super(dataProviderRepository, mapper, DataProviderDto, DataProviderService.name);
     }
 
     async findById(id: string, options?: IFindOptions<DataProviderEntity>): Promise<DataProviderDto> {

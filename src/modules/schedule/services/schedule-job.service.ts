@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { SCHEDULE_EXECUTION_SERVICE_MAP } from '../constants/schedule-execution-service-map';
 import { CreateScheduleJobRequestDto } from '../dtos/requests';
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
@@ -17,15 +16,13 @@ import { IScheduleExecutionInterface } from '../interfaces';
 @Injectable()
 export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJobDto> {
     constructor(
-        private readonly loggerService: LoggerService,
-
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScheduleJobEntity) scheduleJobRepository: Repository<ScheduleJobEntity>,
 
         @Inject(SCHEDULE_EXECUTION_SERVICE_MAP)
         private readonly scheduleExecutionServiceMap: Record<string, IScheduleExecutionInterface>,
     ) {
-        super(scheduleJobRepository, mapper, ScheduleJobDto);
+        super(scheduleJobRepository, mapper, ScheduleJobDto, ScheduleJobService.name);
     }
 
     async create(request: CreateScheduleJobRequestDto, user?: PayloadDto): Promise<ScheduleJobDto> {

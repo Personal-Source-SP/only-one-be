@@ -1,11 +1,12 @@
 import { Mapper } from '@automapper/core';
-import { BadRequestException, HttpException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, NotFoundException } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+import { LoggerService } from '../shared/services/logger.service';
+import { PayloadDto } from './dto/payload.dto';
 import { AbstractEntity } from './entities';
 import { IBaseService, IFindOptions } from './interfaces/base-service.interface';
-import { PayloadDto } from './dto/payload.dto';
 
 export class BaseService<T extends AbstractEntity, D> implements IBaseService<T, D> {
     public repository: Repository<T>;
@@ -13,12 +14,13 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
     protected readonly mapper: Mapper;
     protected readonly dtoMappingKey: any;
     protected readonly entityMappingKey: any;
-    protected readonly logger: Logger = new Logger(BaseService.name);
+    protected readonly loggerService: LoggerService;
 
-    constructor(repository: Repository<T>, mapper: Mapper, dtoMappingKey: any) {
+    constructor(repository: Repository<T>, mapper: Mapper, dtoMappingKey: any, serviceName: string) {
         this.mapper = mapper;
         this.repository = repository;
         this.dtoMappingKey = dtoMappingKey;
+        this.loggerService = new LoggerService(serviceName);
         this.entityMappingKey = this.repository?.metadata?.target;
     }
 
@@ -33,8 +35,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
 
             return this.mapEntityToDto(entities) as D[];
         } catch (error) {
-            this.logger.error(`Find all entities error: ${error?.message}`);
-            throw new BadRequestException('Failed to find all entities');
+            this.handleError(error, []);
         }
     }
 
@@ -233,7 +234,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
             }
         }
 
-        this.logger.error(`[${methodName}]: ${error?.message}`);
+        this.loggerService.error(`[${methodName}]: ${error?.message}`);
 
         if (error instanceof HttpException) {
             throw error;

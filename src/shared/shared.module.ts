@@ -4,13 +4,13 @@ import { HttpModule } from '@nestjs/axios';
 import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
+import { FileHelper } from './helpers/file-helper';
 import { AppConfigService } from './services/app-config.service';
 import { BaseHttpService } from './services/base-http.service';
 import { LoggerService } from './services/logger.service';
 import { PuppeteerService } from './services/puppeteer.service';
 import { UtilsService } from './services/utils.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { FileHelper } from './helpers/file-helper';
 
 const helpers = [FileHelper];
 const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService, JwtStrategy];

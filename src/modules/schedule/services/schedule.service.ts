@@ -12,7 +12,6 @@ import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { SCHEDULE_JOB_NAME, SCHEDULE_TIMEZONE } from '../../../constant';
 import { AppConfigService } from '../../../shared/services/app-config.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
@@ -25,16 +24,14 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     private lastLoadedSchedules: Map<string, ScheduleDto> = new Map();
 
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly configService: AppConfigService,
         private readonly redisLockService: RedisLockService,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly scheduleJobService: ScheduleJobService,
-
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScheduleEntity) scheduleRepository: Repository<ScheduleEntity>,
     ) {
-        super(scheduleRepository, mapper, ScheduleDto);
+        super(scheduleRepository, mapper, ScheduleDto, ScheduleService.name);
     }
 
     async onModuleInit() {

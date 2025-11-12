@@ -20,9 +20,10 @@ import { ImportDataType } from '../enums';
 
 @Injectable()
 export class ImportDataService {
+    private readonly loggerService: LoggerService = new LoggerService(ImportDataService.name);
+
     constructor(
         private readonly itemService: ItemService,
-        private readonly loggerService: LoggerService,
         private readonly dataProviderService: DataProviderService,
         private readonly dataProviderItemService: DataProviderItemService,
 

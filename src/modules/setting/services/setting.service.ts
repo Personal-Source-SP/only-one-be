@@ -5,19 +5,14 @@ import { Repository } from 'typeorm';
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
 
 @Injectable()
 export class SettingService extends BaseService<SettingEntity, SettingDto> {
-    constructor(
-        private readonly loggerService: LoggerService,
-        @InjectMapper() mapper: Mapper,
-        @InjectRepository(SettingEntity) settingRepository: Repository<SettingEntity>,
-    ) {
-        super(settingRepository, mapper, SettingDto);
+    constructor(@InjectMapper() mapper: Mapper, @InjectRepository(SettingEntity) settingRepository: Repository<SettingEntity>) {
+        super(settingRepository, mapper, SettingDto, SettingService.name);
     }
 
     async create(request: CreateSettingRequestDto): Promise<SettingDto> {

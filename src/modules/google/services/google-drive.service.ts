@@ -16,15 +16,13 @@ import { GoogleAuthService } from './google-auth.service';
 
 @Injectable()
 export class GoogleDriveService {
+    private readonly loggerService: LoggerService = new LoggerService(GoogleDriveService.name);
+
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly googleAuthService: GoogleAuthService,
-
         @InjectMapper() private readonly mapper: Mapper,
-
         @InjectRepository(GoogleDriveFileEntity)
         private readonly googleDriveFileRepository: Repository<GoogleDriveFileEntity>,
-
         @InjectRepository(GoogleDriveFolderEntity)
         private readonly googleDriveFolderRepository: Repository<GoogleDriveFolderEntity>,
     ) {}

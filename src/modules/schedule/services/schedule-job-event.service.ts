@@ -14,6 +14,6 @@ export class ScheduleJobEventService extends BaseService<ScheduleJobEventEntity,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScheduleJobEventEntity) scheduleJobEventRepository: Repository<ScheduleJobEventEntity>,
     ) {
-        super(scheduleJobEventRepository, mapper, ScheduleJobEventDto);
+        super(scheduleJobEventRepository, mapper, ScheduleJobEventDto, ScheduleJobEventService.name);
     }
 }

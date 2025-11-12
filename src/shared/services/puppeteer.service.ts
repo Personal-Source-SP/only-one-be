@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import puppeteer, { type Browser, type BrowserContext, type Page } from 'puppeteer';
 import { IPuppeteerOptions, IPuppeteerSession } from './../interfaces/index';
+import { LoggerService } from './logger.service';
 
 @Injectable()
 export class PuppeteerService {
     private browserSessions: Map<string, Browser> = new Map();
-    private readonly logger = new Logger(PuppeteerService.name);
+    private readonly loggerService: LoggerService = new LoggerService(PuppeteerService.name);
 
     getBrowserSessions(): Map<string, Browser> {
         return this.browserSessions;
@@ -76,7 +77,7 @@ export class PuppeteerService {
             return true;
         }
 
-        this.logger.error(`[PuppeteerService] Browser session not found for page id ${pageId}`);
+        this.loggerService.error(`Browser session not found for page id ${pageId}`);
 
         return false;
     }

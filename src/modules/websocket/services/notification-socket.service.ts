@@ -7,8 +7,8 @@ import { WebsocketGateway } from '../gateways/websocket.gateway';
 import { ScoutRequestProcessingData, WebSocketMessage } from '../interfaces/websocket.interface';
 
 @Injectable()
-export class ScoutRequestSocketService {
-    private readonly loggerService: LoggerService = new LoggerService(ScoutRequestSocketService.name);
+export class NotificationSocketService {
+    private readonly loggerService: LoggerService = new LoggerService(NotificationSocketService.name);
 
     constructor(private readonly gateway: WebsocketGateway) {}
 

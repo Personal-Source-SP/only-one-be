@@ -7,11 +7,9 @@ import { LOCK_TTL_SECONDS, REDLOCK_CONFIG, SCRAPING_SCHEDULE_LOCK } from '../con
 @Injectable()
 export class RedisLockService {
     private redlock: Redlock;
+    private readonly loggerService: LoggerService = new LoggerService(RedisLockService.name);
 
-    constructor(
-        private readonly redisClient: Redis,
-        private readonly loggerService: LoggerService,
-    ) {
+    constructor(private readonly redisClient: Redis) {
         const compatibleClient = this.redisClient as unknown as Redis;
         this.redlock = new Redlock([compatibleClient], REDLOCK_CONFIG);
     }
@@ -38,9 +36,9 @@ export class RedisLockService {
 
         try {
             await this.redlock.release(lock);
-            this.loggerService.log(`[RedisLockService] Lock released successfully`);
+            this.loggerService.log(`Lock released successfully`);
         } catch (error) {
-            this.loggerService.warn(`[RedisLockService] Error releasing lock: ${error.message}`);
+            this.loggerService.warn(`Error releasing lock: ${error.message}`);
         }
     }
 }

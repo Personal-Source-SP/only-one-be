@@ -17,8 +17,6 @@ import { AppConfigService } from './shared/services/app-config.service';
 import { LoggerService } from './shared/services/logger.service';
 import { SharedModule } from './shared/shared.module';
 import { setupSwagger } from './shared/swagger/setup';
-import { RedisClientOptions } from 'redis';
-import { RedisIoAdapter } from './modules/websocket/adapter/redis-io.adapter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(), { cors: true });
@@ -108,8 +106,8 @@ async function bootstrap() {
     // Listen
     await app.listen(port, host);
 
-    console.log(`server running on port ${host}:${port}`);
-    loggerService.warn(`server running on port ${host}:${port}`);
+    console.log(`[APP] Server running on port ${host}:${port}`);
+    loggerService.warn(`[APP] Server running on port ${host}:${port}`);
 }
 
 if (process.env.NODE_CLUSTER_ENABLE == 'true') {

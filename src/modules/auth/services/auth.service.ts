@@ -15,10 +15,11 @@ import { RefreshTokenResponseDto, SignInResponseDto } from '../dtos/responses/au
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
+    private readonly loggerService: LoggerService = new LoggerService(AuthService.name);
+
     constructor(
         private readonly jwtService: JwtService,
         private readonly userService: UserService,
-        private readonly loggerService: LoggerService,
         private readonly configService: AppConfigService,
         @InjectMapper() private readonly mapper: Mapper,
     ) {}

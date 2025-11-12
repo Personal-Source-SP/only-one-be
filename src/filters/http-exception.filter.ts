@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, HttpException, HttpStatus } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Request, Response } from 'express';
 
@@ -6,7 +6,9 @@ import { LoggerService } from '../shared/services/logger.service';
 
 @Catch()
 export class HttpExceptionFilter extends BaseExceptionFilter {
-    constructor(private readonly _logger: LoggerService) {
+    private readonly loggerService: LoggerService = new LoggerService(HttpExceptionFilter.name);
+
+    constructor() {
         super();
     }
 
@@ -30,9 +32,9 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
             };
 
             if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-                this._logger.error(exception);
+                this.loggerService.error(exception);
             } else {
-                this._logger.error(exception);
+                this.loggerService.error(exception);
             }
 
             return response.status(status).json(errorResponse);

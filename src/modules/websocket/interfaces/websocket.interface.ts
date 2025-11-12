@@ -1,15 +1,15 @@
 export interface WebSocketMessage<T = any> {
-    event: string;
     data: T;
+    event: string;
     timestamp: number;
     clientId?: string;
 }
 
 export interface WebSocketResponse<T = any> {
+    timestamp: number;
     status: 'success' | 'error';
     data?: T;
     message?: string;
-    timestamp: number;
 }
 
 export interface ScoutRequestProcessingData {

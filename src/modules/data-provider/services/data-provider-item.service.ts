@@ -11,7 +11,6 @@ import { DATA_HISTORY_EVENTS } from '../constants/data-history-event.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
-import { DataHistoryService } from './data-history.service';
 import { DataProviderService } from './data-provider.service';
 import { ItemService } from './item.service';
 
@@ -24,13 +23,10 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         @Inject(forwardRef(() => DataProviderService))
         private readonly dataProviderService: DataProviderService,
 
-        @Inject(forwardRef(() => DataHistoryService))
-        private readonly dataHistoryService: DataHistoryService,
-
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DataProviderItemEntity) dataProviderItemRepository: Repository<DataProviderItemEntity>,
     ) {
-        super(dataProviderItemRepository, mapper, DataProviderItemDto);
+        super(dataProviderItemRepository, mapper, DataProviderItemDto, DataProviderItemService.name);
     }
 
     async findOneByFilterAndOptions(

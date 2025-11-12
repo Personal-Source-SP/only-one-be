@@ -14,7 +14,7 @@ import { UserEntity } from '../entities/user.entity';
 @Injectable()
 export class UserService extends BaseService<UserEntity, UserDto> {
     constructor(@InjectMapper() mapper: Mapper, @InjectRepository(UserEntity) userRepository: Repository<UserEntity>) {
-        super(userRepository, mapper, UserDto);
+        super(userRepository, mapper, UserDto, UserService.name);
     }
 
     async getUserLogin(email: string): Promise<UserEntity> {

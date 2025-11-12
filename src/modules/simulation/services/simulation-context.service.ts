@@ -12,11 +12,11 @@ import { SimulationItemService } from './simulation-item.service';
 @Injectable()
 export class SimulationContextService extends BaseService<SimulationContextEntity, SimulationContextDto> {
     constructor(
+        private readonly simulationItemService: SimulationItemService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(SimulationContextEntity) simulationContextRepository: Repository<SimulationContextEntity>,
-        private readonly simulationItemService: SimulationItemService,
     ) {
-        super(simulationContextRepository, mapper, SimulationContextDto);
+        super(simulationContextRepository, mapper, SimulationContextDto, SimulationContextService.name);
     }
 
     public async createItemsFromPayloads(simulationContextId: string, payloads: Record<string, any>[]): Promise<SimulationItemEntity[]> {

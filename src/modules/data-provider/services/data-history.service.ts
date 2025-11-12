@@ -6,7 +6,6 @@ import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { MimeType } from '../../../common/enums/mime-type';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { DataHistoryDto } from '../dtos/data-history.dto';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
@@ -21,14 +20,13 @@ import { DataProviderService } from './data-provider.service';
 @Injectable()
 export class DataHistoryService extends BaseService<DataHistoryEntity, DataHistoryDto> {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly dataProviderService: DataProviderService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DataHistoryEntity) dataHistoryRepository: Repository<DataHistoryEntity>,
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {
-        super(dataHistoryRepository, mapper, DataHistoryDto);
+        super(dataHistoryRepository, mapper, DataHistoryDto, DataHistoryService.name);
     }
 
     async processScrapeData(request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {

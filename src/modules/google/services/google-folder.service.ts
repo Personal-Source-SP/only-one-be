@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
 import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity';
 import { GoogleAuthService } from './google-auth.service';
@@ -12,12 +11,11 @@ import { GoogleAuthService } from './google-auth.service';
 @Injectable()
 export class GoogleFolderService extends BaseService<GoogleDriveFolderEntity, GoogleDriveFolderDto> {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly googleAuthService: GoogleAuthService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(GoogleDriveFolderEntity) googleDriveFolderRepository: Repository<GoogleDriveFolderEntity>,
     ) {
-        super(googleDriveFolderRepository, mapper, GoogleDriveFolderDto);
+        super(googleDriveFolderRepository, mapper, GoogleDriveFolderDto, GoogleFolderService.name);
     }
 
     async findAllByUserId(userId: string): Promise<GoogleDriveFolderDto[]> {

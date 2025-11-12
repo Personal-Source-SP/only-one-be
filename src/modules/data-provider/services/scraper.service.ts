@@ -14,10 +14,9 @@ import { ITargetConfig } from '../interfaces/target-config.interface';
 export class ScraperService implements OnModuleDestroy {
     private browser: Browser | null = null;
 
-    constructor(
-        private readonly logger: LoggerService,
-        private readonly baseHttpService: BaseHttpService,
-    ) {
+    private readonly loggerService: LoggerService = new LoggerService(ScraperService.name);
+
+    constructor(private readonly baseHttpService: BaseHttpService) {
         puppeteer.use(StealthPlugin());
         puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
     }
@@ -78,7 +77,7 @@ export class ScraperService implements OnModuleDestroy {
                     execution_time: Date.now() - startTime,
                 };
             } catch (error) {
-                this.logger.error(`ScraperService.getHtmlContent attempt ${attempt} failed: ${error?.message}`);
+                this.loggerService.error(`Get html content attempt ${attempt} failed: ${error?.message}`);
 
                 if (attempt === retryAttempts) {
                     return {
@@ -138,7 +137,7 @@ export class ScraperService implements OnModuleDestroy {
                     execution_time: Date.now() - startTime,
                 };
             } catch (error) {
-                this.logger.error(`Get api content attempt ${attempt} failed: ${error?.message}`);
+                this.loggerService.error(`Get api content attempt ${attempt} failed: ${error?.message}`);
 
                 if (attempt === retryAttempts) {
                     return {

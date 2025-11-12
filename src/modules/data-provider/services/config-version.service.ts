@@ -6,7 +6,6 @@ import { DataSource, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { CreateConfigVersionRequestDto } from '../dtos/requests';
 import { ConfigVersionEntity } from '../entities/config-version.entity';
@@ -16,18 +15,14 @@ import { ConfigVersionType } from '../enums';
 export class ConfigVersionService extends BaseService<ConfigVersionEntity, ConfigVersionDto> {
     constructor(
         private readonly dataSource: DataSource,
-        private readonly loggerService: LoggerService,
-
         @InjectMapper() mapper: Mapper,
-
-        @InjectRepository(ConfigVersionEntity)
-        private readonly dataProviderConfigVersionsRepository: Repository<ConfigVersionEntity>,
+        @InjectRepository(ConfigVersionEntity) dataProviderConfigVersionsRepository: Repository<ConfigVersionEntity>,
     ) {
-        super(dataProviderConfigVersionsRepository, mapper, ConfigVersionDto);
+        super(dataProviderConfigVersionsRepository, mapper, ConfigVersionDto, ConfigVersionService.name);
     }
 
     async create(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<ConfigVersionDto> {
-        const latestVersion = await this.dataProviderConfigVersionsRepository
+        const latestVersion = await this.repository
             .createQueryBuilder('dataProviderConfigVersions')
             .where('dataProviderConfigVersions.dataProviderId = :dataProviderId', { dataProviderId: request.dataProviderId })
             .orderBy('dataProviderConfigVersions.versionId', 'DESC')
@@ -61,7 +56,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
     }
 
     async getConfigVersionOptions(dataProviderId: string): Promise<ConfigVersionDto[]> {
-        const dataProviderConfigVersions = await this.dataProviderConfigVersionsRepository
+        const dataProviderConfigVersions = await this.repository
             .createQueryBuilder('dataProviderConfigVersions')
             .leftJoinAndSelect('dataProviderConfigVersions.user', 'user')
             .where('dataProviderConfigVersions.dataProviderId = :dataProviderId', { dataProviderId })

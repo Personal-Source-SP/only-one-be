@@ -17,9 +17,10 @@ import { ScheduleJobEventService } from './schedule-job-event.service';
 
 @Injectable()
 export class DataProviderScheduleService implements IScheduleExecutionInterface {
+    private readonly loggerService: LoggerService = new LoggerService(DataProviderScheduleService.name);
+
     constructor(
         private readonly queueService: QueueService,
-        private readonly loggerService: LoggerService,
         private readonly dataProviderService: DataProviderService,
         private readonly scheduleJobEventService: ScheduleJobEventService,
     ) {}

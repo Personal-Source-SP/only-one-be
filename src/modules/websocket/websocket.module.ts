@@ -1,13 +1,16 @@
 import { Global, Module } from '@nestjs/common';
 
+import { WebsocketGateway } from './gateways/websocket.gateway';
 import { ScoutRequestSocketService } from './services/scout-request.socket.service';
-import { WebsocketGateway } from './services/websocket.gateway';
+
+const gateways = [WebsocketGateway];
+const services = [ScoutRequestSocketService];
 
 @Global()
 @Module({
     imports: [],
     controllers: [],
-    providers: [WebsocketGateway, ScoutRequestSocketService],
-    exports: [WebsocketGateway, ScoutRequestSocketService],
+    providers: [...gateways, ...services],
+    exports: [...gateways, ...services],
 })
 export class WebsocketModule {}

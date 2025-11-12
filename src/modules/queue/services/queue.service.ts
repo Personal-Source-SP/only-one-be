@@ -10,11 +10,9 @@ import { IScrapingJobQueueInterface } from '../interfaces';
 @Injectable()
 export class QueueService implements OnModuleInit {
     private queues: Map<QUEUE_NAME, Queue> = new Map();
+    private readonly loggerService: LoggerService = new LoggerService(QueueService.name);
 
-    constructor(
-        private readonly logger: LoggerService,
-        @InjectQueue(QUEUE_NAME.SCRAPING_JOB) private readonly scrapingJobQueue: Queue<IScrapingJobQueueInterface>,
-    ) {
+    constructor(@InjectQueue(QUEUE_NAME.SCRAPING_JOB) private readonly scrapingJobQueue: Queue<IScrapingJobQueueInterface>) {
         this.registerQueue(QUEUE_NAME.SCRAPING_JOB, this.scrapingJobQueue);
     }
 
@@ -22,7 +20,7 @@ export class QueueService implements OnModuleInit {
         // Verbose the status of the QUEUE_NAME.SCRAPING_JOB
         const queue = this.getQueue(QUEUE_NAME.SCRAPING_JOB);
         const queueStatus = await queue.isPaused();
-        this.logger.log(`Verbose the status of the ${QUEUE_NAME.SCRAPING_JOB} queue: ${queueStatus}`);
+        this.loggerService.log(`Verbose the status of the ${QUEUE_NAME.SCRAPING_JOB} queue: ${queueStatus}`);
     }
 
     getQueue(queueName: QUEUE_NAME): Queue | undefined {
@@ -37,9 +35,9 @@ export class QueueService implements OnModuleInit {
 
         try {
             await queue.pause();
-            this.logger.log(`Queue ${queueName}: Pausing queue`);
+            this.loggerService.log(`Queue ${queueName}: Pausing queue`);
         } catch (error) {
-            this.logger.error(`Queue ${queueName} error pausing queue: ${error?.message}`);
+            this.loggerService.error(`Queue ${queueName} error pausing queue: ${error?.message}`);
             return false;
         }
 
@@ -51,9 +49,9 @@ export class QueueService implements OnModuleInit {
 
         try {
             await queue.resume();
-            this.logger.log(`Queue ${queueName}: Resuming queue`);
+            this.loggerService.log(`Queue ${queueName}: Resuming queue`);
         } catch (error) {
-            this.logger.error(`Queue ${queueName} error resuming queue: ${error?.message}`);
+            this.loggerService.error(`Queue ${queueName} error resuming queue: ${error?.message}`);
             return false;
         }
 
@@ -79,7 +77,7 @@ export class QueueService implements OnModuleInit {
             const job = await queue.add(data, opts);
             return job;
         } catch (error) {
-            this.logger.error(`Queue ${queueName} error adding job: ${error?.message}`);
+            this.loggerService.error(`Queue ${queueName} error adding job: ${error?.message}`);
             throw error;
         }
     }
@@ -91,7 +89,7 @@ export class QueueService implements OnModuleInit {
             const job = await queue.addBulk(jobData);
             return job;
         } catch (error) {
-            this.logger.error(`Queue ${queueName} error adding job: ${error?.message}`);
+            this.loggerService.error(`Queue ${queueName} error adding job: ${error?.message}`);
             throw error;
         }
     }
@@ -103,6 +101,6 @@ export class QueueService implements OnModuleInit {
 
     private registerQueue(queueName: QUEUE_NAME, queue: Queue): void {
         this.queues.set(queueName, queue);
-        this.logger.log(`Registered queue: ${queueName}`);
+        this.loggerService.log(`Registered queue: ${queueName}`);
     }
 }

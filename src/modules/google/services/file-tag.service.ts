@@ -4,7 +4,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
@@ -19,14 +18,13 @@ import { GoogleFileService } from './google-file.service';
 @Injectable()
 export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly googleFileService: GoogleFileService,
         private readonly googleDriveFileTagService: GoogleDriveFileTagService,
 
         @InjectMapper() mapper: Mapper,
         @InjectRepository(FileTagEntity) fileTagRepository: Repository<FileTagEntity>,
     ) {
-        super(fileTagRepository, mapper, FileTagDto);
+        super(fileTagRepository, mapper, FileTagDto, FileTagService.name);
     }
 
     async assignTagsToFile(request: AssignTagsToFileByIdsRequestDto): Promise<boolean> {

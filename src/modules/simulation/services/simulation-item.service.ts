@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import { Browser } from 'puppeteer';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
-import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
@@ -16,12 +15,11 @@ import { SimulationItemStatus } from '../enums';
 @Injectable()
 export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> implements OnModuleInit {
     constructor(
-        private readonly loggerService: LoggerService,
         private readonly puppeteerService: PuppeteerService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(SimulationItemEntity) simulationItemRepository: Repository<SimulationItemEntity>,
     ) {
-        super(simulationItemRepository, mapper, SimulationItemDto);
+        super(simulationItemRepository, mapper, SimulationItemDto, SimulationItemService.name);
     }
 
     async onModuleInit() {

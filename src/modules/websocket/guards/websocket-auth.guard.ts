@@ -1,11 +1,12 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { LoggerService } from '../../../shared/services/logger.service';
 
 @Injectable()
 export class WebsocketAuthGuard implements CanActivate {
-    private readonly logger = new Logger(WebsocketAuthGuard.name);
+    private readonly loggerService: LoggerService = new LoggerService(WebsocketAuthGuard.name);
 
     constructor(private readonly jwtService: JwtService) {}
 
@@ -21,10 +22,10 @@ export class WebsocketAuthGuard implements CanActivate {
             const payload = this.jwtService.verify(token);
             client.data.user = payload;
 
-            this.logger.log(`Authenticated WebSocket client: ${client.id}`);
+            this.loggerService.log(`Authenticated WebSocket client: ${client.id}`);
             return true;
         } catch (error) {
-            this.logger.error(`WebSocket authentication failed: ${error.message}`);
+            this.loggerService.error(`WebSocket authentication failed: ${error.message}`);
             throw new WsException('Authentication failed');
         }
     }
