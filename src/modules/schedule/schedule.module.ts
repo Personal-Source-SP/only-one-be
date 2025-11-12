@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import { AppConfigService } from '../../shared/services/app-config.service';
 import { DataProviderModule } from '../data-provider/data-provider.module';
 import { ScheduleJobEventController } from './controllers/schedule-job-event.controller';
+import { ScheduleJobController } from './controllers/schedule-job.controller';
 import { ScheduleController } from './controllers/schedule.controller';
 import { ScheduleJobEventEntity } from './entities/schedule-job-event.entity';
 import { ScheduleJobEntity } from './entities/schedule-job.entity';
@@ -14,8 +15,8 @@ import { ScheduleJobEventService } from './services/schedule-job-event.service';
 import { ScheduleJobService } from './services/schedule-job.service';
 import { ScheduleService } from './services/schedule.service';
 
-const controllers = [ScheduleController, ScheduleJobEventController];
 const entities = [ScheduleEntity, ScheduleJobEntity, ScheduleJobEventEntity];
+const controllers = [ScheduleController, ScheduleJobEventController, ScheduleJobController];
 const services = [ScheduleService, ScheduleJobService, ScheduleJobEventService, RedisLockService];
 
 @Module({

@@ -1,4 +1,4 @@
-import { createMap, Mapper, MappingProfile } from '@automapper/core';
+import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from './dtos/requests';
@@ -24,7 +24,15 @@ export class ScheduleProfile extends AutomapperProfile {
             createMap(mapper, CreateScheduleRequestDto, ScheduleEntity);
             createMap(mapper, UpdateScheduleRequestDto, ScheduleEntity);
 
-            createMap(mapper, CreateScheduleJobRequestDto, ScheduleJobEntity);
+            createMap(
+                mapper,
+                CreateScheduleJobRequestDto,
+                ScheduleJobEntity,
+                forMember(
+                    (d) => d.startedAt,
+                    mapFrom(() => new Date()),
+                ),
+            );
         };
     }
 }

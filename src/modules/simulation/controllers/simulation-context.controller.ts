@@ -9,15 +9,11 @@ import { SimulationContextDto } from '../dtos/simulation-context.dto';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationContextEntity } from '../entities/simulation-context.entity';
 import { SimulationContextService } from '../services/simulation-context.service';
-import { SimulationItemService } from '../services/simulation-item.service';
 
 @ApiTags('Simulation Contexts')
 @Controller('simulation-contexts')
 export class SimulationContextController extends BaseController<SimulationContextEntity, SimulationContextDto> {
-    constructor(
-        private readonly simulationContextService: SimulationContextService,
-        private readonly simulationItemService: SimulationItemService,
-    ) {
+    constructor(private readonly simulationContextService: SimulationContextService) {
         super(simulationContextService, SIMULATION_CONTEXT_PAGINATION_CONFIG);
     }
 

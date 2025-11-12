@@ -19,7 +19,7 @@ import { CreateScheduleJobRequestDto, PayloadScheduleDto } from '../dtos/request
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
 import { ScheduleJobEventEntity } from '../entities/schedule-job-event.entity';
 import { ScheduleJobEntity } from '../entities/schedule-job.entity';
-import { ScheduleJobEventType, ScheduleType } from '../enums';
+import { ScheduleJobEventType, ScheduleJobType, ScheduleType } from '../enums';
 import { ScheduleJobEventService } from './schedule-job-event.service';
 
 @Injectable()
@@ -42,16 +42,26 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
         const entity = this.mapper.map(request, CreateScheduleJobRequestDto, ScheduleJobEntity);
         const result = await super.create(entity, user);
 
-        const jobPayload = request.jobPayload;
-        const jobs = await this.getJobData(result.id, result.scheduleType, jobPayload);
+        try {
+            const jobPayload = request.jobPayload;
+            const jobs = await this.getJobData(result.id, result.scheduleType, jobPayload);
 
-        const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
-        if (!queues.length) {
-            this.loggerService.error(`[ScheduleJobService] Error adding job to queue: ${result.id}`);
-            throw new BadRequestException('Error adding job to queue');
+            const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
+            if (!queues.length) {
+                this.loggerService.error(`[ScheduleJobService] Error adding job to queue: ${result.id}`);
+                throw new BadRequestException('Error adding job to queue');
+            }
+
+            return result;
+        } catch (error) {
+            await super.update(
+                result.id,
+                { status: ScheduleJobType.FAILED, errorMessage: error?.message || 'Unknown error', finishedAt: new Date() },
+                user,
+            );
+
+            throw error;
         }
-
-        return result;
     }
 
     private async getJobData(
