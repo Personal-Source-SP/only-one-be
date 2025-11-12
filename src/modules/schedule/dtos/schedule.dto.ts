@@ -34,6 +34,10 @@ export class ScheduleDto extends AbstractDto {
     payload?: Record<string, any>;
 
     @ApiResponseProperty()
+    @AutoMap()
+    jobCount?: number;
+
+    @ApiResponseProperty()
     @AutoMap(() => [ScheduleJobDto])
     scheduleJobs: ScheduleJobDto[];
 }

@@ -39,6 +39,22 @@ export class ScheduleJobEntity extends AbstractEntity {
     @AutoMap()
     errorMessage?: string;
 
+    @Column({ nullable: true })
+    @AutoMap()
+    eventCount?: number;
+
+    @Column({ nullable: true })
+    @AutoMap()
+    eventFailedCount?: number;
+
+    @Column({ nullable: true })
+    @AutoMap()
+    eventSuccessCount?: number;
+
+    @Column({ nullable: true })
+    @AutoMap()
+    eventPendingCount?: number;
+
     @ManyToOne(() => ScheduleEntity, (schedule) => schedule.scheduleJobs, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'schedule_id' })
     @AutoMap(() => ScheduleEntity)

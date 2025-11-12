@@ -39,6 +39,22 @@ export class ScheduleJobDto extends AbstractDto {
     errorMessage?: string;
 
     @ApiResponseProperty()
+    @AutoMap()
+    eventCount?: number;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    eventFailedCount?: number;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    eventSuccessCount?: number;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    eventPendingCount?: number;
+
+    @ApiResponseProperty()
     @AutoMap(() => ScheduleDto)
     schedule: ScheduleDto;
 

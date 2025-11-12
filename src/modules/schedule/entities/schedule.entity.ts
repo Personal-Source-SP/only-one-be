@@ -34,6 +34,10 @@ export class ScheduleEntity extends AbstractEntity {
     @AutoMap(() => Object)
     payload?: Record<string, any>;
 
+    @Column({ nullable: true })
+    @AutoMap()
+    jobCount?: number;
+
     @OneToMany(() => ScheduleJobEntity, (job) => job.schedule)
     @AutoMap(() => [ScheduleJobEntity])
     scheduleJobs: Relation<ScheduleJobEntity>[];
