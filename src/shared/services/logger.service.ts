@@ -33,7 +33,7 @@ export class LoggerService extends ConsoleLogger {
         this.logger = winston.createLogger(this.getWinstonConfig(contextName ?? 'UnknownService'));
 
         if (process.env.NODE_ENV !== 'production') {
-            this.logger.debug('Logging initialized at debug level');
+            this.logger.info('Logging initialized at debug level');
         }
     }
 

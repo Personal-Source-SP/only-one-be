@@ -23,7 +23,7 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
 
     const loggerService = app.select(SharedModule).get(LoggerService);
-    app.useLogger(loggerService);
+    app.useLogger(new LoggerService('Main Instance'));
     app.use(
         morgan('combined', {
             stream: {
@@ -105,9 +105,7 @@ async function bootstrap() {
 
     // Listen
     await app.listen(port, host);
-
-    console.log(`[APP] Server running on port ${host}:${port}`);
-    loggerService.warn(`[APP] Server running on port ${host}:${port}`);
+    new LoggerService('App Started').info(`Server running on port ${host}:${port}`);
 }
 
 if (process.env.NODE_CLUSTER_ENABLE == 'true') {
