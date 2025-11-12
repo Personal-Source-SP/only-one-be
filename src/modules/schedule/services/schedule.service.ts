@@ -52,13 +52,13 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
 
         const isValidCronExpression = this.isValidCronExpression(cronExpression);
         if (!isValidCronExpression) {
-            this.loggerService.error(`[ScheduleService] Invalid cron expression: ${cronExpression}`);
+            this.loggerService.error(`Invalid cron expression: ${cronExpression}`);
             throw new BadRequestException('Invalid cron expression');
         }
 
         const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
         if (isDuplicate) {
-            this.loggerService.error(`[ScheduleService] Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
+            this.loggerService.error(`Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
             throw new BadRequestException('Duplicate schedule');
         }
 
@@ -83,7 +83,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         if (cronExpression) {
             const isValidCronExpression = this.isValidCronExpression(cronExpression);
             if (!isValidCronExpression) {
-                this.loggerService.error(`[ScheduleService] Invalid cron expression: ${cronExpression}`);
+                this.loggerService.error(`Invalid cron expression: ${cronExpression}`);
                 throw new BadRequestException('Invalid cron expression');
             }
         }
@@ -91,7 +91,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         if (type && cronExpression) {
             const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
             if (isDuplicate) {
-                this.loggerService.error(`[ScheduleService] Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
+                this.loggerService.error(`Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
                 throw new BadRequestException('Duplicate schedule');
             }
         }
@@ -115,7 +115,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         try {
             return await super.update(id, { enabled });
         } catch (error) {
-            this.loggerService.error(`[ScheduleService] Error switching status for schedule ${id}: ${error.message}`);
+            this.loggerService.error(`Error switching status for schedule ${id}: ${error.message}`);
             throw new BadRequestException('Error switching status for schedule');
         }
     }
@@ -123,7 +123,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     async manualTrigger(id: string): Promise<boolean> {
         const schedule = await this.findById(id);
         if (!schedule) {
-            this.loggerService.error(`[ScheduleService] Schedule with ID ${id} not found`);
+            this.loggerService.error(`Schedule with ID ${id} not found`);
             throw new NotFoundException(`Schedule with ID ${id} not found`);
         }
 
@@ -131,7 +131,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             await this.handleCronTrigger(id, ScheduleJobTriggerType.MANUAL);
             return true;
         } catch (error) {
-            this.loggerService.error(`[ScheduleService] Error triggering schedule ${id}: ${error.message}`);
+            this.loggerService.error(`Error triggering schedule ${id}: ${error.message}`);
             throw new BadRequestException('Error triggering schedule');
         }
     }
@@ -153,13 +153,13 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
     private async handleCronTrigger(scheduleId: string, triggerType?: ScheduleJobTriggerType): Promise<void> {
         const lock = await this.redisLockService.acquireLock(scheduleId);
         if (!lock) {
-            this.loggerService.warn(`[ScheduleService] Failed to acquire lock for schedule ${scheduleId}. Skipping execution.`);
+            this.loggerService.warn(`Failed to acquire lock for schedule ${scheduleId}. Skipping execution.`);
             return;
         }
 
         const schedule = this.lastLoadedSchedules.get(scheduleId);
         if (!schedule) {
-            this.loggerService.error(`[ScheduleService] Schedule not found: ${scheduleId}`);
+            this.loggerService.error(`Schedule not found: ${scheduleId}`);
             return;
         }
 
@@ -171,11 +171,11 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         };
 
         try {
-            this.loggerService.log(`[ScheduleService] Created schedule job for schedule: ${scheduleId}`);
+            this.loggerService.log(`Created schedule job for schedule: ${scheduleId}`);
             await this.scheduleJobService.create(request);
-            this.loggerService.log(`[ScheduleService] Schedule job created successfully for schedule: ${scheduleId}`);
+            this.loggerService.log(`Schedule job created successfully for schedule: ${scheduleId}`);
         } catch (error) {
-            this.loggerService.error(`[ScheduleService] Error creating schedule job: ${error.message}`);
+            this.loggerService.error(`Error creating schedule job: ${error.message}`);
         } finally {
             await super.update(scheduleId, { lastRunAt: new Date() });
             await this.redisLockService.releaseLock(lock);
@@ -191,7 +191,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
                 this.schedulerRegistry.deleteCronJob(cronJobName);
             }
         } catch (error) {
-            this.loggerService.warn(`[ScheduleService] Error removing cron job ${cronJobName}: ${error.message}`);
+            this.loggerService.warn(`Error removing cron job ${cronJobName}: ${error.message}`);
         }
     }
 
@@ -204,7 +204,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
 
             this.schedulerRegistry.addCronJob(cronJobName, job);
         } catch (error) {
-            this.loggerService.error(`[ScheduleService] Error creating cron job for schedule ${schedule.id}: ${error.message}`);
+            this.loggerService.error(`Error creating cron job for schedule ${schedule.id}: ${error.message}`);
         }
     }
 
@@ -212,19 +212,19 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         await this.removeCronJob(schedule.id);
         await this.createCronJob(schedule);
 
-        this.loggerService.log(`[ScheduleService] Updated cron job for schedule: ${schedule.id}`);
+        this.loggerService.log(`Updated cron job for schedule: ${schedule.id}`);
     }
 
     private async handleScheduleRemoved(id: string): Promise<void> {
         await this.removeCronJob(id);
 
-        this.loggerService.log(`[ScheduleService] Removed cron job for schedule: ${id}`);
+        this.loggerService.log(`Removed cron job for schedule: ${id}`);
     }
 
     private async loadSchedules(): Promise<void> {
         const schedules = await this.findListByFilter({ enabled: true });
         if (!schedules?.length) {
-            this.loggerService.log('[ScheduleService] No schedules found or all schedules are disabled.');
+            this.loggerService.log('No schedules found or all schedules are disabled.');
             return;
         }
 
@@ -255,7 +255,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
 
             this.lastLoadedSchedules = currentSchedules;
         } catch (error) {
-            this.loggerService.error(`[ScheduleService] Error loading schedules: ${error.message}`);
+            this.loggerService.error(`Error loading schedules: ${error.message}`);
         }
     }
 }

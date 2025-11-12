@@ -23,7 +23,7 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
 
     const loggerService = app.select(SharedModule).get(LoggerService);
-    app.useLogger(new LoggerService('Main Instance'));
+    app.useLogger(new LoggerService('App Instance'));
     app.use(
         morgan('combined', {
             stream: {

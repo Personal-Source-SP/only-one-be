@@ -1,7 +1,7 @@
 import { ConsoleLogger, HttpException, Injectable } from '@nestjs/common';
+import chalk from 'chalk';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import chalk from 'chalk';
 
 const levelColors: Record<string, string> = {
     error: 'red',
@@ -29,12 +29,7 @@ export class LoggerService extends ConsoleLogger {
 
     constructor(contextName?: string) {
         super();
-
         this.logger = winston.createLogger(this.getWinstonConfig(contextName ?? 'UnknownService'));
-
-        if (process.env.NODE_ENV !== 'production') {
-            this.logger.info('Logging initialized at debug level');
-        }
     }
 
     log(message: string): void {
@@ -86,6 +81,10 @@ export class LoggerService extends ConsoleLogger {
         );
     }
 
+    private getLevelFilter(level: string): winston.Logform.Format {
+        return winston.format((info) => (info.level === level ? info : false))();
+    }
+
     private getWinstonConfig(contextName: string): winston.LoggerOptions {
         const nodeEnv = process.env.NODE_ENV || 'development';
         const basePath = `./logs/${nodeEnv}/${contextName}`;
@@ -100,29 +99,19 @@ export class LoggerService extends ConsoleLogger {
                     zippedArchive: true,
                     maxSize: '20m',
                     maxFiles: '14d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+                    format: winston.format.combine(this.getLevelFilter('debug'), winston.format.timestamp(), winston.format.json()),
                 }),
                 new DailyRotateFile({
-                    level: 'info',
-                    filename: `${basePath}/info-%DATE%.log`,
+                    level: 'warn',
+                    filename: `${basePath}/warn-%DATE%.log`,
                     datePattern: 'YYYY-MM-DD',
                     zippedArchive: true,
                     maxSize: '20m',
                     maxFiles: '14d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-                }),
-                new DailyRotateFile({
-                    level: 'error',
-                    filename: `${basePath}/error-%DATE%.log`,
-                    datePattern: 'YYYY-MM-DD',
-                    zippedArchive: false,
-                    maxSize: '20m',
-                    maxFiles: '30d',
-                    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+                    format: winston.format.combine(this.getLevelFilter('warn'), winston.format.timestamp(), winston.format.json()),
                 }),
                 new winston.transports.Console({
                     level: 'debug',
-                    handleExceptions: true,
                     format: this.getCustomConsoleFormat(contextName),
                 }),
             ],
