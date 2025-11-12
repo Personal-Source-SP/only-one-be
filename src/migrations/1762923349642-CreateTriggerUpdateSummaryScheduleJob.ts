@@ -9,6 +9,11 @@ export class CreateTriggerUpdateSummaryScheduleJob1762923349642 implements Migra
             RETURNS TRIGGER AS $$
             DECLARE
                 v_schedule_job_id UUID;
+                v_event_count INTEGER;
+                v_event_failed_count INTEGER;
+                v_event_success_count INTEGER;
+                v_event_pending_count INTEGER;
+                v_current_finished_at TIMESTAMPTZ;
             BEGIN
                 IF TG_OP = 'DELETE' THEN
                     v_schedule_job_id := OLD.schedule_job_id;
@@ -16,35 +21,42 @@ export class CreateTriggerUpdateSummaryScheduleJob1762923349642 implements Migra
                     v_schedule_job_id := NEW.schedule_job_id;
                 END IF;
 
+                SELECT 
+                    COUNT(*) FILTER (WHERE deleted_at IS NULL),
+                    COUNT(*) FILTER (WHERE event_type = 'failed' AND deleted_at IS NULL),
+                    COUNT(*) FILTER (WHERE event_type = 'completed' AND deleted_at IS NULL),
+                    COUNT(*) FILTER (WHERE event_type IN ('pending', 'processing') AND deleted_at IS NULL)
+                INTO 
+                    v_event_count,
+                    v_event_failed_count,
+                    v_event_success_count,
+                    v_event_pending_count
+                FROM schedule_job_events
+                WHERE schedule_job_id = v_schedule_job_id;
+
+                SELECT finished_at INTO v_current_finished_at
+                FROM schedule_jobs
+                WHERE id = v_schedule_job_id;
+
                 UPDATE schedule_jobs
                 SET 
-                    event_count = (
-                        SELECT COUNT(*)
-                        FROM schedule_job_events
-                        WHERE schedule_job_id = v_schedule_job_id
-                        AND deleted_at IS NULL
-                    ),
-                    event_failed_count = (
-                        SELECT COUNT(*)
-                        FROM schedule_job_events
-                        WHERE schedule_job_id = v_schedule_job_id
-                        AND event_type = 'failed'
-                        AND deleted_at IS NULL
-                    ),
-                    event_success_count = (
-                        SELECT COUNT(*)
-                        FROM schedule_job_events
-                        WHERE schedule_job_id = v_schedule_job_id
-                        AND event_type = 'completed'
-                        AND deleted_at IS NULL
-                    ),
-                    event_pending_count = (
-                        SELECT COUNT(*)
-                        FROM schedule_job_events
-                        WHERE schedule_job_id = v_schedule_job_id
-                        AND event_type IN ('pending', 'processing')
-                        AND deleted_at IS NULL
-                    )
+                    event_count = v_event_count,
+                    event_failed_count = v_event_failed_count,
+                    event_success_count = v_event_success_count,
+                    event_pending_count = v_event_pending_count,
+                    status = CASE
+                        WHEN v_event_pending_count > 0 THEN 'processing'
+                        WHEN v_event_count = 0 THEN 'pending'
+                        WHEN v_event_pending_count = 0 AND v_event_failed_count > 0 THEN 'failed'
+                        WHEN v_event_pending_count = 0 THEN 'completed'
+                    END,
+                    finished_at = CASE
+                        WHEN v_event_pending_count = 0 
+                        AND v_event_count > 0
+                        AND v_current_finished_at IS NULL
+                        THEN NOW()
+                        ELSE v_current_finished_at
+                    END
                 WHERE id = v_schedule_job_id;
 
                 IF TG_OP = 'DELETE' THEN
@@ -92,7 +104,55 @@ export class CreateTriggerUpdateSummaryScheduleJob1762923349642 implements Migra
                     WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
                     AND schedule_job_events.event_type IN ('pending', 'processing')
                     AND schedule_job_events.deleted_at IS NULL
-                ), 0);
+                ), 0),
+                status = CASE
+                    WHEN COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.event_type IN ('pending', 'processing')
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) > 0 THEN 'processing'
+                    WHEN COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) = 0 THEN 'pending'
+                    WHEN COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.event_type IN ('pending', 'processing')
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) = 0 
+                    AND COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.event_type = 'failed'
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) > 0 THEN 'failed'
+                    ELSE 'completed'
+                END,
+                finished_at = CASE
+                    WHEN COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.event_type IN ('pending', 'processing')
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) = 0 
+                    AND COALESCE((
+                        SELECT COUNT(*)
+                        FROM schedule_job_events
+                        WHERE schedule_job_events.schedule_job_id = schedule_jobs.id
+                        AND schedule_job_events.deleted_at IS NULL
+                    ), 0) > 0
+                    AND finished_at IS NULL
+                    THEN NOW()
+                    ELSE finished_at
+                END;
         `);
     }
 
