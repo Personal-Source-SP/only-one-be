@@ -9,12 +9,14 @@ const itemColumns = getRelationColumns(DataProviderItemEntity, 'item', ['itemId'
 const dataProviderColumns = getRelationColumns(DataProviderItemEntity, 'dataProvider', ['dataProviderId']);
 
 export const DATA_PROVIDER_ITEM_PAGINATION_CONFIG = createPaginationConfig<DataProviderItemEntity>({
-    sortableColumns: ['itemUrl', 'createdAt'],
     searchableColumns: ['itemUrl'],
-    defaultSortBy: [['itemUrl', 'ASC']],
+    defaultSortBy: [['createdAt', 'DESC']],
+    sortableColumns: ['itemUrl', 'createdAt'],
     filterableColumns: {
         itemUrl: [FilterOperator.ILIKE, FilterOperator.EQ],
         isActive: [FilterOperator.EQ],
+        itemId: [FilterOperator.EQ, FilterOperator.IN],
+        dataProviderId: [FilterOperator.EQ, FilterOperator.IN],
     },
     relations: ['item', 'dataProvider'],
     select: [...dataProviderItemColumns, ...dataProviderColumns, ...itemColumns],

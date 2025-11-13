@@ -5,6 +5,7 @@ export class ProcessScrapeDataProviderResponse {
     error: number;
 
     successData?: {
+        itemId: string;
         dataProviderId: string;
         dataProviderName: string;
         dataProviderItemId: string;
@@ -38,6 +39,7 @@ export class ProcessScrapeDataResponse {
     errorsMessage?: string;
 
     successData?: {
+        itemId: string;
         dataProviderId: string;
         dataProviderName: string;
         dataProviderItemId: string;

@@ -68,6 +68,7 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                 dataId: successData.dataId,
                 type: successData.mimeType,
                 url: successData.url,
+                itemId: successData.itemId,
                 lastModified: successData.lastModified,
                 dataProviderId: successData.dataProviderId,
                 dataProviderItemId: successData.dataProviderItemId,
@@ -137,6 +138,7 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                     response.successData.push({
                         dataProviderId: dataProvider.id,
                         dataProviderName: dataProvider.name,
+                        itemId: dataProviderItem.itemId,
                         dataProviderItemId: dataProviderItem.id,
                         dataProviderItemUrl: dataProviderItem.itemUrl,
                         data: item,
