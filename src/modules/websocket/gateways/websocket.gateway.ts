@@ -33,7 +33,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     handleConnection(client: Socket) {
         try {
-            this.loggerService.log(`[WebsocketGateway] Client connected: ${client.id}`);
+            this.loggerService.log(`Client connected: ${client.id}`);
             this.connectedClients.set(client.id, client);
 
             // Send connection confirmation
@@ -49,9 +49,9 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             client.join('default');
             this.addClientToRoom(client.id, 'default');
 
-            this.loggerService.log(`[WebsocketGateway] Client ${client.id} joined default room`);
+            this.loggerService.log(`Client ${client.id} joined default room`);
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error handling connection for client ${client.id}: ${error.message}`);
+            this.loggerService.error(`Error handling connection for client ${client.id}: ${error.message}`);
             client.emit(SubscribeName.ERROR_OCCURRED, {
                 status: 'error',
                 message: 'Connection failed',
@@ -63,20 +63,20 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     handleDisconnect(client: Socket) {
         try {
             this.connectedClients.delete(client.id);
-            this.loggerService.log(`[WebsocketGateway] Client disconnected: ${client.id}`);
+            this.loggerService.log(`Client disconnected: ${client.id}`);
 
             // Remove client from all rooms
             const clientRooms = this.clientRooms.get(client.id);
             if (clientRooms) {
                 clientRooms.forEach((room) => {
                     client.leave(room);
-                    this.loggerService.log(`[WebsocketGateway] Client ${client.id} left room: ${room}`);
+                    this.loggerService.log(`Client ${client.id} left room: ${room}`);
                 });
 
                 this.clientRooms.delete(client.id);
             }
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error handling disconnect for client ${client.id}: ${error.message}`);
+            this.loggerService.error(`Error handling disconnect for client ${client.id}: ${error.message}`);
         }
     }
 
@@ -98,11 +98,11 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             };
 
             client.emit(SubscribeName.CLIENT_JOINED_ROOM, response);
-            this.loggerService.log(`[WebsocketGateway] Client ${client.id} joined room: ${roomName}`);
+            this.loggerService.log(`Client ${client.id} joined room: ${roomName}`);
 
             return response;
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error joining room: ${error.message}`);
+            this.loggerService.error(`Error joining room: ${error.message}`);
 
             const errorResponse: WebSocketResponse = {
                 status: 'error',
@@ -133,11 +133,11 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             };
             client.emit(SubscribeName.CLIENT_LEFT_ROOM, response);
 
-            this.loggerService.log(`[WebsocketGateway] Client ${client.id} left room: ${roomName}`);
+            this.loggerService.log(`Client ${client.id} left room: ${roomName}`);
 
             return response;
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error leaving room: ${error.message}`);
+            this.loggerService.error(`Error leaving room: ${error.message}`);
 
             const errorResponse: WebSocketResponse = {
                 status: 'error',
@@ -153,7 +153,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     @SubscribeMessage(WebSocketEvent.MESSAGE)
     handleMessage<T>(client: Socket, message: WebSocketMessage<T>): WebSocketResponse {
         try {
-            this.loggerService.log(`[WebsocketGateway] Message received from client ${client.id}: ${message.event}`);
+            this.loggerService.log(`Message received from client ${client.id}: ${message.event}`);
 
             // Broadcast message to all clients in the same room
             const clientRooms = this.clientRooms.get(client.id);
@@ -175,7 +175,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
             return response;
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error handling message: ${error.message}`);
+            this.loggerService.error(`Error handling message: ${error.message}`);
             const errorResponse: WebSocketResponse = {
                 status: 'error',
                 message: error.message,
@@ -202,19 +202,19 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     sendMessageToAllClients<T>(event: string, data: T): void {
         try {
-            this.loggerService.log(`[WebsocketGateway] Sending message to all clients: ${event}`);
+            this.loggerService.log(`Sending message to all clients: ${event}`);
             this.server.emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error sending message to all clients: ${error.message}`);
+            this.loggerService.error(`Error sending message to all clients: ${error.message}`);
         }
     }
 
     sendMessageToRoom<T>(roomName: string, event: string, data: T): void {
         try {
-            this.loggerService.log(`[WebsocketGateway] Sending message to room: ${roomName}`);
+            this.loggerService.log(`Sending message to room: ${roomName}`);
             this.server.to(roomName).emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error sending message to room: ${roomName}: ${error.message}`);
+            this.loggerService.error(`Error sending message to room: ${roomName}: ${error.message}`);
         }
     }
 
@@ -222,14 +222,14 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
         try {
             const client = this.connectedClients.get(clientId);
             if (!client) {
-                this.loggerService.warn(`[WebsocketGateway] Client ${clientId} not found`);
+                this.loggerService.warn(`Client ${clientId} not found`);
                 return;
             }
 
-            this.loggerService.log(`[WebsocketGateway] Sending message to client: ${clientId}`);
+            this.loggerService.log(`Sending message to client: ${clientId}`);
             client.emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error sending message to client ${clientId}: ${error.message}`);
+            this.loggerService.error(`Error sending message to client ${clientId}: ${error.message}`);
         }
     }
 
@@ -244,19 +244,19 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     broadcastToRoom<T>(roomName: string, event: string, data: T): void {
         try {
-            this.loggerService.log(`[WebsocketGateway] Broadcasting to room: ${roomName}`);
+            this.loggerService.log(`Broadcasting to room: ${roomName}`);
             this.server.to(roomName).emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error broadcasting to room: ${roomName}: ${error.message}`);
+            this.loggerService.error(`Error broadcasting to room: ${roomName}: ${error.message}`);
         }
     }
 
     broadcastToAll<T>(event: string, data: T): void {
         try {
-            this.loggerService.log(`[WebsocketGateway] Broadcasting to all clients`);
+            this.loggerService.log(`Broadcasting to all clients`);
             this.server.emit(event, { data, timestamp: Date.now() });
         } catch (error) {
-            this.loggerService.error(`[WebsocketGateway] Error broadcasting to all clients: ${error.message}`);
+            this.loggerService.error(`Error broadcasting to all clients: ${error.message}`);
         }
     }
 
