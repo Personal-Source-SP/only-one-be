@@ -218,6 +218,21 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
         }
     }
 
+    sendMessageToClient<T>(clientId: string, event: string, data: T): void {
+        try {
+            const client = this.connectedClients.get(clientId);
+            if (!client) {
+                this.loggerService.warn(`[WebsocketGateway] Client ${clientId} not found`);
+                return;
+            }
+
+            this.loggerService.log(`[WebsocketGateway] Sending message to client: ${clientId}`);
+            client.emit(event, { data, timestamp: Date.now() });
+        } catch (error) {
+            this.loggerService.error(`[WebsocketGateway] Error sending message to client ${clientId}: ${error.message}`);
+        }
+    }
+
     getConnectedClientsCount(): number {
         return this.connectedClients.size;
     }
