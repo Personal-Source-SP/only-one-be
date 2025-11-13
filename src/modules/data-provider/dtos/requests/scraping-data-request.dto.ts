@@ -6,7 +6,7 @@ import { DataProviderItemEntity } from '../../entities/data-provider-item.entity
 import { DataProviderEntity } from '../../entities/data-provider.entity';
 import { IDataProviderScraperService } from '../../interfaces/data-provider-scraper-service.interface';
 
-export class CreateDataHistoryRequestDto {
+export class CreateScrapingDataRequestDto {
     @ApiProperty()
     @IsUUID()
     @AutoMap()
@@ -24,17 +24,17 @@ export class CreateDataHistoryRequestDto {
     metadata?: Record<string, any>;
 }
 
-export class FilterDataHistoryPaginationDto {
+export class FilterScrapingDataPaginationDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsUUID()
     dataProviderId?: string;
 }
 
-export class DataHistoryPaginationRequestDto {
+export class ScrapingDataPaginationRequestDto {
     @ApiPropertyOptional()
     @IsOptional()
-    filter?: FilterDataHistoryPaginationDto;
+    filter?: FilterScrapingDataPaginationDto;
 }
 
 export class ProcessScrapeDataRequestDto {

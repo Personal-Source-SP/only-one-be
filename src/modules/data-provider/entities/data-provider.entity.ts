@@ -5,7 +5,7 @@ import { AbstractEntity } from '../../../common/entities';
 import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ISearchConfig, ITargetConfig } from '../interfaces';
 import { ConfigVersionEntity } from './config-version.entity';
-import { DataHistoryEntity } from './data-history.entity';
+import { ScrapingDataEntity } from './scraping-data.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 
 @Entity({ name: 'data_providers', synchronize: false })
@@ -65,9 +65,9 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap(() => [ConfigVersionEntity])
     configVersions?: Relation<ConfigVersionEntity>[];
 
-    @OneToMany(() => DataHistoryEntity, (entity) => entity.dataProvider)
-    @AutoMap(() => [DataHistoryEntity])
-    dataHistory?: Relation<DataHistoryEntity>[];
+    @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProvider)
+    @AutoMap(() => [ScrapingDataEntity])
+    scrapingData?: Relation<ScrapingDataEntity>[];
 
     @OneToMany(() => DataProviderEntity, (entity) => entity.parent)
     @AutoMap(() => [DataProviderEntity])

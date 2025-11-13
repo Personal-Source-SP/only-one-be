@@ -3,6 +3,7 @@ import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ProductMappingStatus } from '../enums';
 import { DataProviderItemDto } from './data-provider-item.dto';
+import { ScrapingDataDto } from './scraping-data.dto';
 
 export class ItemDto extends AbstractDto {
     @ApiResponseProperty()
@@ -24,4 +25,8 @@ export class ItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap(() => [DataProviderItemDto])
     dataProviderItems?: DataProviderItemDto[];
+
+    @ApiResponseProperty()
+    @AutoMap(() => [ScrapingDataDto])
+    scrapingData?: ScrapingDataDto[];
 }

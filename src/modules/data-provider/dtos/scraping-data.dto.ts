@@ -1,10 +1,11 @@
+import { ItemDto } from './item.dto';
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { DataProviderItemDto } from './data-provider-item.dto';
 import { DataProviderDto } from './data-provider.dto';
 
-export class DataHistoryDto extends AbstractDto {
+export class ScrapingDataDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     dataProviderId: string;
@@ -44,4 +45,8 @@ export class DataHistoryDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap(() => DataProviderItemDto)
     dataProviderItem?: DataProviderItemDto;
+
+    @ApiResponseProperty()
+    @AutoMap(() => ItemDto)
+    item?: ItemDto;
 }

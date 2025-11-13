@@ -2,13 +2,13 @@ import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapp
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { ConfigVersionDto } from './dtos/config-version.dto';
-import { DataHistoryDto } from './dtos/data-history.dto';
+import { ScrapingDataDto } from './dtos/scraping-data.dto';
 import { DataProviderItemDto } from './dtos/data-provider-item.dto';
 import { DataProviderDto } from './dtos/data-provider.dto';
 import { ItemDto } from './dtos/item.dto';
 import {
     CreateConfigVersionRequestDto,
-    CreateDataHistoryRequestDto,
+    CreateScrapingDataRequestDto,
     CreateDataProviderItemRequestDto,
     CreateDataProviderRequestDto,
     CreateItemRequestDto,
@@ -17,7 +17,7 @@ import {
     UpdateItemRequestDto,
 } from './dtos/requests';
 import { ConfigVersionEntity } from './entities/config-version.entity';
-import { DataHistoryEntity } from './entities/data-history.entity';
+import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
 import { ItemEntity } from './entities/item.entity';
@@ -50,11 +50,11 @@ export class DataProviderProfile extends AutomapperProfile {
             createMap(mapper, CreateDataProviderItemRequestDto, DataProviderItemEntity);
             createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
 
-            createMap(mapper, DataHistoryEntity, DataHistoryDto);
+            createMap(mapper, ScrapingDataEntity, ScrapingDataDto);
             createMap(
                 mapper,
-                CreateDataHistoryRequestDto,
-                DataHistoryEntity,
+                CreateScrapingDataRequestDto,
+                ScrapingDataEntity,
                 forMember(
                     (d) => d.scrapeTimestamp,
                     mapFrom((s) => new Date()),

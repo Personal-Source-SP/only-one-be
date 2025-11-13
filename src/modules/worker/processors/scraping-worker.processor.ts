@@ -6,7 +6,7 @@ import { CustomError } from '../../../exceptions/custom-error.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { ProcessScrapeDataResponse } from '../../data-provider/dtos/responses';
-import { DataHistoryService } from '../../data-provider/services/data-history.service';
+import { ScrapingDataService } from '../../data-provider/services/scraping-data.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IScrapingJobQueueInterface } from '../../queue/interfaces';
 import { ScheduleJobEventType } from '../../schedule/enums';
@@ -22,7 +22,7 @@ export class ScrapingWorkerProcessor {
     private readonly loggerService: LoggerService = new LoggerService(ScrapingWorkerProcessor.name);
 
     constructor(
-        private readonly dataHistoryService: DataHistoryService,
+        private readonly scrapingDataService: ScrapingDataService,
         private readonly scheduleJobEventService: ScheduleJobEventService,
     ) {
         this.workerProcessName = (global as any).WORKER_PROCESS_NAME || 'UnknownWorker';
@@ -41,7 +41,7 @@ export class ScrapingWorkerProcessor {
 
         try {
             const data = job.data.request;
-            const scrapingData = await this.dataHistoryService.processScrapeData(data);
+            const scrapingData = await this.scrapingDataService.processScrapeData(data);
 
             if (!scrapingData) {
                 throw new CustomError(SCRAPING_WORKER_MESSAGE.FAILED_TO_PROCESS_SCRAPE_DATA);

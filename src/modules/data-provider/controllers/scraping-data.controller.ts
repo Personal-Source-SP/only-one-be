@@ -3,18 +3,18 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { DATA_HISTORY_PAGINATION_CONFIG } from '../constants/data-history.config';
-import { DataHistoryDto } from '../dtos/data-history.dto';
+import { SCRAPING_DATA_PAGINATION_CONFIG } from '../constants/scraping-data.config';
+import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessScrapeDataResponse } from '../dtos/responses';
-import { DataHistoryEntity } from '../entities/data-history.entity';
-import { DataHistoryService } from '../services/data-history.service';
+import { ScrapingDataEntity } from '../entities/scraping-data.entity';
+import { ScrapingDataService } from '../services/scraping-data.service';
 
-@ApiTags('Data History')
-@Controller('data-history')
-export class DataHistoryController extends BaseController<DataHistoryEntity, DataHistoryDto> {
-    constructor(private readonly dataHistoryService: DataHistoryService) {
-        super(dataHistoryService, DATA_HISTORY_PAGINATION_CONFIG, { enableDeleteMany: true });
+@ApiTags('Scraping Data')
+@Controller('scraping-data')
+export class ScrapingDataController extends BaseController<ScrapingDataEntity, ScrapingDataDto> {
+    constructor(private readonly scrapingDataService: ScrapingDataService) {
+        super(scrapingDataService, SCRAPING_DATA_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
     @ApiOperation({ summary: 'Process scrape data' })
@@ -23,7 +23,7 @@ export class DataHistoryController extends BaseController<DataHistoryEntity, Dat
     @Post('process-scrape-data')
     @BaseApiOkResponse(ProcessScrapeDataResponse)
     public async processScrapeData(@Body() request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
-        const result = await this.dataHistoryService.processScrapeData(request);
+        const result = await this.scrapingDataService.processScrapeData(request);
         return result;
     }
 }

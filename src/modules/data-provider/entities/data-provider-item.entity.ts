@@ -2,9 +2,9 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DataHistoryEntity } from './data-history.entity';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
+import { ScrapingDataEntity } from './scraping-data.entity';
 
 @Entity({ name: 'data_provider_items', synchronize: false })
 export class DataProviderItemEntity extends AbstractEntity {
@@ -38,7 +38,7 @@ export class DataProviderItemEntity extends AbstractEntity {
     @AutoMap(() => DataProviderEntity)
     dataProvider: Relation<DataProviderEntity>;
 
-    @OneToMany(() => DataHistoryEntity, (entity) => entity.dataProviderItem)
-    @AutoMap(() => [DataHistoryEntity])
-    dataHistory?: Relation<DataHistoryEntity>[];
+    @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProviderItem)
+    @AutoMap(() => [ScrapingDataEntity])
+    scrapingData?: Relation<ScrapingDataEntity>[];
 }

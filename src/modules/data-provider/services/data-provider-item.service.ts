@@ -7,7 +7,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BaseService } from '../../../common/base.service';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
-import { DATA_HISTORY_EVENTS } from '../constants/data-history-event.config';
+import { SCRAPING_DATA_EVENTS } from '../constants/scraping-data-event.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
@@ -78,7 +78,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
 
         if (result && request.autoProcessScraping) {
             // Handle auto process scraping data provider item
-            this.eventEmitter.emit(DATA_HISTORY_EVENTS.PROCESS_SCRAPE_DATA, {
+            this.eventEmitter.emit(SCRAPING_DATA_EVENTS.PROCESS_SCRAPE_DATA, {
                 dataProviderItemIds: [result.id],
                 checkDuplicateData: request.checkDuplicateData ?? true,
             });

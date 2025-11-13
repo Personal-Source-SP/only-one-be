@@ -7,10 +7,10 @@ import { In, Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { MimeType } from '../../../common/enums/mime-type';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
-import { DataHistoryDto } from '../dtos/data-history.dto';
+import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessDataProviderItemResponse, ProcessScrapeDataProviderResponse, ProcessScrapeDataResponse } from '../dtos/responses';
-import { DataHistoryEntity } from '../entities/data-history.entity';
+import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderStatus } from '../enums';
@@ -18,15 +18,15 @@ import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
 
 @Injectable()
-export class DataHistoryService extends BaseService<DataHistoryEntity, DataHistoryDto> {
+export class ScrapingDataService extends BaseService<ScrapingDataEntity, ScrapingDataDto> {
     constructor(
         private readonly dataProviderService: DataProviderService,
         @InjectMapper() mapper: Mapper,
-        @InjectRepository(DataHistoryEntity) dataHistoryRepository: Repository<DataHistoryEntity>,
+        @InjectRepository(ScrapingDataEntity) scrapingDataRepository: Repository<ScrapingDataEntity>,
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {
-        super(dataHistoryRepository, mapper, DataHistoryDto, DataHistoryService.name);
+        super(scrapingDataRepository, mapper, ScrapingDataDto, ScrapingDataService.name);
     }
 
     async processScrapeData(request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
@@ -61,7 +61,7 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
         }
 
         const validatedResponse = await this.validateResponseForScrape(request, response);
-        const dataHistoryEntities: DataHistoryEntity[] = validatedResponse.successData.map((successData) => {
+        const scrapingDataEntities: ScrapingDataEntity[] = validatedResponse.successData.map((successData) => {
             return this.repository.create({
                 scrapeTimestamp: new Date(),
                 metadata: successData.data,
@@ -74,22 +74,22 @@ export class DataHistoryService extends BaseService<DataHistoryEntity, DataHisto
             });
         });
 
-        if (!dataHistoryEntities.length) {
+        if (!scrapingDataEntities.length) {
             return new ProcessScrapeDataResponse({
                 process: 0,
                 success: 0,
                 error: 0,
-                errorsMessage: 'No data history entities to save',
+                errorsMessage: 'No scraping data entities to save',
             });
         }
 
-        const savedDataHistoryEntities = await this.createMany(dataHistoryEntities);
-        if (!savedDataHistoryEntities.length) {
+        const savedScrapingDataEntities = await this.createMany(scrapingDataEntities);
+        if (!savedScrapingDataEntities.length) {
             return new ProcessScrapeDataResponse({
                 process: 0,
                 success: 0,
                 error: 0,
-                errorsMessage: 'Failed to save data history',
+                errorsMessage: 'Failed to save scraping data',
             });
         }
 

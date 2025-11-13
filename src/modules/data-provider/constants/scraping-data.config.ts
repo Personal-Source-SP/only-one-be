@@ -1,11 +1,11 @@
 import { FilterOperator } from 'nestjs-paginate';
 import { createPaginationConfig } from '../../../common/pagination/pagination-config.factory';
 import { getColumnNames } from '../../../shared/helpers/typeorm.helper';
-import { DataHistoryEntity } from '../entities/data-history.entity';
+import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 
-const dataHistoryColumns = getColumnNames(DataHistoryEntity);
+const scrapingDataColumns = getColumnNames(ScrapingDataEntity);
 
-export const DATA_HISTORY_PAGINATION_CONFIG = createPaginationConfig<DataHistoryEntity>({
+export const SCRAPING_DATA_PAGINATION_CONFIG = createPaginationConfig<ScrapingDataEntity>({
     sortableColumns: ['scrapeTimestamp', 'lastModified', 'type', 'url'],
     searchableColumns: ['type', 'url', 'dataProviderItemId', 'dataProviderId'],
     filterableColumns: {
@@ -13,10 +13,11 @@ export const DATA_HISTORY_PAGINATION_CONFIG = createPaginationConfig<DataHistory
         url: [FilterOperator.ILIKE, FilterOperator.EQ],
         dataProviderItemId: [FilterOperator.EQ],
         dataProviderId: [FilterOperator.EQ],
+        itemId: [FilterOperator.EQ],
     },
     defaultSortBy: [['scrapeTimestamp', 'DESC']],
     relations: ['dataProviderItem', 'dataProvider'],
-    select: [...dataHistoryColumns, 'dataProviderItem.itemUrl', 'dataProvider.name'],
+    select: [...scrapingDataColumns, 'dataProviderItem.itemUrl', 'dataProvider.name'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

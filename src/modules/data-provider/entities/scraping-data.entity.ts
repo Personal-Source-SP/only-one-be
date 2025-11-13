@@ -4,9 +4,10 @@ import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 import { DataProviderEntity } from './data-provider.entity';
+import { ItemEntity } from 'src/modules/data-provider/entities/item.entity';
 
-@Entity({ name: 'data_history', synchronize: false })
-export class DataHistoryEntity extends AbstractEntity {
+@Entity({ name: 'scraping_data', synchronize: false })
+export class ScrapingDataEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()
     dataProviderId: string;
@@ -14,6 +15,10 @@ export class DataHistoryEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()
     dataProviderItemId: string;
+
+    @Column({ type: 'uuid' })
+    @AutoMap()
+    itemId: string;
 
     @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     @AutoMap()
@@ -39,13 +44,18 @@ export class DataHistoryEntity extends AbstractEntity {
     @AutoMap()
     metadata?: Record<string, any>;
 
-    @ManyToOne(() => DataProviderEntity, (entity) => entity.dataHistory, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DataProviderEntity, (entity) => entity.scrapingData, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'data_provider_id' })
     @AutoMap(() => DataProviderEntity)
     dataProvider: Relation<DataProviderEntity>;
 
-    @ManyToOne(() => DataProviderItemEntity, (entity) => entity.dataHistory, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DataProviderItemEntity, (entity) => entity.scrapingData, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'data_provider_item_id' })
     @AutoMap(() => DataProviderItemEntity)
     dataProviderItem: Relation<DataProviderItemEntity>;
+
+    @ManyToOne(() => ItemEntity, (entity) => entity.scrapingData, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'item_id' })
+    @AutoMap(() => ItemEntity)
+    item: Relation<ItemEntity>;
 }
