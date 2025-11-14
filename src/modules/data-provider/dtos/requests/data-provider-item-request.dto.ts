@@ -1,8 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
-import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { Transform } from 'class-transformer';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateDataProviderItemRequestDto {
     @ApiProperty({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -90,19 +89,4 @@ export class TriggerManuallyScrapingBulkRequestDto {
     @IsInt({ message: 'Priority must be a positive integer greater than 0' })
     @Min(0, { message: 'Priority must be a positive integer greater than 0' })
     priority?: number;
-}
-
-export class DataProviderItemPaginationFilterDto {
-    @ApiPropertyOptional({ description: 'Filter by name' })
-    @IsOptional()
-    @IsString()
-    name?: string;
-}
-
-export class DataProviderItemPaginationRequestDto extends BasePaginationRequestDto<DataProviderItemPaginationFilterDto> {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @ValidateNested({ always: true })
-    @Type(() => DataProviderItemPaginationFilterDto)
-    filter?: DataProviderItemPaginationFilterDto;
 }

@@ -1,8 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsEmail, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
-import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateUserRequestDto {
     @ApiProperty()
@@ -41,24 +39,4 @@ export class CreateUserRequestDto {
     @IsString()
     @AutoMap()
     phoneNumber?: string;
-}
-
-export class FilterUserPaginationDto {
-    @ApiPropertyOptional({ description: 'Filter by email' })
-    @IsOptional()
-    @IsString()
-    email?: string;
-
-    @ApiPropertyOptional({ description: 'Filter by user name' })
-    @IsOptional()
-    @IsString()
-    userName?: string;
-}
-
-export class UserPaginationRequestDto extends BasePaginationRequestDto<FilterUserPaginationDto> {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @ValidateNested({ always: true })
-    @Type(() => FilterUserPaginationDto)
-    filter?: FilterUserPaginationDto;
 }

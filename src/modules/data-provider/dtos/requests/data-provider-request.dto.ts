@@ -1,8 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUUID, Matches, MaxLength, ValidateNested } from 'class-validator';
-import { BasePaginationRequestDto } from '../../../../common/dto/pagination-request.dto';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import { ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderRequestDto {
@@ -167,19 +166,4 @@ export class UpdateTargetConfigRequestDto {
     @IsOptional()
     @IsBoolean()
     cssEnabled?: boolean;
-}
-
-export class DataProviderPaginationFilterDto {
-    @ApiPropertyOptional({ description: 'Filter by name' })
-    @IsOptional()
-    @IsString()
-    name?: string;
-}
-
-export class DataProviderPaginationRequestDto extends BasePaginationRequestDto<DataProviderPaginationFilterDto> {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @ValidateNested({ always: true })
-    @Type(() => DataProviderPaginationFilterDto)
-    filter?: DataProviderPaginationFilterDto;
 }

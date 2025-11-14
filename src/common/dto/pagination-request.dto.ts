@@ -1,70 +1,27 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsNotEmptyObject, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
 
 import { DEFAULT_PAGE_SIZE } from '../../constant';
-import { SortOrder } from '../enums/sort-order';
 
-export class PaginationRequestDto {
-    @ApiPropertyOptional({
-        minimum: 1,
-        default: 1,
-    })
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
+export class FilterRequest {
+    @ApiPropertyOptional()
     @IsOptional()
-    pageIndex?: number = 1;
-
-    @ApiPropertyOptional({
-        minimum: 1,
-        maximum: 100,
-        default: DEFAULT_PAGE_SIZE,
-    })
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
-    @Max(100)
-    @IsOptional()
-    pageSize?: number = DEFAULT_PAGE_SIZE;
-
-    @ApiPropertyOptional({
-        enum: SortOrder,
-        default: SortOrder.ASC,
-    })
-    @IsEnum(SortOrder)
-    @Transform(({ value }) => (value ? value.toUpperCase() : 'ASC'))
-    @IsOptional()
-    order?: SortOrder;
+    @IsString()
+    field?: string;
 
     @ApiPropertyOptional()
-    @IsString()
     @IsOptional()
-    sort?: string;
+    @IsString()
+    operator?: string;
 
     @ApiPropertyOptional()
-    @IsString()
     @IsOptional()
-    filter?: string;
-
-    get take(): number {
-        return this.pageSize;
-    }
-
-    get skip(): number {
-        return (this.pageIndex - 1) * this.pageSize;
-    }
-
-    constructor(options?: { pageSize?: number; pageIndex?: number; filter?: string; order?: SortOrder; sort?: string }) {
-        this.pageSize = options?.pageSize;
-        this.pageIndex = options?.pageIndex;
-        this.filter = options?.filter;
-        this.sort = options?.sort;
-        this.order = options?.order;
-    }
+    @IsString()
+    values?: string;
 }
 
-export class BasePaginationRequestDto<T> {
+export class BasePaginationRequestDto<T = FilterRequest> {
     @ApiPropertyOptional({
         minimum: 1,
         default: 1,
@@ -90,6 +47,31 @@ export class BasePaginationRequestDto<T> {
     @ApiPropertyOptional()
     @IsOptional()
     @IsArray()
+    @Transform(({ value }) => {
+        if (!value) {
+            return null;
+        }
+
+        if (Array.isArray(value)) return value;
+
+        if (typeof value === 'string') {
+            const splitters = /[,&]/;
+            const result: [string, string][] = value
+                .split(splitters)
+                .map((part: string) => {
+                    if (part && part.includes(':')) {
+                        const [field, dir] = part.split(':');
+                        return [field, dir] as [string, string];
+                    }
+                    return null;
+                })
+                .filter(Boolean);
+
+            return result.length ? result : undefined;
+        }
+
+        return null;
+    })
     sortBy?: [string, string][];
 
     @ApiPropertyOptional()
@@ -102,10 +84,9 @@ export class BasePaginationRequestDto<T> {
     @IsString()
     search?: string;
 
-    @ValidateNested()
     @ApiPropertyOptional()
     @IsOptional()
-    @IsNotEmptyObject()
+    @IsObject()
     filter?: T;
 
     @ApiPropertyOptional()
@@ -117,4 +98,10 @@ export class BasePaginationRequestDto<T> {
     @IsString()
     @IsOptional()
     path?: string;
+
+    constructor(options?: Partial<BasePaginationRequestDto<T>>) {
+        if (options) {
+            Object.assign(this, options);
+        }
+    }
 }

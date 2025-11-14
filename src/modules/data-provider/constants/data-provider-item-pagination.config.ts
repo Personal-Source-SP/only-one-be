@@ -15,8 +15,8 @@ export const DATA_PROVIDER_ITEM_PAGINATION_CONFIG = createPaginationConfig<DataP
     filterableColumns: {
         itemUrl: [FilterOperator.ILIKE, FilterOperator.EQ],
         isActive: [FilterOperator.EQ],
-        itemId: [FilterOperator.EQ, FilterOperator.IN],
-        dataProviderId: [FilterOperator.EQ, FilterOperator.IN],
+        itemId: [FilterOperator.IN],
+        dataProviderId: [FilterOperator.IN],
     },
     relations: ['item', 'dataProvider'],
     select: [...dataProviderItemColumns, ...dataProviderColumns, ...itemColumns],

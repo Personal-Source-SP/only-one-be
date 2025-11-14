@@ -16,10 +16,12 @@ import { REQUEST } from '@nestjs/core';
 import { ApiOperation } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
-import { PaginateConfig, PaginateQuery, Paginated } from 'nestjs-paginate';
+import { isEmpty } from 'lodash';
+import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In } from 'typeorm';
 import { BaseApiOkResponse } from '../decorators/base-response.decorator';
 import { DeleteManyRequestDto } from './dto/base-request.dto.';
+import { BasePaginationRequestDto } from './dto/pagination-request.dto';
 import { PayloadDto } from './dto/payload.dto';
 import { BaseControllerOptions, IBaseController } from './interfaces/base-controller.interface';
 import { IBaseService } from './interfaces/base-service.interface';
@@ -45,11 +47,30 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         };
     }
 
-    protected getRequest(): PayloadDto | null {
+    protected getUserRequest(): PayloadDto | null {
         const user = this.request?.user;
         if (!user) return null;
 
         return user as PayloadDto;
+    }
+
+    protected transformQuery(query: BasePaginationRequestDto): PaginateQuery {
+        const queryParams = this.request.query;
+        if (isEmpty(queryParams)) return query as PaginateQuery;
+
+        const filter = Object.keys(queryParams).reduce(
+            (acc, key) => {
+                if (key.startsWith('filter')) {
+                    const cleanKey = key.replace(/^filter\.?/, '');
+                    acc[cleanKey] = queryParams[key];
+                }
+                return acc;
+            },
+            {} as Record<string, any>,
+        );
+        query.filter = filter;
+
+        return query as PaginateQuery;
     }
 
     @ApiOperation({ summary: 'Get all entities' })
@@ -85,12 +106,12 @@ export class BaseController<T, D> implements IBaseController<T, D> {
     @Version('1')
     @Get()
     @BaseApiOkResponse(Object as unknown as Type<Paginated<D>>)
-    async getPagination(@Query() query: PaginateQuery): Promise<Paginated<D>> {
+    async getPagination(@Query() query: BasePaginationRequestDto): Promise<Paginated<D>> {
         if (!this.options.enablePagination) {
             throw new NotFoundException('Endpoint not supported');
         }
 
-        const result = await this.service.getPaginationWithCustomQuery(query, this.configPagination);
+        const result = await this.service.getPaginationWithCustomQuery(this.transformQuery(query), this.configPagination);
         return result;
     }
 
