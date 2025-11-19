@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
@@ -20,6 +20,7 @@ export class SimulationContextController extends BaseController<SimulationContex
     }
 
     @ApiOperation({ summary: 'Create simulation context' })
+    @Version('1')
     @Post()
     @HttpCode(HttpStatus.OK)
     @BaseApiOkResponse(SimulationContextDto)

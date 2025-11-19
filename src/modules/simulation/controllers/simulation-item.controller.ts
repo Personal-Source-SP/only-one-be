@@ -1,13 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { SIMULATION_ITEM_PAGINATION_CONFIG } from '../constants/simulation-item.config';
 import { CreateSimulationItemsRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
-import { SimulationItemService } from '../services/simulation-item.service';
-import { BaseController } from '../../../common/base.controller';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
-import { SIMULATION_ITEM_PAGINATION_CONFIG } from '../constants/simulation-item.config';
+import { SimulationItemService } from '../services/simulation-item.service';
 
 @ApiTags('Simulation Items')
 @Controller('simulation-items')
@@ -19,8 +19,9 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     }
 
     @ApiOperation({ summary: 'Create many simulation items from payloads by simulation context id' })
-    @Post(':simulationContextId/items')
+    @Version('1')
     @HttpCode(HttpStatus.OK)
+    @Post(':simulationContextId/items')
     @BaseApiOkResponse(SimulationItemDto)
     public async createItems(
         @Param('simulationContextId', new ParseUUIDPipe()) id: string,
@@ -31,8 +32,9 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     }
 
     @ApiOperation({ summary: 'Start simulation item' })
-    @Post(':id/start')
+    @Version('1')
     @HttpCode(HttpStatus.OK)
+    @Post(':id/start')
     @BaseApiOkResponse(Boolean)
     public async start(@Param('id') id: string): Promise<boolean> {
         const result = await this.simulationItemService.start(id);
@@ -40,8 +42,9 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     }
 
     @ApiOperation({ summary: 'Pause simulation item' })
-    @Post(':id/pause')
+    @Version('1')
     @HttpCode(HttpStatus.OK)
+    @Post(':id/pause')
     @BaseApiOkResponse(Boolean)
     public async pause(@Param('id') id: string): Promise<boolean> {
         const result = await this.simulationItemService.pause(id);
@@ -49,8 +52,9 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     }
 
     @ApiOperation({ summary: 'Stop simulation item' })
-    @Post(':id/stop')
+    @Version('1')
     @HttpCode(HttpStatus.OK)
+    @Post(':id/stop')
     @BaseApiOkResponse(Boolean)
     public async stop(@Param('id') id: string): Promise<boolean> {
         const result = await this.simulationItemService.stop(id);
