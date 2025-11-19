@@ -11,6 +11,8 @@ import {
     type GoToActionRequest,
     type SimulationActionRequest,
     type SimulationActionResult,
+    type SimulationExecuteRequest,
+    type SimulationExecutionSummary,
     type WaitForFunctionActionRequest,
     type WaitForNavigationActionRequest,
     type WaitForSelectorActionRequest,
@@ -24,81 +26,67 @@ export class SimulationExecutionService {
 
     constructor(private readonly puppeteerService: PuppeteerService) {}
 
-    async simulateUnlucidAI(request: SimulateUnlucidAiRequest): Promise<SimulateResponse<boolean>> {
+    async execute<TPayload>(request: SimulationExecuteRequest<TPayload>): Promise<SimulateResponse<SimulationExecutionSummary>> {
+        const startedAt = new Date();
+        const serviceExecution = request?.serviceExecution;
         const pageId = uuidv4();
-        const page: Page = await this.getCurrentPage(pageId);
+        let page: Page | null = null;
+        let actionResults: SimulationActionResult[] = [];
+        let isSuccess = false;
+        let executionError: Error | null = null;
 
         try {
-            const actions: SimulationActionRequest[] = [
-                {
-                    page,
-                    type: SimulationActionType.GO_TO,
-                    url: SimulationService.UNLUCID_AI,
-                    options: { waitUntil: 'networkidle2' },
-                },
-                {
-                    page,
-                    selector: 'button[data-button-root] span',
-                    type: SimulationActionType.WAIT_FOR_SELECTOR,
-                },
-                {
-                    isExactMatch: true,
-                    matchText: 'Sign In',
-                    page,
-                    selector: 'button[data-button-root]',
-                    type: SimulationActionType.CLICK_BY_TEXT,
-                },
-                {
-                    options: { timeout: 10000 },
-                    page,
-                    selector: 'button[data-button-root] svg[role="img"]',
-                    type: SimulationActionType.WAIT_FOR_SELECTOR,
-                },
-                {
-                    matchText: 'Google',
-                    page,
-                    selector: 'button[data-button-root]',
-                    type: SimulationActionType.CLICK_BY_TEXT,
-                },
-                {
-                    options: { timeout: 15000 },
-                    page,
-                    type: SimulationActionType.WAIT_FOR_NAVIGATION,
-                },
-                {
-                    fn: () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
-                    options: { timeout: 10 * 60 * 1000 },
-                    page,
-                    type: SimulationActionType.WAIT_FOR_FUNCTION,
-                },
-            ];
+            if (!serviceExecution) {
+                throw new NotFoundException('Service execution is required');
+            }
 
-            const results = await this.executeSimulationActions(actions);
-
-            const clicked = results[2]?.isSuccess ?? false;
-            const googleClicked = results[4]?.isSuccess ?? false;
-            const isRedirectedBack = results[6]?.isSuccess ?? false;
-
-            // Check if we're redirected back to the original site or if there are additional steps
-            const currentUrl = page.url();
-            this.loggerService.info(`Final URL after login: ${currentUrl}`);
-
-            // Check if login was successful by looking for success indicators
-            const isLoginSuccessful = currentUrl.includes('unlucid.ai') || (await page.$('button[data-button-root]')) !== null;
-
-            return {
-                isSuccess: clicked && googleClicked && isRedirectedBack && isLoginSuccessful,
-            };
+            switch (serviceExecution) {
+                case SimulationService.UNLUCID_AI: {
+                    page = await this.getCurrentPage(pageId);
+                    const executionResult = await this.runUnlucidAi(page);
+                    actionResults = executionResult.actions;
+                    isSuccess = executionResult.isSuccess;
+                    break;
+                }
+                default:
+                    throw new NotFoundException(`Service execution ${serviceExecution} is not supported`);
+            }
         } catch (error) {
-            this.loggerService.error(`Simulate Unlucid AI failed: ${error?.message}`);
-            this.loggerService.error(`Error stack: ${error?.stack}`);
-
-            return {
-                isSuccess: false,
-            };
+            executionError = error as Error;
+            this.loggerService.error(`[SimulationExecutionService] Execute failed for ${serviceExecution}: ${executionError?.message}`);
         } finally {
-            await this.closeBrowser(pageId, page);
+            if (page) {
+                try {
+                    await this.closeBrowser(pageId, page);
+                } catch (closeError) {
+                    this.loggerService.error(
+                        `[SimulationExecutionService] Close browser failed for ${serviceExecution}: ${closeError?.message}`,
+                    );
+                }
+            }
         }
+
+        const endedAt = new Date();
+        const summary: SimulationExecutionSummary = {
+            actions: actionResults,
+            endedAt: endedAt.toISOString(),
+            startedAt: startedAt.toISOString(),
+            durationInMs: endedAt.getTime() - startedAt.getTime(),
+            serviceExecution: serviceExecution ?? SimulationService.UNLUCID_AI,
+        };
+
+        return {
+            isSuccess,
+            data: summary,
+            errorMessage: executionError ? executionError.message : isSuccess ? undefined : 'Simulation finished with errors',
+        };
+    }
+
+    async simulateUnlucidAI(request: SimulateUnlucidAiRequest): Promise<SimulateResponse<SimulationExecutionSummary>> {
+        return this.execute<SimulateUnlucidAiRequest>({
+            payload: request,
+            serviceExecution: SimulationService.UNLUCID_AI,
+        });
     }
 
     private async executeSimulationActions(actions: SimulationActionRequest[]): Promise<SimulationActionResult[]> {
@@ -107,6 +95,8 @@ export class SimulationExecutionService {
         for (const [index, action] of actions.entries()) {
             let isSuccess = false;
             const actionType = action.type;
+            const actionStartedAt = Date.now();
+            let actionErrorMessage: string | undefined;
 
             try {
                 switch (actionType) {
@@ -137,17 +127,85 @@ export class SimulationExecutionService {
                         this.loggerService.error(`[${actionType}] unsupported action type`);
                 }
             } catch (error) {
-                this.loggerService.error(`[${actionType}] execution failed: ${error?.message}`);
+                actionErrorMessage = (error as Error)?.message ?? 'Execution failed';
+                this.loggerService.error(`[${actionType}] execution failed: ${actionErrorMessage}`);
             } finally {
+                const actionEndedAt = Date.now();
                 results.push({
-                    index,
-                    isSuccess,
                     type: actionType,
+                    index,
+                    endedAt: new Date(actionEndedAt).toISOString(),
+                    isSuccess,
+                    startedAt: new Date(actionStartedAt).toISOString(),
+                    durationInMs: actionEndedAt - actionStartedAt,
+                    errorMessage: actionErrorMessage,
                 });
             }
         }
 
         return results;
+    }
+
+    private async runUnlucidAi(page: Page): Promise<ServiceExecutionInternalResult> {
+        const actions: SimulationActionRequest[] = [
+            {
+                page,
+                type: SimulationActionType.GO_TO,
+                url: SimulationService.UNLUCID_AI,
+                options: { waitUntil: 'networkidle2' },
+            },
+            {
+                page,
+                selector: 'button[data-button-root] span',
+                type: SimulationActionType.WAIT_FOR_SELECTOR,
+            },
+            {
+                isExactMatch: true,
+                matchText: 'Sign In',
+                page,
+                selector: 'button[data-button-root]',
+                type: SimulationActionType.CLICK_BY_TEXT,
+            },
+            {
+                options: { timeout: 10000 },
+                page,
+                selector: 'button[data-button-root] svg[role="img"]',
+                type: SimulationActionType.WAIT_FOR_SELECTOR,
+            },
+            {
+                matchText: 'Google',
+                page,
+                selector: 'button[data-button-root]',
+                type: SimulationActionType.CLICK_BY_TEXT,
+            },
+            {
+                options: { timeout: 15000 },
+                page,
+                type: SimulationActionType.WAIT_FOR_NAVIGATION,
+            },
+            {
+                fn: () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
+                options: { timeout: 10 * 60 * 1000 },
+                page,
+                type: SimulationActionType.WAIT_FOR_FUNCTION,
+            },
+        ];
+
+        this.loggerService.info('Email filled. Waiting for user to complete Google login (up to 10 minutes)...');
+        const results = await this.executeSimulationActions(actions);
+
+        const clicked = results[2]?.isSuccess ?? false;
+        const googleClicked = results[4]?.isSuccess ?? false;
+        const isRedirectedBack = results[6]?.isSuccess ?? false;
+
+        const currentUrl = page.url();
+        this.loggerService.info(`Final URL after login: ${currentUrl}`);
+        const isLoginSuccessful = currentUrl.includes('unlucid.ai') || (await page.$('button[data-button-root]')) !== null;
+
+        return {
+            actions: results,
+            isSuccess: clicked && googleClicked && isRedirectedBack && isLoginSuccessful,
+        };
     }
 
     private async handleGoToAction(request: GoToActionRequest): Promise<void> {
@@ -353,4 +411,9 @@ export class SimulationExecutionService {
             throw new NotFoundException('Close browser failed');
         }
     }
+}
+
+interface ServiceExecutionInternalResult {
+    actions: SimulationActionResult[];
+    isSuccess: boolean;
 }

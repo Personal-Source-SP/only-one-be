@@ -1,5 +1,11 @@
-import { type FrameWaitForFunctionOptions, type Page, type WaitForOptions, type WaitForSelectorOptions } from 'puppeteer';
+import {
+    type FrameWaitForFunctionOptions,
+    type Page,
+    type WaitForOptions,
+    type WaitForSelectorOptions,
+} from 'puppeteer';
 import { SimulationActionType } from '../enums/simulation-action.enum';
+import { SimulationService } from '../enums';
 
 interface SimulationActionBaseRequest<TType extends SimulationActionType> {
     page: Page;
@@ -45,7 +51,24 @@ export type SimulationActionRequest =
     | WaitForTimeActionRequest;
 
 export interface SimulationActionResult {
-    index: number;
     type: SimulationActionType;
+    index: number;
+    endedAt: string;
     isSuccess: boolean;
+    startedAt: string;
+    durationInMs: number;
+    errorMessage?: string;
+}
+
+export interface SimulationExecutionSummary {
+    actions: SimulationActionResult[];
+    endedAt: string;
+    startedAt: string;
+    durationInMs: number;
+    serviceExecution: SimulationService;
+}
+
+export interface SimulationExecuteRequest<TPayload = unknown> {
+    serviceExecution: SimulationService;
+    payload?: TPayload;
 }

@@ -5,6 +5,7 @@ import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
+import { SimulationExecutionSummary } from '../interfaces';
 import { SimulationExecutionService } from '../services/simulation-execution.service';
 
 @Controller('simulations')
@@ -18,8 +19,10 @@ export class SimulationController {
     @Version('1')
     @HttpCode(HttpStatus.OK)
     @Post('simulate-unlucid-ai')
-    @BaseApiOkResponse(SimulateResponse<boolean>)
-    public async simulateUnlucidAI(@Body() dto: SimulateUnlucidAiRequest): Promise<SimulateResponse<boolean>> {
+    @BaseApiOkResponse(SimulateResponse<SimulationExecutionSummary>)
+    public async simulateUnlucidAI(
+        @Body() dto: SimulateUnlucidAiRequest,
+    ): Promise<SimulateResponse<SimulationExecutionSummary>> {
         const result = await this.simulationExecutionService.simulateUnlucidAI(dto);
         return result;
     }
