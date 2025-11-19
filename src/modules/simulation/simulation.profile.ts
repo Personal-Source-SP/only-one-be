@@ -1,6 +1,7 @@
 import { createMap, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
+import { CreateSimulationContextRequest, CreateSimulationItemRequest } from './dtos/requests';
 import { SimulationContextDto } from './dtos/simulation-context.dto';
 import { SimulationItemDto } from './dtos/simulation-item.dto';
 import { SimulationContextEntity } from './entities/simulation-context.entity';
@@ -16,6 +17,9 @@ export class SimulationProfile extends AutomapperProfile {
         return (mapper) => {
             createMap(mapper, SimulationContextEntity, SimulationContextDto);
             createMap(mapper, SimulationItemEntity, SimulationItemDto);
+
+            createMap(mapper, CreateSimulationContextRequest, SimulationContextEntity);
+            createMap(mapper, CreateSimulationItemRequest, SimulationItemEntity);
         };
     }
 }

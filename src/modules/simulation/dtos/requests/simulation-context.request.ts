@@ -24,6 +24,6 @@ export class CreateSimulationContextRequest {
     @ApiPropertyOptional({ type: Object })
     @IsOptional()
     @IsObject()
-    @AutoMap()
+    @AutoMap(() => Object)
     payload?: Record<string, any>;
 }

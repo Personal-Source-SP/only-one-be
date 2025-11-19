@@ -8,10 +8,10 @@ import { Browser } from 'puppeteer';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
+import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemStatus } from '../enums';
-import { CreateSimulationItemsRequest } from '../dtos/requests';
 
 @Injectable()
 export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> implements OnModuleInit {
@@ -32,16 +32,9 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         await this.loadSimulationItems();
     }
 
-    async createManyFromPayloads(simulationContextId: string, request: CreateSimulationItemsRequest): Promise<SimulationItemEntity[]> {
-        const items = request.payloads.map((payload) =>
-            this.repository.create({
-                simulationContextId,
-                status: SimulationItemStatus.PENDING,
-                payload,
-            }),
-        );
-
-        return await this.repository.save(items);
+    async create(request: CreateSimulationItemRequest): Promise<SimulationItemDto> {
+        const simulationItemEntity = this.mapper.map(request, CreateSimulationItemRequest, SimulationItemEntity);
+        return await super.create(simulationItemEntity);
     }
 
     async start(id: string): Promise<boolean> {

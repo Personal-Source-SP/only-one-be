@@ -7,12 +7,10 @@ import { BaseService } from '../../../common/base.service';
 import { CreateSimulationContextRequest } from '../dtos/requests';
 import { SimulationContextDto } from '../dtos/simulation-context.dto';
 import { SimulationContextEntity } from '../entities/simulation-context.entity';
-import { SimulationItemService } from './simulation-item.service';
 
 @Injectable()
 export class SimulationContextService extends BaseService<SimulationContextEntity, SimulationContextDto> {
     constructor(
-        private readonly simulationItemService: SimulationItemService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(SimulationContextEntity) simulationContextRepository: Repository<SimulationContextEntity>,
     ) {
@@ -21,6 +19,6 @@ export class SimulationContextService extends BaseService<SimulationContextEntit
 
     async create(request: CreateSimulationContextRequest): Promise<SimulationContextDto> {
         const simulationContextEntity = this.mapper.map(request, CreateSimulationContextRequest, SimulationContextEntity);
-        return await this.create(simulationContextEntity);
+        return await super.create(simulationContextEntity);
     }
 }

@@ -27,7 +27,7 @@ export class SimulationItemEntity extends AbstractEntity {
     @AutoMap(() => Object)
     metadata?: Record<string, any>;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     @AutoMap()
     errorMessage?: string;
 
