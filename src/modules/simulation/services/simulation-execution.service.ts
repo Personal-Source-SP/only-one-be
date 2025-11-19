@@ -5,7 +5,6 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
 import { SimulateUnlucidAiRequest } from '../dtos/requests/simulate-unlucid-ai.request';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
-import { PageSite } from '../enums/page-site.enum';
 import { SimulationActionType } from '../enums/simulation-action.enum';
 import {
     type ClickByTextActionRequest,
@@ -17,6 +16,7 @@ import {
     type WaitForSelectorActionRequest,
     type WaitForTimeActionRequest,
 } from '../interfaces';
+import { SimulationService } from '../enums';
 
 @Injectable()
 export class SimulationExecutionService {
@@ -29,11 +29,11 @@ export class SimulationExecutionService {
         const page: Page = await this.getCurrentPage(pageId);
 
         try {
-            const initialActions: SimulationActionRequest[] = [
+            const actions: SimulationActionRequest[] = [
                 {
                     page,
                     type: SimulationActionType.GO_TO,
-                    url: PageSite.UNLUCID_AI,
+                    url: SimulationService.UNLUCID_AI,
                     options: { waitUntil: 'networkidle2' },
                 },
                 {
@@ -65,23 +65,19 @@ export class SimulationExecutionService {
                     page,
                     type: SimulationActionType.WAIT_FOR_NAVIGATION,
                 },
-            ];
-
-            const initialResults = await this.executeSimulationActions(initialActions);
-
-            const clicked = initialResults[2]?.isSuccess ?? false;
-            const googleClicked = initialResults[4]?.isSuccess ?? false;
-
-            this.loggerService.info('Email filled. Waiting for user to complete Google login (up to 10 minutes)...');
-            const waitResults = await this.executeSimulationActions([
                 {
                     fn: () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
                     options: { timeout: 10 * 60 * 1000 },
                     page,
                     type: SimulationActionType.WAIT_FOR_FUNCTION,
                 },
-            ]);
-            const isRedirectedBack = waitResults[0]?.isSuccess ?? false;
+            ];
+
+            const results = await this.executeSimulationActions(actions);
+
+            const clicked = results[2]?.isSuccess ?? false;
+            const googleClicked = results[4]?.isSuccess ?? false;
+            const isRedirectedBack = results[6]?.isSuccess ?? false;
 
             // Check if we're redirected back to the original site or if there are additional steps
             const currentUrl = page.url();

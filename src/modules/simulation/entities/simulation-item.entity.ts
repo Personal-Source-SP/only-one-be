@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { SimulationItemStatus } from '../enums';
+import { SimulationItemStatus, SimulationService } from '../enums';
 import { SimulationContextEntity } from './simulation-context.entity';
 
 @Entity({ name: 'simulation_items', synchronize: false })
@@ -10,6 +10,10 @@ export class SimulationItemEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()
     simulationContextId: string;
+
+    @Column({ type: 'varchar', length: 255, default: SimulationService.UNLUCID_AI })
+    @AutoMap()
+    serviceExecution: SimulationService;
 
     @Column({ type: 'varchar', length: 255, default: SimulationItemStatus.PENDING })
     @AutoMap()

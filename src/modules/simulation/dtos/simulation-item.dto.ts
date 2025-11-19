@@ -2,12 +2,16 @@ import { AutoMap } from '@automapper/classes';
 
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { SimulationItemStatus } from '../enums';
+import { SimulationItemStatus, SimulationService } from '../enums';
 
 export class SimulationItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     simulationContextId: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    serviceExecution: SimulationService;
 
     @ApiResponseProperty()
     @AutoMap()

@@ -1,12 +1,18 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
+import { SimulationService } from '../../enums';
 
 export class CreateSimulationItemRequest {
     @ApiProperty({ description: 'Simulation context ID' })
     @IsString()
     @AutoMap()
     simulationContextId: string;
+
+    @ApiProperty({ description: 'Service execution', enum: SimulationService, default: SimulationService.UNLUCID_AI })
+    @IsEnum(SimulationService)
+    @AutoMap()
+    serviceExecution: SimulationService;
 
     @ApiPropertyOptional({ description: 'Payload' })
     @IsOptional()
