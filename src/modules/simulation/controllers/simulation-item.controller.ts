@@ -5,13 +5,18 @@ import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { CreateSimulationItemsRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemService } from '../services/simulation-item.service';
+import { BaseController } from '../../../common/base.controller';
+import { SimulationItemEntity } from '../entities/simulation-item.entity';
+import { SIMULATION_ITEM_PAGINATION_CONFIG } from '../constants/simulation-item.config';
 
 @ApiTags('Simulation Items')
 @Controller('simulation-items')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-export class SimulationItemController {
-    constructor(private readonly simulationItemService: SimulationItemService) {}
+export class SimulationItemController extends BaseController<SimulationItemEntity, SimulationItemDto> {
+    constructor(private readonly simulationItemService: SimulationItemService) {
+        super(simulationItemService, SIMULATION_ITEM_PAGINATION_CONFIG);
+    }
 
     @ApiOperation({ summary: 'Create many simulation items from payloads by simulation context id' })
     @Post(':simulationContextId/items')

@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { SIMULATION_CONTEXT_PAGINATION_CONFIG } from '../constants/schedule-context.config';
+import { SIMULATION_CONTEXT_PAGINATION_CONFIG } from '../constants/simulation-context.config';
 import { CreateSimulationContextRequest } from '../dtos/requests';
 import { SimulationContextDto } from '../dtos/simulation-context.dto';
 import { SimulationContextEntity } from '../entities/simulation-context.entity';
