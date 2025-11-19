@@ -35,7 +35,7 @@ export class PuppeteerService {
     async getBrowserSession(pageId: string, options?: IPuppeteerOptions): Promise<Browser> {
         if (!this.browserSessions.has(pageId)) {
             const browser: Browser = await puppeteer.launch({
-                headless: options?.headless ?? true,
+                headless: options?.headless ?? false,
                 slowMo: options?.slowMo ?? 50,
                 dumpio: options?.dumpio ?? true,
                 devtools: options?.devtools ?? false,

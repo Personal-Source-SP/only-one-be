@@ -1,46 +1,66 @@
-import {
-    type FrameWaitForFunctionOptions,
-    type Page,
-    type WaitForOptions,
-    type WaitForSelectorOptions,
-} from 'puppeteer';
+import { type FrameWaitForFunctionOptions, type Page, type WaitForOptions, type WaitForSelectorOptions } from 'puppeteer';
 import { SimulationActionType } from '../enums/simulation-action.enum';
 import { SimulationService } from '../enums';
 
-interface SimulationActionBaseRequest<TType extends SimulationActionType> {
-    page: Page;
+export interface SimulationActionOptionsMap {
+    [SimulationActionType.GO_TO]: {
+        url: string;
+        gotoOptions?: Parameters<Page['goto']>[1];
+    };
+    [SimulationActionType.WAIT_FOR_SELECTOR]: {
+        selector: string;
+        waitOptions?: WaitForSelectorOptions;
+    };
+    [SimulationActionType.CLICK_BY_TEXT]: {
+        selector: string;
+        matchText: string;
+        isExactMatch?: boolean;
+        waitOptions?: WaitForSelectorOptions;
+    };
+    [SimulationActionType.WAIT_FOR_NAVIGATION]: {
+        waitOptions?: WaitForOptions;
+    };
+    [SimulationActionType.WAIT_FOR_FUNCTION]: {
+        fn: () => boolean;
+        waitOptions?: FrameWaitForFunctionOptions;
+    };
+    [SimulationActionType.WAIT_FOR_TIME]: {
+        durationInSeconds: number;
+    };
+    [SimulationActionType.WAIT_FOR_ELEMENT_APPEAR]: {
+        selector: string;
+        maxTimeoutInMs: number;
+        intervalInMs?: number;
+    };
+    [SimulationActionType.FILL_INPUT]: {
+        selector: string;
+        value: string;
+        delayInMs?: number;
+        clearBefore?: boolean;
+        waitOptions?: WaitForSelectorOptions;
+    };
+    [SimulationActionType.SELECT_OPTION]: {
+        selector: string;
+        optionValue?: string;
+        optionLabel?: string;
+        waitOptions?: WaitForSelectorOptions;
+    };
+}
+
+export type SimulationAction<TType extends SimulationActionType = SimulationActionType> = {
     type: TType;
-}
+    options: SimulationActionOptionsMap[TType];
+};
 
-export interface GoToActionRequest extends SimulationActionBaseRequest<SimulationActionType.GO_TO> {
-    url: string;
-    options?: Parameters<Page['goto']>[1];
-}
-
-export interface WaitForSelectorActionRequest extends SimulationActionBaseRequest<SimulationActionType.WAIT_FOR_SELECTOR> {
-    selector: string;
-    options?: WaitForSelectorOptions;
-}
-
-export interface ClickByTextActionRequest extends SimulationActionBaseRequest<SimulationActionType.CLICK_BY_TEXT> {
-    selector: string;
-    matchText: string;
-    waitOptions?: WaitForSelectorOptions;
-    isExactMatch?: boolean;
-}
-
-export interface WaitForNavigationActionRequest extends SimulationActionBaseRequest<SimulationActionType.WAIT_FOR_NAVIGATION> {
-    options?: WaitForOptions;
-}
-
-export interface WaitForFunctionActionRequest extends SimulationActionBaseRequest<SimulationActionType.WAIT_FOR_FUNCTION> {
-    fn: () => boolean;
-    options?: FrameWaitForFunctionOptions;
-}
-
-export interface WaitForTimeActionRequest extends SimulationActionBaseRequest<SimulationActionType.WAIT_FOR_TIME> {
-    durationInSeconds: number;
-}
+export type GoToActionRequest = SimulationAction<SimulationActionType.GO_TO>;
+export type WaitForSelectorActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_SELECTOR>;
+export type ClickByTextActionRequest = SimulationAction<SimulationActionType.CLICK_BY_TEXT>;
+export type WaitForNavigationActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_NAVIGATION>;
+export type WaitForFunctionActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_FUNCTION>;
+export type WaitForTimeActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_TIME>;
+export type WaitForElementAppearActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_ELEMENT_APPEAR>;
+export type FillInputActionRequest = SimulationAction<SimulationActionType.FILL_INPUT>;
+export type SelectOptionActionRequest = SimulationAction<SimulationActionType.SELECT_OPTION>;
 
 export type SimulationActionRequest =
     | GoToActionRequest
@@ -48,7 +68,10 @@ export type SimulationActionRequest =
     | WaitForSelectorActionRequest
     | WaitForNavigationActionRequest
     | WaitForFunctionActionRequest
-    | WaitForTimeActionRequest;
+    | WaitForTimeActionRequest
+    | WaitForElementAppearActionRequest
+    | FillInputActionRequest
+    | SelectOptionActionRequest;
 
 export interface SimulationActionResult {
     type: SimulationActionType;
@@ -71,4 +94,9 @@ export interface SimulationExecutionSummary {
 export interface SimulationExecuteRequest<TPayload = unknown> {
     serviceExecution: SimulationService;
     payload?: TPayload;
+}
+
+export interface ServiceExecutionInternalResult {
+    isSuccess: boolean;
+    actions: SimulationActionResult[];
 }

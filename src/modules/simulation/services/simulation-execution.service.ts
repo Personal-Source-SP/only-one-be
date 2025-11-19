@@ -3,22 +3,25 @@ import { type BrowserContext, type ElementHandle, type Page } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
-import { SimulateUnlucidAiRequest } from '../dtos/requests/simulate-unlucid-ai.request';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
+import { SimulationService } from '../enums';
 import { SimulationActionType } from '../enums/simulation-action.enum';
 import {
+    ServiceExecutionInternalResult,
     type ClickByTextActionRequest,
+    type FillInputActionRequest,
     type GoToActionRequest,
+    type SelectOptionActionRequest,
     type SimulationActionRequest,
     type SimulationActionResult,
     type SimulationExecuteRequest,
     type SimulationExecutionSummary,
+    type WaitForElementAppearActionRequest,
     type WaitForFunctionActionRequest,
     type WaitForNavigationActionRequest,
     type WaitForSelectorActionRequest,
     type WaitForTimeActionRequest,
 } from '../interfaces';
-import { SimulationService } from '../enums';
 
 @Injectable()
 export class SimulationExecutionService {
@@ -27,41 +30,45 @@ export class SimulationExecutionService {
     constructor(private readonly puppeteerService: PuppeteerService) {}
 
     async execute<TPayload>(request: SimulationExecuteRequest<TPayload>): Promise<SimulateResponse<SimulationExecutionSummary>> {
+        const pageId = uuidv4();
         const startedAt = new Date();
         const serviceExecution = request?.serviceExecution;
-        const pageId = uuidv4();
-        let page: Page | null = null;
-        let actionResults: SimulationActionResult[] = [];
+
         let isSuccess = false;
+        let page: Page | null = null;
         let executionError: Error | null = null;
+        let actionResults: SimulationActionResult[] = [];
 
         try {
             if (!serviceExecution) {
                 throw new NotFoundException('Service execution is required');
             }
 
+            page = await this.getCurrentPage(pageId);
+
             switch (serviceExecution) {
                 case SimulationService.UNLUCID_AI: {
-                    page = await this.getCurrentPage(pageId);
                     const executionResult = await this.runUnlucidAi(page);
-                    actionResults = executionResult.actions;
+
                     isSuccess = executionResult.isSuccess;
+                    actionResults = executionResult.actions;
+
                     break;
                 }
-                default:
+
+                default: {
                     throw new NotFoundException(`Service execution ${serviceExecution} is not supported`);
+                }
             }
         } catch (error) {
             executionError = error as Error;
-            this.loggerService.error(`[SimulationExecutionService] Execute failed for ${serviceExecution}: ${executionError?.message}`);
+            this.loggerService.error(`Execute failed for ${serviceExecution}: ${executionError?.message}`);
         } finally {
             if (page) {
                 try {
                     await this.closeBrowser(pageId, page);
                 } catch (closeError) {
-                    this.loggerService.error(
-                        `[SimulationExecutionService] Close browser failed for ${serviceExecution}: ${closeError?.message}`,
-                    );
+                    this.loggerService.error(`Close browser failed for ${serviceExecution}: ${closeError?.message}`);
                 }
             }
         }
@@ -82,14 +89,7 @@ export class SimulationExecutionService {
         };
     }
 
-    async simulateUnlucidAI(request: SimulateUnlucidAiRequest): Promise<SimulateResponse<SimulationExecutionSummary>> {
-        return this.execute<SimulateUnlucidAiRequest>({
-            payload: request,
-            serviceExecution: SimulationService.UNLUCID_AI,
-        });
-    }
-
-    private async executeSimulationActions(actions: SimulationActionRequest[]): Promise<SimulationActionResult[]> {
+    private async executeSimulationActions(page: Page, actions: SimulationActionRequest[]): Promise<SimulationActionResult[]> {
         const results: SimulationActionResult[] = [];
 
         for (const [index, action] of actions.entries()) {
@@ -101,26 +101,38 @@ export class SimulationExecutionService {
             try {
                 switch (actionType) {
                     case SimulationActionType.GO_TO:
-                        await this.handleGoToAction(action);
+                        await this.handleGoToAction(page, action);
                         isSuccess = true;
                         break;
                     case SimulationActionType.CLICK_BY_TEXT:
-                        isSuccess = await this.handleClickByTextAction(action);
+                        isSuccess = await this.handleClickByTextAction(page, action);
                         break;
                     case SimulationActionType.WAIT_FOR_SELECTOR:
-                        await this.handleWaitForSelectorAction(action);
+                        await this.handleWaitForSelectorAction(page, action);
                         isSuccess = true;
                         break;
                     case SimulationActionType.WAIT_FOR_NAVIGATION:
-                        await this.handleWaitForNavigationAction(action);
+                        await this.handleWaitForNavigationAction(page, action);
                         isSuccess = true;
                         break;
                     case SimulationActionType.WAIT_FOR_FUNCTION:
-                        await this.handleWaitForFunctionAction(action);
+                        await this.handleWaitForFunctionAction(page, action);
                         isSuccess = true;
                         break;
                     case SimulationActionType.WAIT_FOR_TIME:
                         await this.handleWaitForTimeAction(action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.WAIT_FOR_ELEMENT_APPEAR:
+                        await this.handleWaitForElementAppearAction(page, action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.FILL_INPUT:
+                        await this.handleFillInputAction(page, action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.SELECT_OPTION:
+                        await this.handleSelectOptionAction(page, action);
                         isSuccess = true;
                         break;
                     default:
@@ -131,14 +143,15 @@ export class SimulationExecutionService {
                 this.loggerService.error(`[${actionType}] execution failed: ${actionErrorMessage}`);
             } finally {
                 const actionEndedAt = Date.now();
+
                 results.push({
-                    type: actionType,
                     index,
-                    endedAt: new Date(actionEndedAt).toISOString(),
                     isSuccess,
+                    type: actionType,
+                    errorMessage: actionErrorMessage,
+                    endedAt: new Date(actionEndedAt).toISOString(),
                     startedAt: new Date(actionStartedAt).toISOString(),
                     durationInMs: actionEndedAt - actionStartedAt,
-                    errorMessage: actionErrorMessage,
                 });
             }
         }
@@ -149,50 +162,121 @@ export class SimulationExecutionService {
     private async runUnlucidAi(page: Page): Promise<ServiceExecutionInternalResult> {
         const actions: SimulationActionRequest[] = [
             {
-                page,
                 type: SimulationActionType.GO_TO,
-                url: SimulationService.UNLUCID_AI,
-                options: { waitUntil: 'networkidle2' },
+                options: {
+                    url: 'https://unlucid.ai/r/pmwnjuvt',
+                    gotoOptions: { waitUntil: 'networkidle2' },
+                },
             },
             {
-                page,
-                selector: 'button[data-button-root] span',
                 type: SimulationActionType.WAIT_FOR_SELECTOR,
+                options: {
+                    selector: 'button[data-button-root] span',
+                },
             },
             {
-                isExactMatch: true,
-                matchText: 'Sign In',
-                page,
-                selector: 'button[data-button-root]',
                 type: SimulationActionType.CLICK_BY_TEXT,
+                options: {
+                    isExactMatch: true,
+                    matchText: 'Sign In',
+                    selector: 'button[data-button-root]',
+                },
             },
             {
-                options: { timeout: 10000 },
-                page,
-                selector: 'button[data-button-root] svg[role="img"]',
                 type: SimulationActionType.WAIT_FOR_SELECTOR,
+                options: {
+                    selector: 'button[data-button-root] svg[role="img"]',
+                    waitOptions: { timeout: 10000 },
+                },
             },
             {
-                matchText: 'Google',
-                page,
-                selector: 'button[data-button-root]',
                 type: SimulationActionType.CLICK_BY_TEXT,
+                options: {
+                    matchText: 'Google',
+                    selector: 'button[data-button-root]',
+                },
             },
             {
-                options: { timeout: 15000 },
-                page,
                 type: SimulationActionType.WAIT_FOR_NAVIGATION,
+                options: {
+                    waitOptions: { timeout: 15000 },
+                },
             },
             {
-                fn: () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
-                options: { timeout: 10 * 60 * 1000 },
-                page,
-                type: SimulationActionType.WAIT_FOR_FUNCTION,
+                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                options: {
+                    maxTimeoutInMs: 100 * 60 * 1000,
+                    selector: 'input[type="email"].whsOnd.zHQkBf#identifierId[name="identifier"]',
+                },
+            },
+            {
+                type: SimulationActionType.FILL_INPUT,
+                options: {
+                    clearBefore: true,
+                    value: 'KelliaClementsez382@edub5.us',
+                    selector: 'input[type="email"].whsOnd.zHQkBf#identifierId[name="identifier"]',
+                },
+            },
+            {
+                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                options: {
+                    maxTimeoutInMs: 100 * 60 * 1000,
+                    selector: 'input[type="password"].whsOnd.zHQkBf[name="Passwd"]',
+                },
+            },
+            {
+                type: SimulationActionType.FILL_INPUT,
+                options: {
+                    clearBefore: true,
+                    value: 'Phat3479',
+                    selector: 'input[type="password"].whsOnd.zHQkBf[name="Passwd"]',
+                },
+            },
+            {
+                type: SimulationActionType.WAIT_FOR_NAVIGATION,
+                options: {
+                    waitOptions: { timeout: 15000 },
+                },
+            },
+            {
+                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                options: {
+                    maxTimeoutInMs: 100 * 60 * 1000,
+                    selector: 'span.counter',
+                },
+            },
+            {
+                type: SimulationActionType.GO_TO,
+                options: {
+                    url: 'https://unlucid.ai/account',
+                    gotoOptions: { waitUntil: 'networkidle2' },
+                },
+            },
+            {
+                type: SimulationActionType.CLICK_BY_TEXT,
+                options: {
+                    selector: 'button',
+                    matchText: 'Enable',
+                    isExactMatch: true,
+                },
+            },
+            {
+                type: SimulationActionType.GO_TO,
+                options: {
+                    url: 'https://unlucid.ai/effects',
+                    gotoOptions: { waitUntil: 'networkidle2' },
+                },
+            },
+            {
+                type: SimulationActionType.WAIT_FOR_NAVIGATION,
+                options: {
+                    waitOptions: { timeout: 1000 * 60 * 1000 },
+                },
             },
         ];
 
         this.loggerService.info('Email filled. Waiting for user to complete Google login (up to 10 minutes)...');
-        const results = await this.executeSimulationActions(actions);
+        const results = await this.executeSimulationActions(page, actions);
 
         const clicked = results[2]?.isSuccess ?? false;
         const googleClicked = results[4]?.isSuccess ?? false;
@@ -208,38 +292,41 @@ export class SimulationExecutionService {
         };
     }
 
-    private async handleGoToAction(request: GoToActionRequest): Promise<void> {
+    private async handleGoToAction(page: Page, request: GoToActionRequest): Promise<void> {
         try {
-            await request.page.goto(request.url, request.options);
+            const { url, gotoOptions } = request.options;
+            await page.goto(url, gotoOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
             throw error;
         }
     }
 
-    private async handleWaitForSelectorAction(request: WaitForSelectorActionRequest): Promise<void> {
+    private async handleWaitForSelectorAction(page: Page, request: WaitForSelectorActionRequest): Promise<void> {
         try {
-            await request.page.waitForSelector(request.selector, request.options);
+            const { selector, waitOptions } = request.options;
+            await page.waitForSelector(selector, waitOptions);
         } catch (error) {
-            this.loggerService.error(`[${request.type}] failed on selector ${request.selector}: ${error?.message}`);
+            this.loggerService.error(`[${request.type}] failed on selector ${request.options.selector}: ${error?.message}`);
             throw error;
         }
     }
 
-    private async handleClickByTextAction(request: ClickByTextActionRequest): Promise<boolean> {
+    private async handleClickByTextAction(page: Page, request: ClickByTextActionRequest): Promise<boolean> {
         try {
-            if (request.waitOptions) {
-                await request.page.waitForSelector(request.selector, request.waitOptions);
+            const { selector, waitOptions, matchText, isExactMatch } = request.options;
+            if (waitOptions) {
+                await page.waitForSelector(selector, waitOptions);
             }
-            const elements: ElementHandle<Element>[] = await request.page.$$(request.selector);
+            const elements: ElementHandle<Element>[] = await page.$$(selector);
 
             for (const element of elements) {
-                const text = await request.page.evaluate((el) => el.textContent?.trim(), element);
+                const text = await page.evaluate((el) => el.textContent?.trim(), element);
                 if (!text) {
                     continue;
                 }
 
-                const match = request.isExactMatch ? text === request.matchText : text.includes(request.matchText);
+                const match = isExactMatch ? text === matchText : text.includes(matchText);
                 if (match) {
                     await element.click();
                     return true;
@@ -248,23 +335,24 @@ export class SimulationExecutionService {
 
             return false;
         } catch (error) {
-            this.loggerService.error(`[${request.type}] failed on selector ${request.selector}: ${error?.message}`);
+            this.loggerService.error(`[${request.type}] failed on selector ${request.options.selector}: ${error?.message}`);
             throw error;
         }
     }
 
-    private async handleWaitForNavigationAction(request: WaitForNavigationActionRequest): Promise<void> {
+    private async handleWaitForNavigationAction(page: Page, request: WaitForNavigationActionRequest): Promise<void> {
         try {
-            await request.page.waitForNavigation(request.options);
+            await page.waitForNavigation(request.options.waitOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
             throw error;
         }
     }
 
-    private async handleWaitForFunctionAction(request: WaitForFunctionActionRequest): Promise<void> {
+    private async handleWaitForFunctionAction(page: Page, request: WaitForFunctionActionRequest): Promise<void> {
         try {
-            await request.page.waitForFunction(request.fn, request.options);
+            const { fn, waitOptions } = request.options;
+            await page.waitForFunction(fn, waitOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
             throw error;
@@ -273,10 +361,116 @@ export class SimulationExecutionService {
 
     private async handleWaitForTimeAction(request: WaitForTimeActionRequest): Promise<void> {
         try {
-            const durationInSeconds = Math.max(request.durationInSeconds, 0);
+            const durationInSeconds = Math.max(request.options.durationInSeconds, 0);
             await new Promise((resolve) => setTimeout(resolve, durationInSeconds * 1000));
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleWaitForElementAppearAction(page: Page, request: WaitForElementAppearActionRequest): Promise<void> {
+        const { selector, maxTimeoutInMs, intervalInMs: rawInterval } = request.options;
+        const timeoutInMs = Math.max(maxTimeoutInMs, 0);
+        const intervalInMs = Math.max(rawInterval ?? 500, 50);
+        const startedAt = Date.now();
+
+        try {
+            while (Date.now() - startedAt <= timeoutInMs) {
+                const element = await page.$(selector);
+                if (element) {
+                    await element.dispose();
+                    return;
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, intervalInMs));
+            }
+
+            throw new Error(`Element ${request.options.selector} did not appear within ${timeoutInMs}ms`);
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed on selector ${request.options.selector}: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleFillInputAction(page: Page, request: FillInputActionRequest): Promise<void> {
+        const { selector, value, waitOptions, clearBefore = true, delayInMs = 0 } = request.options;
+
+        try {
+            if (waitOptions) {
+                await page.waitForSelector(selector, waitOptions);
+            }
+
+            const element = await page.$(selector);
+            if (!element) {
+                throw new Error(`Input ${selector} not found`);
+            }
+
+            if (clearBefore) {
+                await element.click({ clickCount: 3 });
+                await page.keyboard.press('Backspace');
+                await page.evaluate((el) => {
+                    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+                        el.value = '';
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }, element);
+            }
+
+            await element.type(value ?? '', { delay: delayInMs });
+            await element.dispose();
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed on selector ${selector}: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleSelectOptionAction(page: Page, request: SelectOptionActionRequest): Promise<void> {
+        const { selector, optionValue, optionLabel, waitOptions } = request.options;
+
+        try {
+            if (waitOptions) {
+                await page.waitForSelector(selector, waitOptions);
+            }
+
+            if (!optionValue && !optionLabel) {
+                throw new Error('Either optionValue or optionLabel must be provided');
+            }
+
+            if (optionValue) {
+                const selected = await page.select(selector, optionValue);
+                if (!selected.includes(optionValue)) {
+                    throw new Error(`Option value ${optionValue} not found for selector ${selector}`);
+                }
+            } else if (optionLabel) {
+                const isSelected = await page.evaluate(
+                    (sel, label) => {
+                        const select = document.querySelector(sel) as HTMLSelectElement | null;
+                        if (!select) {
+                            return false;
+                        }
+
+                        const option = Array.from(select.options).find((opt) => opt.text.trim() === label.trim());
+                        if (!option) {
+                            return false;
+                        }
+
+                        select.value = option.value;
+                        select.dispatchEvent(new Event('input', { bubbles: true }));
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        return true;
+                    },
+                    selector,
+                    optionLabel,
+                );
+
+                if (!isSelected) {
+                    throw new Error(`Option label ${optionLabel} not found for selector ${selector}`);
+                }
+            }
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed on selector ${selector}: ${error?.message}`);
             throw error;
         }
     }
@@ -411,9 +605,4 @@ export class SimulationExecutionService {
             throw new NotFoundException('Close browser failed');
         }
     }
-}
-
-interface ServiceExecutionInternalResult {
-    actions: SimulationActionResult[];
-    isSuccess: boolean;
 }

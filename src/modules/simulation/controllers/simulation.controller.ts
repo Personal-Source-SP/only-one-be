@@ -1,17 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai.request';
 
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
+import { SimulationService } from '../enums';
 import { SimulationExecutionSummary } from '../interfaces';
 import { SimulationExecutionService } from '../services/simulation-execution.service';
 
 @Controller('simulations')
 @ApiTags('simulations')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 export class SimulationController {
     constructor(private readonly simulationExecutionService: SimulationExecutionService) {}
 
@@ -20,10 +18,8 @@ export class SimulationController {
     @HttpCode(HttpStatus.OK)
     @Post('simulate-unlucid-ai')
     @BaseApiOkResponse(SimulateResponse<SimulationExecutionSummary>)
-    public async simulateUnlucidAI(
-        @Body() dto: SimulateUnlucidAiRequest,
-    ): Promise<SimulateResponse<SimulationExecutionSummary>> {
-        const result = await this.simulationExecutionService.simulateUnlucidAI(dto);
+    public async simulateUnlucidAI(@Body() dto: SimulateUnlucidAiRequest): Promise<SimulateResponse<SimulationExecutionSummary>> {
+        const result = await this.simulationExecutionService.execute({ serviceExecution: SimulationService.UNLUCID_AI, payload: dto });
         return result;
     }
 }
