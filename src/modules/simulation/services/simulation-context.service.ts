@@ -8,6 +8,7 @@ import { SimulationContextDto } from '../dtos/simulation-context.dto';
 import { SimulationContextEntity } from '../entities/simulation-context.entity';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemService } from './simulation-item.service';
+import { CreateSimulationContextRequest } from '../dtos/requests';
 
 @Injectable()
 export class SimulationContextService extends BaseService<SimulationContextEntity, SimulationContextDto> {
@@ -19,7 +20,12 @@ export class SimulationContextService extends BaseService<SimulationContextEntit
         super(simulationContextRepository, mapper, SimulationContextDto, SimulationContextService.name);
     }
 
-    public async createItemsFromPayloads(simulationContextId: string, payloads: Record<string, any>[]): Promise<SimulationItemEntity[]> {
+    async create(request: CreateSimulationContextRequest): Promise<SimulationContextDto> {
+        const simulationContextEntity = this.mapper.map(request, CreateSimulationContextRequest, SimulationContextEntity);
+        return await this.create(simulationContextEntity);
+    }
+
+    async createItemsFromPayloads(simulationContextId: string, payloads: Record<string, any>[]): Promise<SimulationItemEntity[]> {
         return await this.simulationItemService.createManyFromPayloads(simulationContextId, payloads);
     }
 }

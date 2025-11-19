@@ -25,7 +25,4 @@ export class ItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap(() => [DataProviderItemDto])
     dataProviderItems?: DataProviderItemDto[];
-
-    @ApiResponseProperty()
-    scrapingData?: ScrapingDataDto[];
 }
