@@ -10,6 +10,9 @@ export interface SimulationActionOptionsMap {
     [SimulationActionType.WAIT_FOR_SELECTOR]: {
         selector: string;
         waitOptions?: WaitForSelectorOptions;
+        maxTimeoutInSeconds?: number;
+        intervalInSeconds?: number;
+        usePolling?: boolean;
     };
     [SimulationActionType.CLICK_BY_TEXT]: {
         selector: string;
@@ -26,11 +29,6 @@ export interface SimulationActionOptionsMap {
     };
     [SimulationActionType.WAIT_FOR_TIME]: {
         durationInSeconds: number;
-    };
-    [SimulationActionType.WAIT_FOR_ELEMENT_APPEAR]: {
-        selector: string;
-        maxTimeoutInMs: number;
-        intervalInMs?: number;
     };
     [SimulationActionType.FILL_INPUT]: {
         selector: string;
@@ -58,7 +56,6 @@ export type ClickByTextActionRequest = SimulationAction<SimulationActionType.CLI
 export type WaitForNavigationActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_NAVIGATION>;
 export type WaitForFunctionActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_FUNCTION>;
 export type WaitForTimeActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_TIME>;
-export type WaitForElementAppearActionRequest = SimulationAction<SimulationActionType.WAIT_FOR_ELEMENT_APPEAR>;
 export type FillInputActionRequest = SimulationAction<SimulationActionType.FILL_INPUT>;
 export type SelectOptionActionRequest = SimulationAction<SimulationActionType.SELECT_OPTION>;
 
@@ -69,7 +66,6 @@ export type SimulationActionRequest =
     | WaitForNavigationActionRequest
     | WaitForFunctionActionRequest
     | WaitForTimeActionRequest
-    | WaitForElementAppearActionRequest
     | FillInputActionRequest
     | SelectOptionActionRequest;
 

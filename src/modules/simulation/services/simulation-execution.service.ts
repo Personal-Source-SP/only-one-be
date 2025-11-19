@@ -1,5 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type BrowserContext, type ElementHandle, type Page } from 'puppeteer';
+import {
+    type BrowserContext,
+    type ElementHandle,
+    type FrameWaitForFunctionOptions,
+    type Page,
+    type WaitForOptions,
+    type WaitForSelectorOptions,
+} from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
@@ -16,7 +23,6 @@ import {
     type SimulationActionResult,
     type SimulationExecuteRequest,
     type SimulationExecutionSummary,
-    type WaitForElementAppearActionRequest,
     type WaitForFunctionActionRequest,
     type WaitForNavigationActionRequest,
     type WaitForSelectorActionRequest,
@@ -26,6 +32,8 @@ import {
 @Injectable()
 export class SimulationExecutionService {
     private readonly loggerService: LoggerService = new LoggerService(SimulationExecutionService.name);
+    private readonly defaultWaitTimeoutInSeconds = 10;
+    private readonly defaultElementAppearIntervalInSeconds = 0.5;
 
     constructor(private readonly puppeteerService: PuppeteerService) {}
 
@@ -123,10 +131,6 @@ export class SimulationExecutionService {
                         await this.handleWaitForTimeAction(action);
                         isSuccess = true;
                         break;
-                    case SimulationActionType.WAIT_FOR_ELEMENT_APPEAR:
-                        await this.handleWaitForElementAppearAction(page, action);
-                        isSuccess = true;
-                        break;
                     case SimulationActionType.FILL_INPUT:
                         await this.handleFillInputAction(page, action);
                         isSuccess = true;
@@ -186,7 +190,7 @@ export class SimulationExecutionService {
                 type: SimulationActionType.WAIT_FOR_SELECTOR,
                 options: {
                     selector: 'button[data-button-root] svg[role="img"]',
-                    waitOptions: { timeout: 10000 },
+                    waitOptions: { timeout: 10 },
                 },
             },
             {
@@ -199,14 +203,15 @@ export class SimulationExecutionService {
             {
                 type: SimulationActionType.WAIT_FOR_NAVIGATION,
                 options: {
-                    waitOptions: { timeout: 15000 },
+                    waitOptions: { timeout: 15 },
                 },
             },
             {
-                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                type: SimulationActionType.WAIT_FOR_SELECTOR,
                 options: {
-                    maxTimeoutInMs: 100 * 60 * 1000,
                     selector: 'input[type="email"].whsOnd.zHQkBf#identifierId[name="identifier"]',
+                    maxTimeoutInSeconds: 100 * 60,
+                    usePolling: true,
                 },
             },
             {
@@ -218,10 +223,11 @@ export class SimulationExecutionService {
                 },
             },
             {
-                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                type: SimulationActionType.WAIT_FOR_SELECTOR,
                 options: {
-                    maxTimeoutInMs: 100 * 60 * 1000,
                     selector: 'input[type="password"].whsOnd.zHQkBf[name="Passwd"]',
+                    maxTimeoutInSeconds: 100 * 60,
+                    usePolling: true,
                 },
             },
             {
@@ -235,14 +241,15 @@ export class SimulationExecutionService {
             {
                 type: SimulationActionType.WAIT_FOR_NAVIGATION,
                 options: {
-                    waitOptions: { timeout: 15000 },
+                    waitOptions: { timeout: 15 },
                 },
             },
             {
-                type: SimulationActionType.WAIT_FOR_ELEMENT_APPEAR,
+                type: SimulationActionType.WAIT_FOR_SELECTOR,
                 options: {
-                    maxTimeoutInMs: 100 * 60 * 1000,
                     selector: 'span.counter',
+                    maxTimeoutInSeconds: 100 * 60,
+                    usePolling: true,
                 },
             },
             {
@@ -270,7 +277,7 @@ export class SimulationExecutionService {
             {
                 type: SimulationActionType.WAIT_FOR_NAVIGATION,
                 options: {
-                    waitOptions: { timeout: 1000 * 60 * 1000 },
+                    waitOptions: { timeout: 60_000 },
                 },
             },
         ];
@@ -304,8 +311,15 @@ export class SimulationExecutionService {
 
     private async handleWaitForSelectorAction(page: Page, request: WaitForSelectorActionRequest): Promise<void> {
         try {
-            const { selector, waitOptions } = request.options;
-            await page.waitForSelector(selector, waitOptions);
+            const { selector, waitOptions, maxTimeoutInSeconds, intervalInSeconds, usePolling } = request.options;
+
+            if (usePolling || typeof maxTimeoutInSeconds === 'number' || typeof intervalInSeconds === 'number') {
+                await this.waitForSelectorWithPolling(page, selector, maxTimeoutInSeconds, intervalInSeconds);
+                return;
+            }
+
+            const normalizedWaitOptions = this.normalizeWaitOptions(waitOptions);
+            await page.waitForSelector(selector, normalizedWaitOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed on selector ${request.options.selector}: ${error?.message}`);
             throw error;
@@ -316,7 +330,8 @@ export class SimulationExecutionService {
         try {
             const { selector, waitOptions, matchText, isExactMatch } = request.options;
             if (waitOptions) {
-                await page.waitForSelector(selector, waitOptions);
+                const normalizedWaitOptions = this.normalizeWaitOptions(waitOptions);
+                await page.waitForSelector(selector, normalizedWaitOptions);
             }
             const elements: ElementHandle<Element>[] = await page.$$(selector);
 
@@ -342,7 +357,8 @@ export class SimulationExecutionService {
 
     private async handleWaitForNavigationAction(page: Page, request: WaitForNavigationActionRequest): Promise<void> {
         try {
-            await page.waitForNavigation(request.options.waitOptions);
+            const waitOptions = this.normalizeWaitOptions(request.options.waitOptions);
+            await page.waitForNavigation(waitOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
             throw error;
@@ -352,7 +368,8 @@ export class SimulationExecutionService {
     private async handleWaitForFunctionAction(page: Page, request: WaitForFunctionActionRequest): Promise<void> {
         try {
             const { fn, waitOptions } = request.options;
-            await page.waitForFunction(fn, waitOptions);
+            const normalizedWaitOptions = this.normalizeWaitOptions(waitOptions);
+            await page.waitForFunction(fn, normalizedWaitOptions);
         } catch (error) {
             this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
             throw error;
@@ -369,10 +386,14 @@ export class SimulationExecutionService {
         }
     }
 
-    private async handleWaitForElementAppearAction(page: Page, request: WaitForElementAppearActionRequest): Promise<void> {
-        const { selector, maxTimeoutInMs, intervalInMs: rawInterval } = request.options;
-        const timeoutInMs = Math.max(maxTimeoutInMs, 0);
-        const intervalInMs = Math.max(rawInterval ?? 500, 50);
+    private async waitForSelectorWithPolling(
+        page: Page,
+        selector: string,
+        maxTimeoutInSeconds?: number,
+        intervalInSeconds?: number,
+    ): Promise<void> {
+        const timeoutInMs = this.secondsToMilliseconds(this.resolveSeconds(maxTimeoutInSeconds));
+        const intervalInMs = this.secondsToMilliseconds(this.resolveSeconds(intervalInSeconds, this.defaultElementAppearIntervalInSeconds));
         const startedAt = Date.now();
 
         try {
@@ -386,9 +407,9 @@ export class SimulationExecutionService {
                 await new Promise((resolve) => setTimeout(resolve, intervalInMs));
             }
 
-            throw new Error(`Element ${request.options.selector} did not appear within ${timeoutInMs}ms`);
+            throw new Error(`Element ${selector} did not appear within ${timeoutInMs}ms`);
         } catch (error) {
-            this.loggerService.error(`[${request.type}] failed on selector ${request.options.selector}: ${error?.message}`);
+            this.loggerService.error(`[${SimulationActionType.WAIT_FOR_SELECTOR}] failed on selector ${selector}: ${error?.message}`);
             throw error;
         }
     }
@@ -398,7 +419,8 @@ export class SimulationExecutionService {
 
         try {
             if (waitOptions) {
-                await page.waitForSelector(selector, waitOptions);
+                const normalizedWaitOptions = this.normalizeWaitOptions(waitOptions);
+                await page.waitForSelector(selector, normalizedWaitOptions);
             }
 
             const element = await page.$(selector);
@@ -431,7 +453,8 @@ export class SimulationExecutionService {
 
         try {
             if (waitOptions) {
-                await page.waitForSelector(selector, waitOptions);
+                const normalizedWaitOptions = this.normalizeWaitOptions(waitOptions);
+                await page.waitForSelector(selector, normalizedWaitOptions);
             }
 
             if (!optionValue && !optionLabel) {
@@ -473,6 +496,27 @@ export class SimulationExecutionService {
             this.loggerService.error(`[${request.type}] failed on selector ${selector}: ${error?.message}`);
             throw error;
         }
+    }
+
+    private normalizeWaitOptions<T extends { timeout?: number }>(waitOptions?: T): T {
+        const timeoutInSeconds = this.resolveSeconds(waitOptions?.timeout);
+
+        return {
+            ...(waitOptions ?? ({} as T)),
+            timeout: this.secondsToMilliseconds(timeoutInSeconds),
+        };
+    }
+
+    private resolveSeconds(value?: number, fallbackSeconds: number = this.defaultWaitTimeoutInSeconds): number {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+
+        return fallbackSeconds;
+    }
+
+    private secondsToMilliseconds(seconds: number): number {
+        return Math.max(seconds, 0) * 1000;
     }
 
     private async getCurrentPage(pageId: string): Promise<Page> {
