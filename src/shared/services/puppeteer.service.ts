@@ -13,14 +13,29 @@ export class PuppeteerService {
     }
 
     getWsEndpoint(browser: Browser): string | undefined {
-        const maybe = (browser as any).wsEndpoint;
-        return typeof maybe === 'function' ? maybe() : undefined;
+        try {
+            if (!browser?.isConnected?.()) {
+                this.loggerService.error('Browser is not connected. Cannot retrieve wsEndpoint.');
+                return undefined;
+            }
+
+            const maybe = (browser as any).wsEndpoint;
+            if (typeof maybe !== 'function') {
+                this.loggerService.error('Browser wsEndpoint is not a function.');
+                return undefined;
+            }
+
+            return maybe.call(browser);
+        } catch (error) {
+            this.loggerService.error(`Failed to get wsEndpoint: ${error?.message}`);
+            return undefined;
+        }
     }
 
     async getBrowserSession(pageId: string, options?: IPuppeteerOptions): Promise<Browser> {
         if (!this.browserSessions.has(pageId)) {
             const browser: Browser = await puppeteer.launch({
-                headless: options?.headless ?? false,
+                headless: options?.headless ?? true,
                 slowMo: options?.slowMo ?? 50,
                 dumpio: options?.dumpio ?? true,
                 devtools: options?.devtools ?? false,
@@ -69,17 +84,24 @@ export class PuppeteerService {
     }
 
     async closePageSession(pageId: string): Promise<boolean> {
-        if (this.browserSessions.has(pageId)) {
-            await this.browserSessions.get(pageId)!.close();
-
-            this.browserSessions.delete(pageId);
-
-            return true;
+        const browser = this.browserSessions.get(pageId);
+        if (!browser) {
+            this.loggerService.error(`Browser session not found for page id ${pageId}`);
+            return false;
         }
 
-        this.loggerService.error(`Browser session not found for page id ${pageId}`);
+        this.browserSessions.delete(pageId);
 
-        return false;
+        try {
+            if (browser.isConnected()) {
+                await browser.close();
+            }
+        } catch (error) {
+            this.loggerService.error(`Failed to close browser session ${pageId}: ${error?.message}`);
+            throw error;
+        }
+
+        return true;
     }
 
     async ensureSessionAndPage(pageId: string): Promise<IPuppeteerSession> {

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards, Version } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
@@ -33,7 +33,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     @HttpCode(HttpStatus.OK)
     @Post(':id/start')
     @BaseApiOkResponse(Boolean)
-    public async start(@Param('id') id: string): Promise<boolean> {
+    public async start(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
         const result = await this.simulationItemService.start(id);
         return result;
     }
@@ -43,7 +43,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     @HttpCode(HttpStatus.OK)
     @Post(':id/pause')
     @BaseApiOkResponse(Boolean)
-    public async pause(@Param('id') id: string): Promise<boolean> {
+    public async pause(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
         const result = await this.simulationItemService.pause(id);
         return result;
     }
@@ -53,7 +53,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     @HttpCode(HttpStatus.OK)
     @Post(':id/stop')
     @BaseApiOkResponse(Boolean)
-    public async stop(@Param('id') id: string): Promise<boolean> {
+    public async stop(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
         const result = await this.simulationItemService.stop(id);
         return result;
     }
