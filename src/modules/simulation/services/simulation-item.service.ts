@@ -11,6 +11,7 @@ import { PuppeteerService } from '../../../shared/services/puppeteer.service';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemStatus } from '../enums';
+import { CreateSimulationItemsRequest } from '../dtos/requests';
 
 @Injectable()
 export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> implements OnModuleInit {
@@ -31,14 +32,15 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         await this.loadSimulationItems();
     }
 
-    async createManyFromPayloads(simulationContextId: string, payloads: Record<string, any>[]): Promise<SimulationItemEntity[]> {
-        const items = payloads.map((payload) =>
+    async createManyFromPayloads(simulationContextId: string, request: CreateSimulationItemsRequest): Promise<SimulationItemEntity[]> {
+        const items = request.payloads.map((payload) =>
             this.repository.create({
                 simulationContextId,
                 status: SimulationItemStatus.PENDING,
                 payload,
             }),
         );
+
         return await this.repository.save(items);
     }
 

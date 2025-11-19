@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateSimulationContextRequest {
     @ApiProperty({ maxLength: 255 })
@@ -26,11 +26,4 @@ export class CreateSimulationContextRequest {
     @IsObject()
     @AutoMap()
     payload?: Record<string, any>;
-}
-
-export class CreateSimulationItemsRequest {
-    @ApiProperty({ type: [Object] })
-    @IsArray()
-    @IsObject({ each: true })
-    payloads: Record<string, any>[];
 }

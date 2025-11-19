@@ -11,8 +11,8 @@ import { SimulationExecutionService } from './services/simulation-execution.serv
 import { SimulationProfile } from './simulation.profile';
 
 const entities = [SimulationContextEntity, SimulationItemEntity];
-const controllers = [SimulationController, SimulationContextController, SimulationItemController];
 const services = [SimulationExecutionService, SimulationContextService, SimulationItemService];
+const controllers = [SimulationController, SimulationContextController, SimulationItemController];
 
 @Module({
     imports: [TypeOrmModule.forFeature(entities)],

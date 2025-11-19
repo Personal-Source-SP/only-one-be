@@ -1,17 +1,19 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SIMULATION_CONTEXT_PAGINATION_CONFIG } from '../constants/schedule-context.config';
-import { CreateSimulationContextRequest, CreateSimulationItemsRequest } from '../dtos/requests';
+import { CreateSimulationContextRequest } from '../dtos/requests';
 import { SimulationContextDto } from '../dtos/simulation-context.dto';
-import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationContextEntity } from '../entities/simulation-context.entity';
 import { SimulationContextService } from '../services/simulation-context.service';
 
 @ApiTags('Simulation Contexts')
 @Controller('simulation-contexts')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class SimulationContextController extends BaseController<SimulationContextEntity, SimulationContextDto> {
     constructor(private readonly simulationContextService: SimulationContextService) {
         super(simulationContextService, SIMULATION_CONTEXT_PAGINATION_CONFIG);
@@ -23,15 +25,6 @@ export class SimulationContextController extends BaseController<SimulationContex
     @BaseApiOkResponse(SimulationContextDto)
     public async create(@Body() dto: CreateSimulationContextRequest): Promise<SimulationContextDto> {
         const result = await this.simulationContextService.create(dto);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Create simulation items from payloads' })
-    @Post(':id/items')
-    @HttpCode(HttpStatus.OK)
-    @BaseApiOkResponse(SimulationItemDto)
-    public async createItems(@Param('id') id: string, @Body() dto: CreateSimulationItemsRequest): Promise<SimulationItemDto[]> {
-        const result = await this.simulationContextService.createItemsFromPayloads(id, dto.payloads ?? []);
         return result;
     }
 }

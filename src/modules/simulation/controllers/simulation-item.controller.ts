@@ -1,13 +1,29 @@
-import { Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { CreateSimulationItemsRequest } from '../dtos/requests';
+import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemService } from '../services/simulation-item.service';
 
 @ApiTags('Simulation Items')
-@ApiBearerAuth()
 @Controller('simulation-items')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class SimulationItemController {
     constructor(private readonly simulationItemService: SimulationItemService) {}
+
+    @ApiOperation({ summary: 'Create many simulation items from payloads by simulation context id' })
+    @Post(':simulationContextId/items')
+    @HttpCode(HttpStatus.OK)
+    @BaseApiOkResponse(SimulationItemDto)
+    public async createItems(
+        @Param('simulationContextId', new ParseUUIDPipe()) id: string,
+        @Body() dto: CreateSimulationItemsRequest,
+    ): Promise<SimulationItemDto[]> {
+        const result = await this.simulationItemService.createManyFromPayloads(id, dto);
+        return result;
+    }
 
     @ApiOperation({ summary: 'Start simulation item' })
     @Post(':id/start')
