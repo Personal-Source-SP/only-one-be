@@ -1,11 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type BrowserContext, type Page } from 'puppeteer';
+import { type BrowserContext, type ElementHandle, type Page } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
 import { SimulateUnlucidAiRequest } from '../dtos/requests/simulate-unlucid-ai.request';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
 import { PageSite } from '../enums/page-site.enum';
+import { SimulationActionType } from '../enums/simulation-action.enum';
+import {
+    type ClickByTextActionRequest,
+    type GoToActionRequest,
+    type SimulationActionRequest,
+    type SimulationActionResult,
+    type WaitForFunctionActionRequest,
+    type WaitForNavigationActionRequest,
+    type WaitForSelectorActionRequest,
+    type WaitForTimeActionRequest,
+} from '../interfaces';
 
 @Injectable()
 export class SimulationExecutionService {
@@ -18,56 +29,59 @@ export class SimulationExecutionService {
         const page: Page = await this.getCurrentPage(pageId);
 
         try {
-            await page.goto(PageSite.UNLUCID_AI, { waitUntil: 'networkidle2' });
+            const initialActions: SimulationActionRequest[] = [
+                {
+                    page,
+                    type: SimulationActionType.GO_TO,
+                    url: PageSite.UNLUCID_AI,
+                    options: { waitUntil: 'networkidle2' },
+                },
+                {
+                    page,
+                    selector: 'button[data-button-root] span',
+                    type: SimulationActionType.WAIT_FOR_SELECTOR,
+                },
+                {
+                    isExactMatch: true,
+                    matchText: 'Sign In',
+                    page,
+                    selector: 'button[data-button-root]',
+                    type: SimulationActionType.CLICK_BY_TEXT,
+                },
+                {
+                    options: { timeout: 10000 },
+                    page,
+                    selector: 'button[data-button-root] svg[role="img"]',
+                    type: SimulationActionType.WAIT_FOR_SELECTOR,
+                },
+                {
+                    matchText: 'Google',
+                    page,
+                    selector: 'button[data-button-root]',
+                    type: SimulationActionType.CLICK_BY_TEXT,
+                },
+                {
+                    options: { timeout: 15000 },
+                    page,
+                    type: SimulationActionType.WAIT_FOR_NAVIGATION,
+                },
+            ];
 
-            // Click the "Sign In" button with the given selector
-            await page.waitForSelector('button[data-button-root] span');
-            const buttons = await page.$$('button[data-button-root]');
-            let clicked = false;
+            const initialResults = await this.executeSimulationActions(initialActions);
 
-            for (const btn of buttons) {
-                const span = await btn.$('span');
-                if (span) {
-                    const text = await page.evaluate((el) => el.textContent?.trim(), span);
-                    if (text === 'Sign In') {
-                        this.loggerService.info(`Click sign in button`);
-                        await btn.click();
-                        this.loggerService.info(`Click sign in button success`);
-                        clicked = true;
-                        break;
-                    }
-                }
-            }
+            const clicked = initialResults[2]?.isSuccess ?? false;
+            const googleClicked = initialResults[4]?.isSuccess ?? false;
 
-            // Click the "Google Sign In" button
-            await page.waitForSelector('button[data-button-root] svg[role="img"]');
-            const googleButtons = await page.$$('button[data-button-root]');
-            let googleClicked = false;
-
-            for (const btn of googleButtons) {
-                const svg = await btn.$('svg[role="img"]');
-                if (svg) {
-                    const text = await page.evaluate((el) => el.textContent?.trim(), btn);
-                    if (text && text.includes('Google')) {
-                        this.loggerService.info(`Click google button`);
-                        await btn.click();
-                        this.loggerService.info(`Click google button success`);
-                        googleClicked = true;
-                        break;
-                    }
-                }
-            }
-
-            // Wait for navigation go to google login page
-            await page.waitForNavigation({ timeout: 15000 });
-
-            // Inform and wait for user to complete the login manually
             this.loggerService.info('Email filled. Waiting for user to complete Google login (up to 10 minutes)...');
-            // Wait until redirected back to unlucid.ai or app UI appears
-            await page.waitForFunction(
-                () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
-                { timeout: 10 * 60 * 1000 },
-            );
+            const waitResults = await this.executeSimulationActions([
+                {
+                    fn: () => window.location.href.includes('unlucid.ai') || document.querySelector('button[data-button-root]') !== null,
+                    options: { timeout: 10 * 60 * 1000 },
+                    page,
+                    type: SimulationActionType.WAIT_FOR_FUNCTION,
+                },
+            ]);
+            const isRedirectedBack = waitResults[0]?.isSuccess ?? false;
 
             // Check if we're redirected back to the original site or if there are additional steps
             const currentUrl = page.url();
@@ -77,7 +91,7 @@ export class SimulationExecutionService {
             const isLoginSuccessful = currentUrl.includes('unlucid.ai') || (await page.$('button[data-button-root]')) !== null;
 
             return {
-                isSuccess: clicked && googleClicked && isLoginSuccessful,
+                isSuccess: clicked && googleClicked && isRedirectedBack && isLoginSuccessful,
             };
         } catch (error) {
             this.loggerService.error(`Simulate Unlucid AI failed: ${error?.message}`);
@@ -88,6 +102,128 @@ export class SimulationExecutionService {
             };
         } finally {
             await this.closeBrowser(pageId, page);
+        }
+    }
+
+    private async executeSimulationActions(actions: SimulationActionRequest[]): Promise<SimulationActionResult[]> {
+        const results: SimulationActionResult[] = [];
+
+        for (const [index, action] of actions.entries()) {
+            let isSuccess = false;
+            const actionType = action.type;
+
+            try {
+                switch (actionType) {
+                    case SimulationActionType.GO_TO:
+                        await this.handleGoToAction(action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.CLICK_BY_TEXT:
+                        isSuccess = await this.handleClickByTextAction(action);
+                        break;
+                    case SimulationActionType.WAIT_FOR_SELECTOR:
+                        await this.handleWaitForSelectorAction(action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.WAIT_FOR_NAVIGATION:
+                        await this.handleWaitForNavigationAction(action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.WAIT_FOR_FUNCTION:
+                        await this.handleWaitForFunctionAction(action);
+                        isSuccess = true;
+                        break;
+                    case SimulationActionType.WAIT_FOR_TIME:
+                        await this.handleWaitForTimeAction(action);
+                        isSuccess = true;
+                        break;
+                    default:
+                        this.loggerService.error(`[${actionType}] unsupported action type`);
+                }
+            } catch (error) {
+                this.loggerService.error(`[${actionType}] execution failed: ${error?.message}`);
+            } finally {
+                results.push({
+                    index,
+                    isSuccess,
+                    type: actionType,
+                });
+            }
+        }
+
+        return results;
+    }
+
+    private async handleGoToAction(request: GoToActionRequest): Promise<void> {
+        try {
+            await request.page.goto(request.url, request.options);
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleWaitForSelectorAction(request: WaitForSelectorActionRequest): Promise<void> {
+        try {
+            await request.page.waitForSelector(request.selector, request.options);
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed on selector ${request.selector}: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleClickByTextAction(request: ClickByTextActionRequest): Promise<boolean> {
+        try {
+            if (request.waitOptions) {
+                await request.page.waitForSelector(request.selector, request.waitOptions);
+            }
+            const elements: ElementHandle<Element>[] = await request.page.$$(request.selector);
+
+            for (const element of elements) {
+                const text = await request.page.evaluate((el) => el.textContent?.trim(), element);
+                if (!text) {
+                    continue;
+                }
+
+                const match = request.isExactMatch ? text === request.matchText : text.includes(request.matchText);
+                if (match) {
+                    await element.click();
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed on selector ${request.selector}: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleWaitForNavigationAction(request: WaitForNavigationActionRequest): Promise<void> {
+        try {
+            await request.page.waitForNavigation(request.options);
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleWaitForFunctionAction(request: WaitForFunctionActionRequest): Promise<void> {
+        try {
+            await request.page.waitForFunction(request.fn, request.options);
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
+            throw error;
+        }
+    }
+
+    private async handleWaitForTimeAction(request: WaitForTimeActionRequest): Promise<void> {
+        try {
+            const durationInSeconds = Math.max(request.durationInSeconds, 0);
+            await new Promise((resolve) => setTimeout(resolve, durationInSeconds * 1000));
+        } catch (error) {
+            this.loggerService.error(`[${request.type}] failed: ${error?.message}`);
+            throw error;
         }
     }
 
