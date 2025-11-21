@@ -47,12 +47,21 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
             throw new NotFoundException('Simulation item not found');
         }
 
-        const result = await this.simulationExecutionService.execute({
-            payload: simulationItemExists.payload,
-            serviceExecution: simulationItemExists.simulationContext?.serviceExecution,
-        });
+        await super.update(id, { status: SimulationItemStatus.PROCESSING });
 
-        return result.isSuccess;
+        try {
+            const result = await this.simulationExecutionService.execute({
+                payload: simulationItemExists.payload,
+                serviceExecution: simulationItemExists.simulationContext?.serviceExecution,
+            });
+
+            await super.update(id, { status: SimulationItemStatus.PENDING, metadata: result.data });
+
+            return result.isSuccess;
+        } catch (error) {
+            await super.update(id, { status: SimulationItemStatus.PENDING, errorMessage: error?.message });
+            return false;
+        }
     }
 
     async delete(id: string): Promise<boolean> {
