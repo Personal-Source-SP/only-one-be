@@ -12,7 +12,6 @@ import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemStatus } from '../enums';
-import { SimulationContextService } from './simulation-context.service';
 import { SimulationExecutionService } from './simulation-execution.service';
 
 @Injectable()
@@ -40,7 +39,7 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         return await super.create(simulationItemEntity);
     }
 
-    async start(id: string): Promise<boolean> {
+    async run(id: string): Promise<boolean> {
         const simulationItemExists = await this.findOneByFilter({ id }, { relations: { simulationContext: true } });
         if (!simulationItemExists) {
             this.loggerService.error(`[SimulationItemService] Simulation item not found with id ${id}`);
@@ -62,17 +61,6 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
             await super.update(id, { status: SimulationItemStatus.PENDING, errorMessage: error?.message });
             return false;
         }
-    }
-
-    async delete(id: string): Promise<boolean> {
-        try {
-            await this.puppeteerService.closePageSession(id);
-        } catch {
-            this.loggerService.error(`[SimulationItemService] Failed to close page session for id ${id}`);
-            throw new NotFoundException('Failed to close page session');
-        }
-
-        return await super.delete(id);
     }
 
     private async loadSimulationItems(): Promise<void> {

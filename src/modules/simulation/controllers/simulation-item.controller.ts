@@ -28,13 +28,13 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
         return result;
     }
 
-    @ApiOperation({ summary: 'Start simulation item' })
+    @ApiOperation({ summary: 'Run simulation item' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
-    @Post(':id/start')
+    @Post(':id/run')
     @BaseApiOkResponse(Boolean)
-    public async start(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
-        const result = await this.simulationItemService.start(id);
+    public async run(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
+        const result = await this.simulationItemService.run(id);
         return result;
     }
 }
