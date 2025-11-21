@@ -9,11 +9,6 @@ export class CreateSimulationItemRequest {
     @AutoMap()
     simulationContextId: string;
 
-    @ApiProperty({ description: 'Service execution', enum: SimulationService, default: SimulationService.UNLUCID_AI })
-    @IsEnum(SimulationService)
-    @AutoMap()
-    serviceExecution: SimulationService;
-
     @ApiPropertyOptional({ description: 'Payload' })
     @IsOptional()
     @IsObject()

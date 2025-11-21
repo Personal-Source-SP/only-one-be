@@ -2,18 +2,13 @@ import { AutoMap } from '@automapper/classes';
 import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { SimulationContextStatus } from '../enums';
+import { SimulationContextStatus, SimulationService } from '../enums';
 import { SimulationItemEntity } from './simulation-item.entity';
 
 @Entity({ name: 'simulation_contexts', synchronize: false })
 @Check(`"base_url" NOT LIKE '%/'`)
 @Unique(['baseUrl'])
-@Check(`"identifier" is null OR "identifier" ~ '^[a-z0-9-]+$'`)
 export class SimulationContextEntity extends AbstractEntity {
-    @Column({ length: 255 })
-    @AutoMap()
-    identifier: string;
-
     @Column({ length: 255 })
     @AutoMap()
     name: string;
@@ -26,13 +21,21 @@ export class SimulationContextEntity extends AbstractEntity {
     @AutoMap()
     status: SimulationContextStatus;
 
+    @Column({ type: 'varchar', length: 255, default: SimulationService.UNLUCID_AI })
+    @AutoMap()
+    serviceExecution: SimulationService;
+
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap(() => Object)
-    payload?: Record<string, any>;
+    defaultPayload?: Record<string, any>;
+
+    @Column({ type: 'jsonb', nullable: true })
+    @AutoMap(() => Object)
+    steps?: Record<string, any>;
 
     @Column({ type: 'timestamp', nullable: true })
     @AutoMap()
-    lastSuccessfulScrapeAt?: Date;
+    lastSuccessfulRunAt?: Date;
 
     @OneToMany(() => SimulationItemEntity, (entity) => entity.simulationContext)
     @AutoMap(() => [SimulationItemEntity])

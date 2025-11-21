@@ -8,13 +8,13 @@ const simulationContextColumns = getColumnNames(SimulationContextEntity);
 const simulationItemColumns = getRelationColumns(SimulationContextEntity, 'simulationItems', ['simulationContextId']);
 
 export const SIMULATION_CONTEXT_PAGINATION_CONFIG = createPaginationConfig<SimulationContextDto>({
-    sortableColumns: ['identifier', 'name', 'baseUrl', 'status'],
-    searchableColumns: ['identifier', 'name', 'baseUrl', 'status'],
+    sortableColumns: ['name', 'baseUrl', 'status'],
+    searchableColumns: ['name', 'baseUrl', 'status', 'serviceExecution'],
     filterableColumns: {
-        identifier: [FilterOperator.ILIKE, FilterOperator.EQ],
         name: [FilterOperator.ILIKE, FilterOperator.EQ],
         baseUrl: [FilterOperator.ILIKE, FilterOperator.EQ],
         status: [FilterOperator.EQ],
+        serviceExecution: [FilterOperator.EQ],
     },
     relations: ['simulationItems'],
     defaultSortBy: [['createdAt', 'DESC']],

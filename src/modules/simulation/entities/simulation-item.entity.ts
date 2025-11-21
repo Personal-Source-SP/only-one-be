@@ -11,10 +11,6 @@ export class SimulationItemEntity extends AbstractEntity {
     @AutoMap()
     simulationContextId: string;
 
-    @Column({ type: 'varchar', length: 255, default: SimulationService.UNLUCID_AI })
-    @AutoMap()
-    serviceExecution: SimulationService;
-
     @Column({ type: 'varchar', length: 255, default: SimulationItemStatus.PENDING })
     @AutoMap()
     status: SimulationItemStatus;
