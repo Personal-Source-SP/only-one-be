@@ -37,24 +37,4 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
         const result = await this.simulationItemService.start(id);
         return result;
     }
-
-    @ApiOperation({ summary: 'Pause simulation item' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post(':id/pause')
-    @BaseApiOkResponse(Boolean)
-    public async pause(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
-        const result = await this.simulationItemService.pause(id);
-        return result;
-    }
-
-    @ApiOperation({ summary: 'Stop simulation item' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post(':id/stop')
-    @BaseApiOkResponse(Boolean)
-    public async stop(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
-        const result = await this.simulationItemService.stop(id);
-        return result;
-    }
 }

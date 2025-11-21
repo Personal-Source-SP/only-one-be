@@ -3,7 +3,6 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { SimulationContextStatus, SimulationService } from '../enums';
-import { SimulationItemDto } from './simulation-item.dto';
 
 export class SimulationContextDto extends AbstractDto {
     @ApiResponseProperty()
@@ -33,8 +32,4 @@ export class SimulationContextDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     lastSuccessfulRunAt?: Date;
-
-    @ApiResponseProperty()
-    @AutoMap(() => [SimulationItemDto])
-    simulationItems?: SimulationItemDto[];
 }

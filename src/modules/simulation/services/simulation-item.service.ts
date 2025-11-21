@@ -12,11 +12,14 @@ import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
 import { SimulationItemStatus } from '../enums';
+import { SimulationContextService } from './simulation-context.service';
+import { SimulationExecutionService } from './simulation-execution.service';
 
 @Injectable()
 export class SimulationItemService extends BaseService<SimulationItemEntity, SimulationItemDto> implements OnModuleInit {
     constructor(
         private readonly puppeteerService: PuppeteerService,
+        private readonly simulationExecutionService: SimulationExecutionService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(SimulationItemEntity) simulationItemRepository: Repository<SimulationItemEntity>,
     ) {
@@ -38,45 +41,18 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
     }
 
     async start(id: string): Promise<boolean> {
-        const simulationItemExists = await this.findById(id);
+        const simulationItemExists = await this.findOneByFilter({ id }, { relations: { simulationContext: true } });
         if (!simulationItemExists) {
             this.loggerService.error(`[SimulationItemService] Simulation item not found with id ${id}`);
             throw new NotFoundException('Simulation item not found');
         }
 
-        const { wsEndpoint } = await this.puppeteerService.ensureSessionAndPage(id);
-
-        return await super.update(id, {
-            status: SimulationItemStatus.PROCESSING,
-            metadata: { ...(simulationItemExists.payload ?? {}), wsEndpoint },
+        const result = await this.simulationExecutionService.execute({
+            payload: simulationItemExists.payload,
+            serviceExecution: simulationItemExists.simulationContext?.serviceExecution,
         });
-    }
 
-    async pause(id: string): Promise<boolean> {
-        const simulationItemExists = await this.exists({ id });
-        if (!simulationItemExists) {
-            this.loggerService.error(`[SimulationItemService] Simulation item not found with id ${id}`);
-            throw new NotFoundException('Simulation item not found');
-        }
-
-        return await super.update(id, { status: SimulationItemStatus.PAUSED });
-    }
-
-    async stop(id: string): Promise<boolean> {
-        const simulationItemExists = await this.exists({ id });
-        if (!simulationItemExists) {
-            this.loggerService.error(`[SimulationItemService] Simulation item not found with id ${id}`);
-            throw new NotFoundException('Simulation item not found');
-        }
-
-        try {
-            await this.puppeteerService.closePageSession(id);
-        } catch {
-            this.loggerService.error(`[SimulationItemService] Failed to close page session for id ${id}`);
-            throw new NotFoundException('Failed to close page session');
-        }
-
-        return await super.update(id, { status: SimulationItemStatus.STOPPED });
+        return result.isSuccess;
     }
 
     async delete(id: string): Promise<boolean> {
