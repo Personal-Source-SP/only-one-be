@@ -28,6 +28,7 @@ import { SharedModule } from './shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationModule } from './modules/notification/notification.module';
 import { WebsocketModule } from './modules/websocket/websocket.module';
+import { StoresModule } from './modules/stores/stores.module';
 
 @Module({
     imports: [
@@ -72,6 +73,7 @@ import { WebsocketModule } from './modules/websocket/websocket.module';
         WorkerModule.register(),
         NotificationModule,
         WebsocketModule,
+        StoresModule,
     ],
     controllers: [AppController],
     providers: [AppService, JwtService],
