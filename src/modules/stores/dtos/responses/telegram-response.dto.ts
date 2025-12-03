@@ -15,3 +15,27 @@ export class TelegramMessageResponse {
     @IsOptional()
     document?: ITelegramDocument;
 }
+
+export class TelegramFileStreamResponse {
+    @ApiResponseProperty()
+    @IsNotEmpty()
+    data: Buffer;
+
+    @ApiResponseProperty()
+    @IsNotEmpty()
+    headers: Record<string, any>;
+
+    @ApiResponseProperty()
+    @IsNotEmpty()
+    filePath: string;
+
+    @ApiResponseProperty()
+    @IsNotEmpty()
+    fileName: string;
+
+    constructor(data: Partial<TelegramFileStreamResponse>) {
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+}

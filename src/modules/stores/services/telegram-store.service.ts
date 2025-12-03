@@ -9,7 +9,7 @@ import { AppConfigService } from '../../../shared/services/app-config.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
-import { TelegramMessageResponse } from '../dtos/responses';
+import { TelegramFileStreamResponse, TelegramMessageResponse } from '../dtos/responses';
 import { ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
 
 @Injectable()
@@ -41,9 +41,46 @@ export class TelegramStoreService {
         });
     }
 
-    async getFileDownloadUrl(fileId: string): Promise<string> {
+    async getFileStream(fileId: string): Promise<TelegramFileStreamResponse> {
         const fileInfo = await this.fetchFileInfo(fileId);
-        return `${this.telegramConfig.fileBaseUrl}/${fileInfo.filePath}`;
+
+        if (!fileInfo.filePath) {
+            this.logger.error(`File path is missing for file ${fileId}`);
+            throw new BadRequestException('Requested file does not have a downloadable path');
+        }
+
+        const url = `${this.telegramConfig.fileBaseUrl}/${fileInfo.filePath}`;
+        const response = await this.baseHttpService.get<ArrayBuffer>(url, {
+            responseType: 'arraybuffer',
+        });
+
+        const contentType = (response.headers?.['content-type'] as string) || 'application/octet-stream';
+        const fileNameFromPath = fileInfo.filePath.split('/').pop();
+
+        let normalizedFileName = fileNameFromPath;
+        if (!normalizedFileName.includes('.')) {
+            const extensionMap: Record<string, string> = {
+                'application/pdf': 'pdf',
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/gif': 'gif',
+                'image/webp': 'webp',
+                'video/mp4': 'mp4',
+                'audio/mpeg': 'mp3',
+            };
+
+            const ext = extensionMap[contentType];
+            if (ext) {
+                normalizedFileName = `${normalizedFileName}.${ext}`;
+            }
+        }
+
+        return {
+            headers: response.headers,
+            filePath: fileInfo.filePath,
+            fileName: normalizedFileName,
+            data: Buffer.from(response.data),
+        };
     }
 
     private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {
@@ -198,7 +235,7 @@ export class TelegramStoreService {
         switch (method) {
             case HttpMethod.POST: {
                 response = await this.baseHttpService.post<ITelegramApiResponse<T>>(url, form, {
-                    headers: form.getHeaders(),
+                    headers: form ? form.getHeaders() : undefined,
                     ...this.convertCamelToSnakeCase(config),
                 });
                 break;
@@ -206,7 +243,6 @@ export class TelegramStoreService {
 
             case HttpMethod.GET: {
                 response = await this.baseHttpService.get<ITelegramApiResponse<T>>(url, {
-                    headers: form.getHeaders(),
                     ...this.convertCamelToSnakeCase(config),
                 });
                 break;
