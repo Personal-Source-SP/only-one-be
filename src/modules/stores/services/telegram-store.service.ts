@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
+import { snakeCase } from 'lodash';
 import { HttpMethod } from '../../../common/enums';
 import { ITelegramConfig } from '../../../shared/interfaces';
 import { AppConfigService } from '../../../shared/services/app-config.service';
@@ -42,7 +43,7 @@ export class TelegramStoreService {
 
     async getFileDownloadUrl(fileId: string): Promise<string> {
         const fileInfo = await this.fetchFileInfo(fileId);
-        return `${this.telegramConfig.fileBaseUrl}/${fileInfo.file_path}`;
+        return `${this.telegramConfig.fileBaseUrl}/${fileInfo.filePath}`;
     }
 
     private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {
@@ -101,6 +102,56 @@ export class TelegramStoreService {
         return form;
     }
 
+    private convertCamelToSnakeCase<T = any>(obj: any): T {
+        if (obj === null || obj === undefined) {
+            return obj as T;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.convertCamelToSnakeCase(item)) as T;
+        }
+
+        if (obj instanceof Date || obj instanceof RegExp || obj instanceof Map || obj instanceof Set) {
+            return obj as T;
+        }
+
+        if (typeof obj === 'object') {
+            const converted: Record<string, any> = {};
+
+            for (const [key, value] of Object.entries(obj)) {
+                const snakeKey = snakeCase(key);
+                converted[snakeKey] = this.convertCamelToSnakeCase(value);
+            }
+
+            return converted as T;
+        }
+
+        return obj as T;
+    }
+
+    private convertSnakeToCamelCase<T = any>(obj: any): T {
+        if (obj === null || obj === undefined) {
+            return obj as T;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.convertSnakeToCamelCase(item)) as T;
+        }
+
+        if (typeof obj === 'object' && obj.constructor === Object) {
+            const converted: Record<string, any> = {};
+
+            for (const [key, value] of Object.entries(obj)) {
+                const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+                converted[camelKey] = this.convertSnakeToCamelCase(value);
+            }
+
+            return converted as T;
+        }
+
+        return obj as T;
+    }
+
     private extractTelegramResult<T>(payload: ITelegramApiResponse<T>, method: string): T {
         if (!payload?.ok || !payload.result) {
             const errorMessage = payload?.description || `Telegram ${method} failed`;
@@ -109,7 +160,7 @@ export class TelegramStoreService {
             throw new BadRequestException(errorMessage);
         }
 
-        return payload.result;
+        return this.convertSnakeToCamelCase(payload.result);
     }
 
     private async fetchFileInfo(fileId: string): Promise<ITelegramFile> {
@@ -118,12 +169,12 @@ export class TelegramStoreService {
             method: HttpMethod.GET,
             options: {
                 config: {
-                    params: { file_id: fileId },
+                    params: { fileId },
                 },
             },
         });
 
-        if (!fileInfo.file_path) {
+        if (!fileInfo.filePath) {
             this.logger.error(`File path is missing for file ${fileId}`);
             throw new BadRequestException('Requested file does not have a downloadable path');
         }
@@ -148,7 +199,7 @@ export class TelegramStoreService {
             case HttpMethod.POST: {
                 response = await this.baseHttpService.post<ITelegramApiResponse<T>>(url, form, {
                     headers: form.getHeaders(),
-                    ...config,
+                    ...this.convertCamelToSnakeCase(config),
                 });
                 break;
             }
@@ -156,7 +207,7 @@ export class TelegramStoreService {
             case HttpMethod.GET: {
                 response = await this.baseHttpService.get<ITelegramApiResponse<T>>(url, {
                     headers: form.getHeaders(),
-                    ...config,
+                    ...this.convertCamelToSnakeCase(config),
                 });
                 break;
             }
@@ -167,6 +218,6 @@ export class TelegramStoreService {
             }
         }
 
-        return this.extractTelegramResult(response.data, endpoint);
+        return this.extractTelegramResult<T>(response.data, endpoint);
     }
 }
