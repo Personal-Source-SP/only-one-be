@@ -45,15 +45,6 @@ export class TelegramStoreService {
         return `${this.telegramConfig.fileBaseUrl}/${fileInfo.file_path}`;
     }
 
-    async getFileBuffer(fileId: string): Promise<Buffer> {
-        const fileInfo = await this.fetchFileInfo(fileId);
-        const { data } = await this.baseHttpService.get<ArrayBuffer>(`${this.telegramConfig.fileBaseUrl}/${fileInfo.file_path}`, {
-            responseType: 'arraybuffer',
-        });
-
-        return Buffer.from(data);
-    }
-
     private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {
         const { chatId, caption, parseMode, replyToMessageId, disableNotification } = request;
 
