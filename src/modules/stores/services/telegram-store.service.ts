@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
 import { HttpMethod } from '../../../common/enums';
@@ -7,9 +7,9 @@ import { ITelegramConfig } from '../../../shared/interfaces';
 import { AppConfigService } from '../../../shared/services/app-config.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
-import { TelegramUpdateDocumentRequest, TelegramUploadDocumentRequest } from '../dtos/requests';
+import { TelegramUploadDocumentRequest } from '../dtos/requests';
 import { TelegramMessageResponse } from '../dtos/responses';
-import { ITelegramApiResponse, ITelegramFile, ITelegramFormData } from '../interfaces';
+import { ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
 
 @Injectable()
 export class TelegramStoreService {
@@ -23,37 +23,19 @@ export class TelegramStoreService {
         this.telegramConfig = this.appConfigService.telegramConfig;
     }
 
-    async uploadFile(request: TelegramUploadDocumentRequest): Promise<TelegramMessageResponse> {
-        const form = this.buildDocumentFormData({
-            request,
-            isUpdate: false,
-            chatId: request.chatId,
-        });
-
-        return this.callTelegramApi<TelegramMessageResponse>('sendDocument', HttpMethod.POST, {
-            body: form,
-            config: {
-                headers: form.getHeaders(),
-            },
-        });
-    }
-
-    async updateFile(request: TelegramUpdateDocumentRequest): Promise<TelegramMessageResponse> {
-        if (typeof request.messageId !== 'number') {
-            this.logger.error('messageId is required to update a Telegram file');
-            throw new BadRequestException('messageId is required');
-        }
-
-        const form = this.buildDocumentFormData({
-            request,
-            isUpdate: true,
-            chatId: request.chatId,
-        });
-
-        return this.callTelegramApi<TelegramMessageResponse>('editMessageMedia', HttpMethod.POST, {
-            body: form,
-            config: {
-                headers: form.getHeaders(),
+    async uploadFile(
+        file: Express.Multer.File,
+        request: TelegramUploadDocumentRequest,
+        messageId?: number,
+    ): Promise<TelegramMessageResponse> {
+        const endpoint = messageId ? 'editMessageMedia' : 'sendDocument';
+        return this.callTelegramApi<TelegramMessageResponse>({
+            file,
+            endpoint,
+            uploadRequest: request,
+            method: HttpMethod.POST,
+            options: {
+                messageId,
             },
         });
     }
@@ -72,66 +54,57 @@ export class TelegramStoreService {
         return Buffer.from(data);
     }
 
-    private ensureBaseConfig(chatId?: string): string {
-        if (!this.telegramConfig) {
-            this.logger.error('TELEGRAM_API_BASE_URL is missing');
-            throw new BadRequestException('TELEGRAM_API_BASE_URL is required');
+    private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {
+        const { chatId, caption, parseMode, replyToMessageId, disableNotification } = request;
+
+        const filePayload = file.buffer?.length ? file.buffer : file.stream;
+        if (!filePayload) {
+            this.logger.error('Uploaded file payload is empty');
+            throw new BadRequestException('Uploaded file payload is empty');
         }
-
-        const targetChatId = chatId || this.telegramConfig.defaultChannelId;
-        if (!targetChatId) {
-            this.logger.error('TELEGRAM_DEFAULT_CHANNEL_ID is missing');
-            throw new BadRequestException('TELEGRAM_DEFAULT_CHANNEL_ID is required');
-        }
-
-        return targetChatId;
-    }
-
-    private buildDocumentFormData(options: ITelegramFormData): FormData {
-        const { chatId, request, isUpdate } = options;
 
         const form = new FormData();
 
-        const targetChatId = this.ensureBaseConfig(chatId);
+        const targetChatId = chatId || this.telegramConfig.defaultChannelId;
         form.append('chat_id', targetChatId);
 
-        if (isUpdate) {
+        if (messageId) {
             const mediaPayload: Record<string, unknown> = {
                 type: 'document',
                 media: 'attach://document',
             };
 
-            if (request.caption) {
-                mediaPayload.caption = request.caption;
+            if (caption) {
+                mediaPayload.caption = caption;
             }
 
-            if (request.parseMode) {
-                mediaPayload.parse_mode = request.parseMode;
+            if (parseMode) {
+                mediaPayload.parse_mode = parseMode;
             }
 
-            form.append('message_id', (request as TelegramUpdateDocumentRequest).messageId!.toString());
+            form.append('message_id', messageId.toString());
             form.append('media', JSON.stringify(mediaPayload));
         } else {
-            if (request.caption) {
-                form.append('caption', request.caption);
+            if (caption) {
+                form.append('caption', caption);
             }
 
-            if (request.parseMode) {
-                form.append('parse_mode', request.parseMode);
+            if (parseMode) {
+                form.append('parse_mode', parseMode);
             }
 
-            if (typeof (request as TelegramUploadDocumentRequest).replyToMessageId === 'number') {
-                form.append('reply_to_message_id', (request as TelegramUploadDocumentRequest).replyToMessageId.toString());
+            if (typeof replyToMessageId === 'number') {
+                form.append('reply_to_message_id', replyToMessageId.toString());
             }
         }
 
-        form.append('document', request.file, {
-            filename: request.fileName,
-            contentType: request.mimeType,
+        form.append('document', filePayload, {
+            contentType: file.mimetype,
+            filename: file.originalname,
         });
 
-        if (typeof request.disableNotification === 'boolean') {
-            form.append('disable_notification', request.disableNotification ? 'true' : 'false');
+        if (typeof disableNotification === 'boolean') {
+            form.append('disable_notification', disableNotification ? 'true' : 'false');
         }
 
         return form;
@@ -140,8 +113,8 @@ export class TelegramStoreService {
     private extractTelegramResult<T>(payload: ITelegramApiResponse<T>, method: string): T {
         if (!payload?.ok || !payload.result) {
             const errorMessage = payload?.description || `Telegram ${method} failed`;
-
             this.logger.error(errorMessage);
+
             throw new BadRequestException(errorMessage);
         }
 
@@ -149,11 +122,13 @@ export class TelegramStoreService {
     }
 
     private async fetchFileInfo(fileId: string): Promise<ITelegramFile> {
-        this.ensureBaseConfig();
-
-        const fileInfo = await this.callTelegramApi<ITelegramFile>('getFile', HttpMethod.GET, {
-            config: {
-                params: { file_id: fileId },
+        const fileInfo = await this.callTelegramApi<ITelegramFile>({
+            endpoint: 'getFile',
+            method: HttpMethod.GET,
+            options: {
+                config: {
+                    params: { file_id: fileId },
+                },
             },
         });
 
@@ -165,28 +140,33 @@ export class TelegramStoreService {
         return fileInfo;
     }
 
-    private async callTelegramApi<T>(
-        endpoint: string,
-        method: HttpMethod,
-        options: {
-            body?: any;
-            config?: AxiosRequestConfig;
-        },
-    ): Promise<T> {
-        const { body, config } = options;
+    private async callTelegramApi<T>(request: ITelegramRequest): Promise<T> {
+        const { endpoint, method, file, uploadRequest, options } = request;
+        const { messageId, config } = options;
 
         const url = `${this.telegramConfig.apiBaseUrl}/${endpoint}`;
+
+        let form: FormData;
+        if (uploadRequest && file) {
+            form = this.buildDocumentFormData(file, uploadRequest, messageId);
+        }
 
         let response: AxiosResponse<ITelegramApiResponse<T>>;
 
         switch (method) {
             case HttpMethod.POST: {
-                response = await this.baseHttpService.post<ITelegramApiResponse<T>>(url, body, config);
+                response = await this.baseHttpService.post<ITelegramApiResponse<T>>(url, form, {
+                    headers: form.getHeaders(),
+                    ...config,
+                });
                 break;
             }
 
             case HttpMethod.GET: {
-                response = await this.baseHttpService.get<ITelegramApiResponse<T>>(url, config);
+                response = await this.baseHttpService.get<ITelegramApiResponse<T>>(url, {
+                    headers: form.getHeaders(),
+                    ...config,
+                });
                 break;
             }
 

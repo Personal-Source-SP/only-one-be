@@ -8,17 +8,15 @@ import {
     ParseIntPipe,
     Post,
     UploadedFile,
-    UseGuards,
     Version,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { ApiFile } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { TelegramUpdateDocumentRequest, TelegramUploadDocumentRequest } from '../dtos/requests';
+import { TelegramUploadDocumentRequest } from '../dtos/requests';
 import { TelegramMessageResponse } from '../dtos/responses';
 import { TelegramStoreService } from '../services/telegram-store.service';
-import { ApiFile } from '../../../decorators';
 
 @Controller('stores')
 @ApiTags('stores')
@@ -27,10 +25,7 @@ import { ApiFile } from '../../../decorators';
 export class StoresController {
     constructor(private readonly telegramStoreService: TelegramStoreService) {}
 
-    @ApiOperation({
-        summary: 'Upload file to Telegram store',
-        description: 'Upload file to Telegram store and return the message ID',
-    })
+    @ApiOperation({ summary: 'Upload file to Telegram store' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
     @Post('telegram/upload')
@@ -38,52 +33,28 @@ export class StoresController {
     @BaseApiOkResponse(TelegramMessageResponse)
     async uploadTelegramFile(
         @UploadedFile() file: Express.Multer.File,
-        // @Body() request: TelegramUploadDocumentRequest,
+        @Body() request: TelegramUploadDocumentRequest,
     ): Promise<TelegramMessageResponse> {
-        if (!file) {
-            throw new BadRequestException('No file uploaded');
-        }
+        if (!file) throw new BadRequestException('No file uploaded');
 
-        const response = await this.telegramStoreService.uploadFile({
-            file: file.buffer,
-            fileName: file.originalname,
-            mimeType: file.mimetype,
-            caption: file.originalname,
-            // chatId: file.originalname,
-            disableNotification: false,
-        });
-
+        const response = await this.telegramStoreService.uploadFile(file, request);
         return response;
     }
 
-    @ApiOperation({
-        summary: 'Update existing Telegram stored file',
-        description: 'Update existing Telegram stored file and return the message ID',
-    })
+    @ApiOperation({ summary: 'Update existing Telegram stored file' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
     @Post('telegram/:messageId/update')
     @ApiFile({ description: 'Telegram file to update' })
     @BaseApiOkResponse(TelegramMessageResponse)
     async updateTelegramFile(
-        @Param('messageId', ParseIntPipe) messageId: number,
         @UploadedFile() file: Express.Multer.File,
-        @Body() request: TelegramUpdateDocumentRequest,
+        @Body() request: TelegramUploadDocumentRequest,
+        @Param('messageId', new ParseIntPipe()) messageId: number,
     ): Promise<TelegramMessageResponse> {
-        if (!file) {
-            throw new BadRequestException('No file uploaded');
-        }
+        if (!file) throw new BadRequestException('No file uploaded');
 
-        const response = await this.telegramStoreService.updateFile({
-            file: file.buffer,
-            fileName: file.originalname,
-            mimeType: file.mimetype,
-            messageId,
-            caption: request.caption,
-            chatId: request.chatId,
-            disableNotification: request.disableNotification,
-        });
-
+        const response = await this.telegramStoreService.uploadFile(file, request, messageId);
         return response;
     }
 }

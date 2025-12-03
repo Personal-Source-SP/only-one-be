@@ -1,4 +1,6 @@
-import { TelegramUpdateDocumentRequest, TelegramUploadDocumentRequest } from '../dtos/requests';
+import { AxiosRequestConfig } from 'axios';
+import { HttpMethod } from '../../../common/enums';
+import { TelegramUploadDocumentRequest } from '../dtos/requests';
 
 export interface ITelegramDocument {
     file_id: string;
@@ -15,15 +17,20 @@ export interface ITelegramFile {
     file_path?: string;
 }
 
+export interface ITelegramRequest {
+    endpoint: string;
+    method: HttpMethod;
+    file?: Express.Multer.File;
+    uploadRequest?: TelegramUploadDocumentRequest;
+    options: {
+        messageId?: number;
+        config?: AxiosRequestConfig;
+    };
+}
+
 export interface ITelegramApiResponse<T> {
     ok: boolean;
     result: T;
-    error_code?: number;
+    errorCode?: number;
     description?: string;
-}
-
-export interface ITelegramFormData {
-    chatId: string;
-    isUpdate: boolean;
-    request: TelegramUploadDocumentRequest | TelegramUpdateDocumentRequest;
 }
