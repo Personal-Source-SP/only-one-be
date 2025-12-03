@@ -3,22 +3,23 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
-import { IJwtConfig } from '../interfaces/app-config.interface';
+import { IJwtConfig, IRedisConfig, ISchedulerConfig, IScraperConfig, ITelegramConfig } from '../interfaces';
 import { SnakeNamingStrategy } from '../typeorm/strategies/snake-naming.strategy';
+import { LoggerService } from './logger.service';
 
 @Injectable()
 export class AppConfigService {
+    private readonly logger = new LoggerService(AppConfigService.name);
+
     constructor() {
-        dotenv.config({
-            path: `.env`,
-        });
+        dotenv.config({ path: `.env` });
 
         for (const envName of Object.keys(process.env)) {
             process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
         }
 
         if (this.nodeEnv === 'development') {
-            console.info(process.env);
+            this.logger.info(`Environment variables: ${JSON.stringify(process.env)}`);
         }
     }
 
@@ -112,7 +113,7 @@ export class AppConfigService {
         };
     }
 
-    get redisConfig() {
+    get redisConfig(): IRedisConfig {
         return {
             host: this.get('REDIS_HOST'),
             port: this.getNumber('REDIS_PORT'),
@@ -120,20 +121,25 @@ export class AppConfigService {
         };
     }
 
-    get scraperConfig() {
+    get scraperConfig(): IScraperConfig {
         return {
             url: this.get('SCRAPER_URL'),
             secretKey: this.get('SCRAPER_SECRET_KEY'),
         };
     }
 
-    get scheduleConfig(): {
-        enabled: boolean;
-        removedOnCompleted: boolean;
-    } {
+    get scheduleConfig(): ISchedulerConfig {
         return {
             enabled: this.getBoolean('SCHEDULE_ENABLED'),
             removedOnCompleted: this.getBoolean('SCHEDULE_JOB_QUEUE_REMOVED_ON_COMPLETED'),
+        };
+    }
+
+    get telegramConfig(): ITelegramConfig {
+        return {
+            apiBaseUrl: this.get('TELEGRAM_API_BASE_URL'),
+            fileBaseUrl: this.get('TELEGRAM_FILE_BASE_URL'),
+            defaultChannelId: this.get('TELEGRAM_DEFAULT_CHANNEL_ID'),
         };
     }
 }

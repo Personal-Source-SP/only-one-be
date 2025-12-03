@@ -9,18 +9,16 @@ import {
     Post,
     UploadedFile,
     UseGuards,
-    UseInterceptors,
     Version,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { TelegramUpdateDocumentRequest, TelegramUploadDocumentRequest } from '../dtos/requests';
 import { TelegramMessageResponse } from '../dtos/responses';
 import { TelegramStoreService } from '../services/telegram-store.service';
+import { ApiFile } from '../../../decorators';
 
 @Controller('stores')
 @ApiTags('stores')
@@ -36,27 +34,7 @@ export class StoresController {
     @Version('1')
     @HttpCode(HttpStatus.OK)
     @Post('telegram/upload')
-    @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                },
-            },
-            required: ['file'],
-        },
-    })
-    @UseInterceptors(
-        FileInterceptor('file', {
-            storage: memoryStorage(),
-            limits: {
-                fileSize: 1024 * 1024 * 20,
-            },
-        }),
-    )
+    @ApiFile({ description: 'Telegram file to upload' })
     @BaseApiOkResponse(TelegramMessageResponse)
     async uploadTelegramFile(
         @UploadedFile() file: Express.Multer.File,
@@ -85,36 +63,7 @@ export class StoresController {
     @Version('1')
     @HttpCode(HttpStatus.OK)
     @Post('telegram/:messageId/update')
-    @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                },
-                chatId: {
-                    type: 'string',
-                },
-                caption: {
-                    type: 'string',
-                },
-                disableNotification: {
-                    type: 'boolean',
-                },
-            },
-            required: ['file', 'chatId'],
-        },
-    })
-    @UseInterceptors(
-        FileInterceptor('file', {
-            storage: memoryStorage(),
-            limits: {
-                fileSize: 1024 * 1024 * 20,
-            },
-        }),
-    )
+    @ApiFile({ description: 'Telegram file to update' })
     @BaseApiOkResponse(TelegramMessageResponse)
     async updateTelegramFile(
         @Param('messageId', ParseIntPipe) messageId: number,

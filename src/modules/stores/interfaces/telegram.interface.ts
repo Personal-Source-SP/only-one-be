@@ -1,3 +1,5 @@
+import { TelegramUpdateDocumentRequest, TelegramUploadDocumentRequest } from '../dtos/requests';
+
 export interface ITelegramDocument {
     file_id: string;
     file_unique_id: string;
@@ -18,4 +20,10 @@ export interface ITelegramApiResponse<T> {
     result: T;
     error_code?: number;
     description?: string;
+}
+
+export interface ITelegramFormData {
+    chatId: string;
+    isUpdate: boolean;
+    request: TelegramUploadDocumentRequest | TelegramUpdateDocumentRequest;
 }
