@@ -10,7 +10,7 @@ export class TelegramListener {
     constructor(private readonly telegramStoreService: TelegramStoreService) {}
 
     @OnEvent(TELEGRAM_EVENTS.UPLOAD_FILE, { async: true })
-    async handleUploadFile(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): Promise<void> {
-        await this.telegramStoreService.uploadFile(file, request, messageId);
+    async handleUploadFile(file: Express.Multer.File, request: TelegramUploadDocumentRequest): Promise<void> {
+        await this.telegramStoreService.uploadFile(file, request);
     }
 }

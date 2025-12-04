@@ -15,7 +15,7 @@ import { DataProviderStatus } from '../enums';
 import { DataProviderService } from '../services/data-provider.service';
 
 @Controller('data-providers')
-@ApiTags('data-providers')
+@ApiTags('Data Providers')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class DataProviderController extends BaseController<DataProviderEntity, DataProviderDto> {

@@ -14,7 +14,7 @@ import { FileTagEntity } from '../entities/file-tag.entity';
 import { FileTagService } from '../services/file-tag.service';
 
 @Controller('file-tag')
-@ApiTags('file-tag')
+@ApiTags('File Tag')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class FileTagController extends BaseController<FileTagEntity, FileTagDto> {

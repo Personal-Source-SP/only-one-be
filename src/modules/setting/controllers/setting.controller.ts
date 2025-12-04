@@ -9,7 +9,7 @@ import { SettingEntity } from '../entities/setting.entity';
 import { SettingService } from '../services/setting.service';
 
 @Controller('settings')
-@ApiTags('settings')
+@ApiTags('Settings')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SettingController extends BaseController<SettingEntity, SettingDto> {

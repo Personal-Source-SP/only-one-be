@@ -10,7 +10,7 @@ import { RefreshTokenResponseDto, SignInResponseDto } from '../dtos/responses/au
 import { AuthService } from '../services/auth.service';
 
 @Controller('auth')
-@ApiTags('auth')
+@ApiTags('Auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 

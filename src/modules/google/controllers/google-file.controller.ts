@@ -9,7 +9,7 @@ import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
 import { GoogleFileService } from '../services/google-file.service';
 
 @Controller('google-file')
-@ApiTags('google-file')
+@ApiTags('Google File')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GoogleFileController extends BaseController<GoogleDriveFileEntity, GoogleDriveFileDto> {

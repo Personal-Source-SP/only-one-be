@@ -9,7 +9,7 @@ import { SimulationExecutionSummary } from '../interfaces';
 import { SimulationExecutionService } from '../services/simulation-execution.service';
 
 @Controller('simulations')
-@ApiTags('simulations')
+@ApiTags('Simulations')
 export class SimulationController {
     constructor(private readonly simulationExecutionService: SimulationExecutionService) {}
 

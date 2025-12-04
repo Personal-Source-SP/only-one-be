@@ -8,7 +8,7 @@ import { IExtractDataResponse } from '../interfaces';
 import { ParserService } from '../services/parser.service';
 
 @Controller('parsers')
-@ApiTags('parsers')
+@ApiTags('Parsers')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class ParserController {

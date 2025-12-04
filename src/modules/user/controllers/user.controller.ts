@@ -11,7 +11,7 @@ import { UserEntity } from '../entities/user.entity';
 import { UserService } from '../services/user.service';
 
 @Controller('users')
-@ApiTags('users')
+@ApiTags('Users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class UserController extends BaseController<UserEntity, UserDto> {

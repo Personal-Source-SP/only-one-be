@@ -10,7 +10,7 @@ import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity'
 import { GoogleFolderService } from '../services/google-folder.service';
 
 @Controller('google-folder')
-@ApiTags('google-folder')
+@ApiTags('Google Folder')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GoogleFolderController extends BaseController<GoogleDriveFolderEntity, GoogleDriveFolderDto> {

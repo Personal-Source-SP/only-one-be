@@ -10,7 +10,7 @@ import { QueueStatusEnum } from '../enums/queue-status.enum';
 import { QueueService } from '../services/queue.service';
 
 @Controller('queue')
-@ApiTags('queue')
+@ApiTags('Queue')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class QueueController {

@@ -11,7 +11,7 @@ import { ItemEntity } from '../entities/item.entity';
 import { ItemService } from '../services/item.service';
 
 @Controller('items')
-@ApiTags('items')
+@ApiTags('Items')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ItemController extends BaseController<ItemEntity, ItemDto> {

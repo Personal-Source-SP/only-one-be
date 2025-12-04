@@ -9,7 +9,7 @@ import { StoreItemEntity } from '../entities/store-item.entity';
 import { StoreItemService } from '../services/store-item.service';
 
 @Controller('store-items')
-@ApiTags('store-items')
+@ApiTags('Store Items')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class StoreItemController extends BaseController<StoreItemEntity, StoreItemDto> {

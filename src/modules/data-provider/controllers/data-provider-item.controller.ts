@@ -24,7 +24,7 @@ import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderItemService } from '../services/data-provider-item.service';
 
 @Controller('data-provider-items')
-@ApiTags('data-provider-items')
+@ApiTags('Data Provider Items')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DataProviderItemController extends BaseController<DataProviderItemEntity, DataProviderItemDto> {

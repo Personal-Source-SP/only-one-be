@@ -11,7 +11,7 @@ import { GoogleAuthEntity } from '../entities/google-auth.entity';
 import { GoogleAuthService } from '../services/google-auth.service';
 
 @Controller('google-auth')
-@ApiTags('google-auth')
+@ApiTags('Google Auth')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GoogleAuthController extends BaseController<GoogleAuthEntity, GoogleAuthDto> {

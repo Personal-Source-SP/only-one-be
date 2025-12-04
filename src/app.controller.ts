@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { LoggerService } from './shared/services/logger.service';
 
 @Controller('/')
-@ApiTags('helloworld')
+@ApiTags('Hello World')
 export class AppController {
     private readonly loggerService: LoggerService = new LoggerService(AppController.name);
 

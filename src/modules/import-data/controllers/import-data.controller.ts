@@ -25,7 +25,7 @@ import { ExcelFileTypes, ImportDataType } from '../enums';
 import { ImportDataService } from '../services/import-data.service';
 
 @Controller('import-data')
-@ApiTags('import-data')
+@ApiTags('Import Data')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ImportDataController {

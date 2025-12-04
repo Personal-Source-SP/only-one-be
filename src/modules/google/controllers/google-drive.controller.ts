@@ -9,7 +9,7 @@ import { GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-previ
 import { GoogleDriveService } from '../services/google-drive.service';
 
 @Controller('google-drive')
-@ApiTags('google-drive')
+@ApiTags('Google Drive')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GoogleDriveController {
