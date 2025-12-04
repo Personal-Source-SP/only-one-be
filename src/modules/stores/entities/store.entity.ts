@@ -7,6 +7,10 @@ import { StoreItemEntity } from './store-item.entity';
 
 @Entity({ name: 'stores', synchronize: false })
 export class StoreEntity extends AbstractEntity {
+    @Column({ type: 'varchar', length: 255 })
+    @AutoMap()
+    name: string;
+
     @Column({ type: 'varchar', length: 50, default: StoreType.TELEGRAM })
     @AutoMap()
     type: StoreType;

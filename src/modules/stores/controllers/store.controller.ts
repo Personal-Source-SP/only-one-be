@@ -1,11 +1,24 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseGuards, Version } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    HttpCode,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Post,
+    Put,
+    UploadedFile,
+    UseGuards,
+    Version,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { ApiFile } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { StoreUploadFileRequest } from '../dtos/requests';
+import { CreateStoreRequest, StoreUploadFileRequest, UpdateStoreRequest } from '../dtos/requests';
 import { UploadFileResponse } from '../dtos/responses';
 import { StoreDto } from '../dtos/store.dto';
 import { StoreEntity } from '../entities/store.entity';
@@ -20,6 +33,16 @@ export class StoreController extends BaseController<StoreEntity, StoreDto> {
         super(storeService);
     }
 
+    @ApiOperation({ summary: 'Create store' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Post()
+    @BaseApiOkResponse(StoreDto)
+    async create(@Body() request: CreateStoreRequest): Promise<StoreDto> {
+        const result = await this.storeService.create(request);
+        return result;
+    }
+
     @ApiOperation({ summary: 'Upload file to store' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
@@ -31,5 +54,15 @@ export class StoreController extends BaseController<StoreEntity, StoreDto> {
 
         const response = await this.storeService.uploadFile(file, request);
         return response;
+    }
+
+    @ApiOperation({ summary: 'Update store' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Put(':id')
+    @BaseApiOkResponse(Boolean)
+    async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() request: UpdateStoreRequest): Promise<boolean> {
+        const result = await this.storeService.update(id, request);
+        return result;
     }
 }

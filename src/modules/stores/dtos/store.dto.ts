@@ -8,6 +8,10 @@ import { StoreItemDto } from './store-item.dto';
 export class StoreDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
+    name: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
     type: StoreType;
 
     @ApiResponseProperty()
