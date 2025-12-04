@@ -2,7 +2,8 @@ import { Global, Module } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { STORE_SERVICE_MAP } from './constants';
-import { StoresController } from './controllers/stores.controller';
+import { StoreItemController } from './controllers/store-item.controller';
+import { StoreController } from './controllers/store.controller';
 import { StoreItemEntity } from './entities/store-item.entity';
 import { StoreEntity } from './entities/store.entity';
 import { StoreType } from './enums';
@@ -14,8 +15,8 @@ import { TelegramStoreService } from './services/telegram-store.service';
 import { StoreProfile } from './store.profile';
 
 const listeners = [TelegramListener];
-const controllers = [StoresController];
 const entities = [StoreEntity, StoreItemEntity];
+const controllers = [StoreController, StoreItemController];
 const services = [StoreService, StoreItemService, TelegramStoreService];
 
 @Global()
