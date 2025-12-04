@@ -4,19 +4,10 @@ import * as _ from 'lodash';
 import path from 'path';
 
 export class UtilsService {
-    /**
-     * generate hash from password or string
-     * @param {string} password
-     * @returns {string}
-     */
     static generateHash(password: string): string {
         return bcrypt.hashSync(password, 10);
     }
 
-    /**
-     * generate random string
-     * @param length
-     */
     static generateRandomString(length: number): string {
         return Math.random()
             .toString(36)
@@ -24,12 +15,6 @@ export class UtilsService {
             .substr(0, length);
     }
 
-    /**
-     * validate text with hash
-     * @param {string} password
-     * @param {string} hash
-     * @returns {Promise<boolean>}
-     */
     static validateHash(password: string, hash: string): Promise<boolean> {
         return bcrypt.compare(password, hash || '');
     }
@@ -80,7 +65,7 @@ export class UtilsService {
         return Buffer.from(str, 'base64').toString('utf8');
     }
 
-    static serializeQueryString(obj, prefix): string {
+    static serializeQueryString(obj: Record<string, any>, prefix: string): string {
         const str = [];
         let p;
         for (p in obj) {
@@ -100,13 +85,13 @@ export class UtilsService {
         return str.join('&');
     }
 
-    static md5 = (data: string): string => {
+    static md5(data: string): string {
         return crypto.createHash('md5').update(data).digest('hex');
-    };
+    }
 
-    static sleep = (ms: number): Promise<void> => {
+    static sleep(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
-    };
+    }
 
     static arrayNumbers(min: number, max: number): number[] {
         return Array.from({ length: max - min + 1 }, (v, k) => k + min);
@@ -140,5 +125,55 @@ export class UtilsService {
 
         const cleanPath = encodedQuery.startsWith('/') ? encodedQuery : `/${encodedQuery}`;
         return `${baseUrl}${cleanPath}`;
+    }
+
+    static convertCamelToSnakeCase<T = any>(obj: any): T {
+        if (obj === null || obj === undefined) {
+            return obj as T;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.convertCamelToSnakeCase(item)) as T;
+        }
+
+        if (obj instanceof Date || obj instanceof RegExp || obj instanceof Map || obj instanceof Set) {
+            return obj as T;
+        }
+
+        if (typeof obj === 'object') {
+            const converted: Record<string, any> = {};
+
+            for (const [key, value] of Object.entries(obj)) {
+                const snakeKey = _.snakeCase(key);
+                converted[snakeKey] = this.convertCamelToSnakeCase(value);
+            }
+
+            return converted as T;
+        }
+
+        return obj as T;
+    }
+
+    static convertSnakeToCamelCase<T = any>(obj: any): T {
+        if (obj === null || obj === undefined) {
+            return obj as T;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.convertSnakeToCamelCase(item)) as T;
+        }
+
+        if (typeof obj === 'object' && obj.constructor === Object) {
+            const converted: Record<string, any> = {};
+
+            for (const [key, value] of Object.entries(obj)) {
+                const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+                converted[camelKey] = this.convertSnakeToCamelCase(value);
+            }
+
+            return converted as T;
+        }
+
+        return obj as T;
     }
 }
