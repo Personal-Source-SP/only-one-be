@@ -35,6 +35,10 @@ export class StoreItemEntity extends AbstractEntity {
     @AutoMap()
     fileSize?: number;
 
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    mappingId?: string;
+
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap(() => Object)
     metadata?: Record<string, any>;

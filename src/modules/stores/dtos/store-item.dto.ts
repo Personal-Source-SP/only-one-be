@@ -34,6 +34,10 @@ export class StoreItemDto extends AbstractDto {
     fileSize?: number;
 
     @ApiResponseProperty()
+    @AutoMap()
+    mappingId?: string;
+
+    @ApiResponseProperty()
     @AutoMap(() => Object)
     metadata?: Record<string, any>;
 
