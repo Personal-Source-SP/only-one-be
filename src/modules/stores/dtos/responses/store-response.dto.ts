@@ -2,7 +2,7 @@ import { ApiResponseProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
 import { ITelegramDocument } from '../../interfaces';
 
-export class TelegramMessageResponse {
+export class UploadFileResponse {
     @ApiResponseProperty()
     @IsNotEmpty()
     date: number;
@@ -16,7 +16,7 @@ export class TelegramMessageResponse {
     document?: ITelegramDocument;
 }
 
-export class TelegramFileStreamResponse {
+export class FileStreamResponse {
     @ApiResponseProperty()
     @IsNotEmpty()
     data: Buffer;
@@ -33,7 +33,7 @@ export class TelegramFileStreamResponse {
     @IsNotEmpty()
     fileName: string;
 
-    constructor(data: Partial<TelegramFileStreamResponse>) {
+    constructor(data: Partial<FileStreamResponse>) {
         if (data) {
             Object.assign(this, data);
         }

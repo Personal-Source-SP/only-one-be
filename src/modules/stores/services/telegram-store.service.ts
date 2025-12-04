@@ -9,11 +9,11 @@ import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
-import { TelegramFileStreamResponse, TelegramMessageResponse } from '../dtos/responses';
-import { ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
+import { FileStreamResponse, UploadFileResponse } from '../dtos/responses';
+import { IStoreService, IStoreServiceResponse, ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
 
 @Injectable()
-export class TelegramStoreService {
+export class TelegramStoreService implements IStoreService {
     private readonly telegramConfig: ITelegramConfig;
     private readonly logger = new LoggerService(TelegramStoreService.name);
 
@@ -28,20 +28,33 @@ export class TelegramStoreService {
         file: Express.Multer.File,
         request: TelegramUploadDocumentRequest,
         messageId?: number,
-    ): Promise<TelegramMessageResponse> {
+    ): Promise<IStoreServiceResponse<UploadFileResponse>> {
         const endpoint = messageId ? 'editMessageMedia' : 'sendDocument';
-        return this.callTelegramApi<TelegramMessageResponse>({
-            file,
-            endpoint,
-            uploadRequest: request,
-            method: HttpMethod.POST,
-            options: {
-                messageId,
-            },
-        });
+
+        try {
+            const result = await this.callTelegramApi<UploadFileResponse>({
+                file,
+                endpoint,
+                uploadRequest: request,
+                method: HttpMethod.POST,
+                options: {
+                    messageId,
+                },
+            });
+
+            return {
+                data: result,
+                isSuccess: true,
+            };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                errorMessage: error.message || 'Failed to upload file',
+            };
+        }
     }
 
-    async getFileStream(fileId: string): Promise<TelegramFileStreamResponse> {
+    async getFileStream(fileId: string): Promise<IStoreServiceResponse<FileStreamResponse>> {
         const fileInfo = await this.fetchFileInfo(fileId);
 
         if (!fileInfo.filePath) {
@@ -49,38 +62,50 @@ export class TelegramStoreService {
             throw new BadRequestException('Requested file does not have a downloadable path');
         }
 
-        const url = `${this.telegramConfig.fileBaseUrl}/${fileInfo.filePath}`;
-        const response = await this.baseHttpService.get<ArrayBuffer>(url, {
-            responseType: 'arraybuffer',
-        });
+        try {
+            const url = `${this.telegramConfig.fileBaseUrl}/${fileInfo.filePath}`;
+            const response = await this.baseHttpService.get<ArrayBuffer>(url, {
+                responseType: 'arraybuffer',
+            });
 
-        const contentType = (response.headers?.['content-type'] as string) || 'application/octet-stream';
-        const fileNameFromPath = fileInfo.filePath.split('/').pop();
+            const contentType = (response.headers?.['content-type'] as string) || 'application/octet-stream';
+            const fileNameFromPath = fileInfo.filePath.split('/').pop();
 
-        let normalizedFileName = fileNameFromPath;
-        if (!normalizedFileName.includes('.')) {
-            const extensionMap: Record<string, string> = {
-                'application/pdf': 'pdf',
-                'image/jpeg': 'jpg',
-                'image/png': 'png',
-                'image/gif': 'gif',
-                'image/webp': 'webp',
-                'video/mp4': 'mp4',
-                'audio/mpeg': 'mp3',
-            };
+            let normalizedFileName = fileNameFromPath;
+            if (!normalizedFileName.includes('.')) {
+                const extensionMap: Record<string, string> = {
+                    'application/pdf': 'pdf',
+                    'image/jpeg': 'jpg',
+                    'image/png': 'png',
+                    'image/gif': 'gif',
+                    'image/webp': 'webp',
+                    'video/mp4': 'mp4',
+                    'audio/mpeg': 'mp3',
+                };
 
-            const ext = extensionMap[contentType];
-            if (ext) {
-                normalizedFileName = `${normalizedFileName}.${ext}`;
+                const ext = extensionMap[contentType];
+                if (ext) {
+                    normalizedFileName = `${normalizedFileName}.${ext}`;
+                }
             }
-        }
 
-        return {
-            headers: response.headers,
-            filePath: fileInfo.filePath,
-            fileName: normalizedFileName,
-            data: Buffer.from(response.data),
-        };
+            const result = new FileStreamResponse({
+                headers: response.headers,
+                filePath: fileInfo.filePath,
+                fileName: normalizedFileName,
+                data: Buffer.from(response.data),
+            });
+
+            return {
+                data: result,
+                isSuccess: true,
+            };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                errorMessage: error.message || 'Failed to get file stream',
+            };
+        }
     }
 
     private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {

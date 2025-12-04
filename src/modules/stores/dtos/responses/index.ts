@@ -1,1 +1,1 @@
-export * from './telegram-response.dto';
+export * from './store-response.dto';

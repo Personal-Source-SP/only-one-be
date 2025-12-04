@@ -16,28 +16,36 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
+import { BaseController } from '../../../common/base.controller';
 import { ApiFile } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
-import { TelegramMessageResponse } from '../dtos/responses';
-import { TelegramStoreService } from '../services/telegram-store.service';
+import { UploadFileResponse } from '../dtos/responses';
+import { StoreDto } from '../dtos/store.dto';
+import { StoreEntity } from '../entities/store.entity';
+import { StoreType } from '../enums';
+import { StoreService } from '../services/store.service';
 
 @Controller('stores')
 @ApiTags('stores')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-export class StoresController {
-    constructor(private readonly telegramStoreService: TelegramStoreService) {}
+export class StoresController extends BaseController<StoreEntity, StoreDto> {
+    constructor(private readonly storeService: StoreService) {
+        super(storeService);
+    }
 
     @ApiOperation({ summary: 'View Telegram stored file via proxy' })
     @Version('1')
     @Get('telegram/:fileId/view')
     async viewTelegramFile(@Param('fileId') fileId: string, @Res() res: Response): Promise<void> {
-        const fileResponse = await this.telegramStoreService.getFileStream(fileId);
+        const fileResponse = await this.storeService.getFileStream(fileId, { storeType: StoreType.TELEGRAM });
 
-        const contentType = fileResponse.headers['content-type'] || 'application/octet-stream';
-        const contentLength = fileResponse.headers['content-length'];
+        const { data, headers, fileName } = fileResponse;
+
+        const contentType = headers['content-type'] || 'application/octet-stream';
+        const contentLength = headers['content-length'];
 
         res.setHeader('Content-Type', contentType);
 
@@ -47,12 +55,10 @@ export class StoresController {
 
         res.setHeader(
             'Content-Disposition',
-            `attachment; filename="${encodeURIComponent(fileResponse.fileName)}"; filename*=UTF-8''${encodeURIComponent(
-                fileResponse.fileName,
-            )}`,
+            `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
         );
 
-        res.send(fileResponse.data);
+        res.send(data);
     }
 
     @ApiOperation({ summary: 'Upload file to Telegram store' })
@@ -60,14 +66,14 @@ export class StoresController {
     @HttpCode(HttpStatus.OK)
     @Post('telegram/upload')
     @ApiFile({ description: 'Telegram file to upload' })
-    @BaseApiOkResponse(TelegramMessageResponse)
+    @BaseApiOkResponse(UploadFileResponse)
     async uploadTelegramFile(
         @UploadedFile() file: Express.Multer.File,
         @Body() request: TelegramUploadDocumentRequest,
-    ): Promise<TelegramMessageResponse> {
+    ): Promise<UploadFileResponse> {
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const response = await this.telegramStoreService.uploadFile(file, request);
+        const response = await this.storeService.uploadFile(file, { storeType: StoreType.TELEGRAM, payload: request });
         return response;
     }
 
@@ -76,15 +82,15 @@ export class StoresController {
     @HttpCode(HttpStatus.OK)
     @Post('telegram/:messageId/update')
     @ApiFile({ description: 'Telegram file to update' })
-    @BaseApiOkResponse(TelegramMessageResponse)
+    @BaseApiOkResponse(UploadFileResponse)
     async updateTelegramFile(
         @UploadedFile() file: Express.Multer.File,
         @Body() request: TelegramUploadDocumentRequest,
         @Param('messageId', new ParseIntPipe()) messageId: number,
-    ): Promise<TelegramMessageResponse> {
+    ): Promise<UploadFileResponse> {
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const response = await this.telegramStoreService.uploadFile(file, request, messageId);
+        const response = await this.storeService.uploadFile(file, { storeType: StoreType.TELEGRAM, payload: request });
         return response;
     }
 }
