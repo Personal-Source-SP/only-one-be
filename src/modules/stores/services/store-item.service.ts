@@ -1,0 +1,15 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { BaseService } from '../../../common/base.service';
+import { StoreItemDto } from '../dtos/store-item.dto';
+import { StoreItemEntity } from '../entities/store-item.entity';
+
+@Injectable()
+export class StoreItemService extends BaseService<StoreItemEntity, StoreItemDto> {
+    constructor(@InjectMapper() mapper: Mapper, @InjectRepository(StoreItemEntity) storeItemRepository: Repository<StoreItemEntity>) {
+        super(storeItemRepository, mapper, StoreItemDto, StoreItemService.name);
+    }
+}
