@@ -5,6 +5,11 @@ import { TelegramParseMode } from '../../enums';
 export class TelegramUploadDocumentRequest {
     @ApiPropertyOptional()
     @IsOptional()
+    @IsNumber()
+    messageId?: number;
+
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsString()
     chatId?: string;
 

@@ -6,7 +6,6 @@ import {
     HttpCode,
     HttpStatus,
     Param,
-    ParseIntPipe,
     Post,
     Res,
     UploadedFile,
@@ -70,23 +69,6 @@ export class StoresController extends BaseController<StoreEntity, StoreDto> {
     async uploadTelegramFile(
         @UploadedFile() file: Express.Multer.File,
         @Body() request: TelegramUploadDocumentRequest,
-    ): Promise<UploadFileResponse> {
-        if (!file) throw new BadRequestException('No file uploaded');
-
-        const response = await this.storeService.uploadFile(file, { storeType: StoreType.TELEGRAM, payload: request });
-        return response;
-    }
-
-    @ApiOperation({ summary: 'Update existing Telegram stored file' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post('telegram/:messageId/update')
-    @ApiFile({ description: 'Telegram file to update' })
-    @BaseApiOkResponse(UploadFileResponse)
-    async updateTelegramFile(
-        @UploadedFile() file: Express.Multer.File,
-        @Body() request: TelegramUploadDocumentRequest,
-        @Param('messageId', new ParseIntPipe()) messageId: number,
     ): Promise<UploadFileResponse> {
         if (!file) throw new BadRequestException('No file uploaded');
 

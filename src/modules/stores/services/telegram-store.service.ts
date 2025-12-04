@@ -27,8 +27,9 @@ export class TelegramStoreService implements IStoreService {
     async uploadFile(
         file: Express.Multer.File,
         request: TelegramUploadDocumentRequest,
-        messageId?: number,
     ): Promise<IStoreServiceResponse<UploadFileResponse>> {
+        const { messageId } = request;
+
         const endpoint = messageId ? 'editMessageMedia' : 'sendDocument';
 
         try {
