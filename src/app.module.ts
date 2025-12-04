@@ -9,26 +9,26 @@ import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { BullModule } from '@nestjs/bull';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { CloudDataModule } from './modules/cloud-data/cloud-data.module';
 import { DataProviderModule } from './modules/data-provider/data-provider.module';
 import { GoogleModule } from './modules/google/google.module';
 import { ImportDataModule } from './modules/import-data/import-data.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { ScheduleExecutorModule } from './modules/schedule/schedule.module';
 import { SettingModule } from './modules/setting/setting.module';
 import { SimulationModule } from './modules/simulation/simulation.module';
 import { UserModule } from './modules/user/user.module';
+import { WebsocketModule } from './modules/websocket/websocket.module';
 import { WorkerModule } from './modules/worker/worker.module';
 import { AppLoggerMiddleware } from './shared/middleware/app.logger.middleware';
 import { AppConfigService } from './shared/services/app-config.service';
 import { SharedModule } from './shared/shared.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { NotificationModule } from './modules/notification/notification.module';
-import { WebsocketModule } from './modules/websocket/websocket.module';
-import { StoresModule } from './modules/stores/stores.module';
 
 @Module({
     imports: [
@@ -73,7 +73,7 @@ import { StoresModule } from './modules/stores/stores.module';
         WorkerModule.register(),
         NotificationModule,
         WebsocketModule,
-        StoresModule,
+        CloudDataModule,
     ],
     controllers: [AppController],
     providers: [AppService, JwtService],
