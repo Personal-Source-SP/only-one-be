@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
+import { ColumnNumericTransformer } from '../../../common/transformers';
 import { CloudDataProviderType } from '../enums';
 import { CloudDataItemEntity } from './cloud-data-item.entity';
 
@@ -19,11 +20,11 @@ export class CloudDataProviderEntity extends AbstractEntity {
     @AutoMap()
     isActive: boolean;
 
-    @Column({ type: 'bigint', default: 0 })
+    @Column({ type: 'bigint', default: 0, transformer: new ColumnNumericTransformer() })
     @AutoMap()
     totalItems: number;
 
-    @Column({ type: 'bigint', default: 0 })
+    @Column({ type: 'bigint', default: 0, transformer: new ColumnNumericTransformer() })
     @AutoMap()
     totalSize: number;
 
