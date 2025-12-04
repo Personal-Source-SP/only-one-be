@@ -35,3 +35,7 @@ export interface ITelegramApiResponse<T> {
     errorCode?: number;
     description?: string;
 }
+
+export interface ITelegramConfig {
+    chatId: string;
+}

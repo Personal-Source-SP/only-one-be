@@ -28,10 +28,18 @@ export class StoreService extends BaseService<StoreEntity, StoreDto> {
         this.ensureStoreService(request.type);
 
         const entity = this.mapper.map(request, CreateStoreRequest, StoreEntity);
-        const createdStore = await super.create(entity);
-        if (!createdStore) throw new BadRequestException('Failed to create store');
+        return super.create(entity);
+    }
 
-        return createdStore;
+    async update(id: string, request: UpdateStoreRequest): Promise<boolean> {
+        const storeExists = await this.exists({ id });
+        if (!storeExists) throw new BadRequestException(`Store with id ${id} not found`);
+
+        if (request.type) {
+            this.ensureStoreService(request.type);
+        }
+
+        return super.update(id, request);
     }
 
     async uploadFile(file: Express.Multer.File, request: StoreUploadFileRequest): Promise<UploadFileResponse> {
@@ -61,20 +69,6 @@ export class StoreService extends BaseService<StoreEntity, StoreDto> {
         if (!savedStoreItem) throw new BadRequestException('Failed to save store item');
 
         return response.data;
-    }
-
-    async update(id: string, request: UpdateStoreRequest): Promise<boolean> {
-        const store = await this.findById(id);
-        if (!store) throw new BadRequestException(`Store with id ${id} not found`);
-
-        if (request.type) {
-            this.ensureStoreService(request.type);
-        }
-
-        const isUpdated = await super.update(id, request);
-        if (!isUpdated) throw new BadRequestException('Failed to update store');
-
-        return isUpdated;
     }
 
     private ensureStoreService(storeType: string): void {
