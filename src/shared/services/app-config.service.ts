@@ -3,7 +3,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
-import { IJwtConfig, IRedisConfig, ISchedulerConfig, IScraperConfig, ITelegramConfig } from '../interfaces';
+import { ICloudflareConfig, IJwtConfig, IRedisConfig, ISchedulerConfig, IScraperConfig, ITelegramConfig } from '../interfaces';
 import { SnakeNamingStrategy } from '../typeorm/strategies/snake-naming.strategy';
 import { LoggerService } from './logger.service';
 
@@ -140,6 +140,12 @@ export class AppConfigService {
             apiBaseUrl: this.get('TELEGRAM_API_BASE_URL'),
             fileBaseUrl: this.get('TELEGRAM_FILE_BASE_URL'),
             defaultChannelId: this.get('TELEGRAM_DEFAULT_CHANNEL_ID'),
+        };
+    }
+
+    get cloudflareConfig(): ICloudflareConfig {
+        return {
+            workerDomain: this.get('CLOUDFLARE_WORKER_DOMAIN'),
         };
     }
 }

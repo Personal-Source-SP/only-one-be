@@ -25,3 +25,7 @@ export interface ITelegramConfig {
     fileBaseUrl: string;
     defaultChannelId: string;
 }
+
+export interface ICloudflareConfig {
+    workerDomain: string;
+}

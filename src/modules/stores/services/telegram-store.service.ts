@@ -3,7 +3,7 @@ import { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
 import { HttpMethod } from '../../../common/enums';
-import { ITelegramConfig } from '../../../shared/interfaces';
+import { ICloudflareConfig, ITelegramConfig } from '../../../shared/interfaces';
 import { AppConfigService } from '../../../shared/services/app-config.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { LoggerService } from '../../../shared/services/logger.service';
@@ -15,6 +15,8 @@ import { IStoreService, IStoreServiceResponse, ITelegramApiResponse, ITelegramFi
 @Injectable()
 export class TelegramStoreService implements IStoreService {
     private readonly telegramConfig: ITelegramConfig;
+    private readonly cloudflareConfig: ICloudflareConfig;
+
     private readonly logger = new LoggerService(TelegramStoreService.name);
 
     constructor(
@@ -22,6 +24,7 @@ export class TelegramStoreService implements IStoreService {
         private readonly appConfigService: AppConfigService,
     ) {
         this.telegramConfig = this.appConfigService.telegramConfig;
+        this.cloudflareConfig = this.appConfigService.cloudflareConfig;
     }
 
     async uploadFile(
@@ -42,6 +45,21 @@ export class TelegramStoreService implements IStoreService {
                     messageId,
                 },
             });
+
+            if (messageId && result.document?.fileId) {
+                try {
+                    const fileInfo = await this.fetchFileInfo(result.document.fileId);
+                    const pathUrl = `${this.cloudflareConfig.workerDomain}/${fileInfo.filePath}`;
+
+                    result.pathUrl = pathUrl;
+                } catch (error) {
+                    this.logger.error(`Failed to fetch file info for updated message ${messageId}: ${error.message || error}`);
+                    return {
+                        isSuccess: false,
+                        errorMessage: error.message || 'Failed to fetch file info',
+                    };
+                }
+            }
 
             return {
                 data: result,

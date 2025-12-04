@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, UseGuards, Version } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
@@ -17,12 +17,12 @@ export class StoreItemController extends BaseController<StoreItemEntity, StoreIt
         super(storeItemService);
     }
 
-    @ApiOperation({ summary: 'View stored file via proxy' })
+    @ApiOperation({ summary: 'Download file by store item id' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
-    @Get(':id')
+    @Get(':id/download')
     @BaseApiOkResponse(String)
-    async viewFile(@Param('id') id: string): Promise<string> {
+    async downloadFile(@Param('id', new ParseUUIDPipe()) id: string): Promise<string> {
         const fileResponse = await this.storeItemService.getFileUrl(id);
         return fileResponse;
     }

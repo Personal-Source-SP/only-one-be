@@ -8,6 +8,7 @@ export interface ITelegramDocument {
     fileName?: string;
     fileSize?: number;
     mimeType?: string;
+    filePath?: string;
 }
 
 export interface ITelegramFile {

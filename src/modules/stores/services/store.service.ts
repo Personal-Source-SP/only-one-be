@@ -10,10 +10,12 @@ import { UploadFileResponse } from '../dtos/responses';
 import { StoreDto } from '../dtos/store.dto';
 import { StoreEntity } from '../entities/store.entity';
 import { IStoreService } from '../interfaces';
+import { StoreItemService } from './store-item.service';
 
 @Injectable()
 export class StoreService extends BaseService<StoreEntity, StoreDto> {
     constructor(
+        private readonly storeItemService: StoreItemService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(StoreEntity) storeRepository: Repository<StoreEntity>,
         @Inject(STORE_SERVICE_MAP)
@@ -23,13 +25,30 @@ export class StoreService extends BaseService<StoreEntity, StoreDto> {
     }
 
     async uploadFile(file: Express.Multer.File, request: StoreUploadFileRequest): Promise<UploadFileResponse> {
-        const { storeType, payload } = request;
+        const { storeId, payload } = request;
 
-        const storeService = this.storeServiceMap[storeType];
-        if (!storeService) throw new BadRequestException(`Store service for type ${storeType} not found`);
+        const store = await this.findById(storeId);
+        if (!store) throw new BadRequestException(`Store with id ${storeId} not found`);
+
+        const storeService = this.storeServiceMap[store.type];
+        if (!storeService) throw new BadRequestException(`Store service for type ${store.type} not found`);
 
         const response = await storeService.uploadFile(file, payload);
-        if (!response.isSuccess) throw new BadRequestException(response.errorMessage);
+        if (!response.isSuccess || !response.data?.document) throw new BadRequestException(response.errorMessage);
+
+        const { pathUrl, document } = response.data;
+        const { fileId, fileName, mimeType, fileSize } = document ?? {};
+        const storeItemEntity = this.storeItemService.repository.create({
+            storeId,
+            fileName,
+            mimeType,
+            fileSize,
+            pathUrl,
+            pathId: fileId,
+        });
+
+        const savedStoreItem = await this.storeItemService.create(storeItemEntity);
+        if (!savedStoreItem) throw new BadRequestException('Failed to save store item');
 
         return response.data;
     }

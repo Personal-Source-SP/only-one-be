@@ -13,6 +13,10 @@ export class UploadFileResponse {
 
     @ApiResponseProperty()
     @IsOptional()
+    pathUrl?: string;
+
+    @ApiResponseProperty()
+    @IsOptional()
     document?: ITelegramDocument;
 }
 
