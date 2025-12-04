@@ -1,10 +1,26 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, UseGuards, Version } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Post,
+    UploadedFile,
+    UseGuards,
+    Version,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
+import { ApiFile } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { CloudDataItemDto } from '../dtos/cloud-data-item.dto';
+import { CloudDataUploadFileRequest } from '../dtos/requests';
+import { UploadFileResponse } from '../dtos/responses';
 import { CloudDataItemEntity } from '../entities/cloud-data-item.entity';
 import { CloudDataItemService } from '../services/cloud-data-item.service';
 
@@ -25,5 +41,18 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
     async downloadFile(@Param('id', new ParseUUIDPipe()) id: string): Promise<string> {
         const fileResponse = await this.cloudDataItemService.getFileUrl(id);
         return fileResponse;
+    }
+
+    @ApiOperation({ summary: 'Upload file to cloud data' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Post('upload')
+    @ApiFile({ description: 'File to upload' })
+    @BaseApiOkResponse(UploadFileResponse)
+    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
+        if (!file) throw new BadRequestException('No file uploaded');
+
+        const response = await this.cloudDataItemService.uploadFile(file, request);
+        return response;
     }
 }

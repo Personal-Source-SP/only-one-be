@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
+import { MimeType } from '../../../common/enums';
 import { CloudDataProviderEntity } from './cloud-data-provider.entity';
 
 @Entity({ name: 'cloud_data_items', synchronize: false })
@@ -29,7 +30,7 @@ export class CloudDataItemEntity extends AbstractEntity {
 
     @Column({ type: 'varchar', length: 100, nullable: true })
     @AutoMap()
-    mimeType?: string;
+    mimeType?: MimeType;
 
     @Column({ type: 'bigint', nullable: true })
     @AutoMap()
