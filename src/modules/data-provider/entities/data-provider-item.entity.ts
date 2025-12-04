@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
+import { DisplayType } from '../enums';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
@@ -23,6 +24,10 @@ export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'boolean', default: true })
     @AutoMap()
     isActive: boolean;
+
+    @Column({ type: 'varchar', length: 50, default: DisplayType.IMAGE })
+    @AutoMap()
+    displayType: DisplayType;
 
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()

@@ -1,7 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { DisplayType } from '../../enums';
 
 export class CreateDataProviderItemRequestDto {
     @ApiProperty({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -22,6 +23,12 @@ export class CreateDataProviderItemRequestDto {
     @Transform(({ value }) => value?.trim())
     @AutoMap()
     itemUrl: string;
+
+    @ApiProperty({ description: 'Display type of the data provider item', example: DisplayType.IMAGE })
+    @IsNotEmpty()
+    @IsEnum(DisplayType)
+    @AutoMap()
+    displayType: DisplayType;
 
     @ApiPropertyOptional({ description: 'Active status of the data provider item' })
     @IsOptional()
@@ -62,6 +69,12 @@ export class UpdateDataProviderItemRequestDto {
     @IsBoolean()
     @AutoMap()
     isActive?: boolean;
+
+    @ApiPropertyOptional({ description: 'Display type of the data provider item', example: DisplayType.IMAGE })
+    @IsOptional()
+    @IsEnum(DisplayType)
+    @AutoMap()
+    displayType?: DisplayType;
 }
 
 export class CreateManuallyTriggerScrapingRequestDto {

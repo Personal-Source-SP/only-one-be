@@ -11,6 +11,7 @@ import { UploadFileResponse } from '../dtos/responses';
 import { ICloudDataService } from '../interfaces';
 import { CLOUD_DATA_SERVICE_MAP } from '../constants';
 import { CloudDataProviderService } from './cloud-data-provider.service';
+import { MimeType } from '../../../common/enums';
 
 @Injectable()
 export class CloudDataItemService extends BaseService<CloudDataItemEntity, CloudDataItemDto> {
@@ -48,10 +49,10 @@ export class CloudDataItemService extends BaseService<CloudDataItemEntity, Cloud
         const cloudDataItemEntity = this.repository.create({
             cloudDataProviderId,
             fileName,
-            mimeType,
             fileSize,
             pathUrl,
             pathId: fileId,
+            mimeType: mimeType as MimeType,
         });
 
         const savedCloudDataItem = await this.create(cloudDataItemEntity);

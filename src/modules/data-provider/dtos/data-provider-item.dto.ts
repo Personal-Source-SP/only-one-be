@@ -5,6 +5,7 @@ import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ScrapingDataDto } from './scraping-data.dto';
 import { DataProviderDto } from './data-provider.dto';
 import { ItemDto } from './item.dto';
+import { DisplayType } from '../enums';
 
 export class DataProviderItemDto extends AbstractDto {
     @ApiResponseProperty()
@@ -22,6 +23,10 @@ export class DataProviderItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     isActive: boolean;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    displayType: DisplayType;
 
     @ApiResponseProperty()
     @AutoMap()
