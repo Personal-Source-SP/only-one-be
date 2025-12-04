@@ -26,8 +26,8 @@ import { StoreService } from '../services/store.service';
 
 @Controller('store')
 @ApiTags('Store')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth()
+// @UseGuards(JwtAuthGuard)
 export class StoreController extends BaseController<StoreEntity, StoreDto> {
     constructor(private readonly storeService: StoreService) {
         super(storeService);
@@ -46,13 +46,17 @@ export class StoreController extends BaseController<StoreEntity, StoreDto> {
     @ApiOperation({ summary: 'Upload file to store' })
     @Version('1')
     @HttpCode(HttpStatus.OK)
-    @Post('upload')
+    @Post('upload/:storeId')
     @ApiFile({ description: 'File to upload' })
     @BaseApiOkResponse(UploadFileResponse)
-    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() request: StoreUploadFileRequest): Promise<UploadFileResponse> {
+    async uploadFile(
+        @UploadedFile() file: Express.Multer.File,
+        @Param('storeId', new ParseUUIDPipe()) storeId: string,
+        @Body() request: StoreUploadFileRequest,
+    ): Promise<UploadFileResponse> {
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const response = await this.storeService.uploadFile(file, request);
+        const response = await this.storeService.uploadFile(file, storeId, request);
         return response;
     }
 

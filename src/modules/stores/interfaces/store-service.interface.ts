@@ -11,5 +11,5 @@ type UpdateFileRequest = TelegramUploadDocumentRequest;
 
 export interface IStoreService {
     getFileStream(fileId: string): Promise<IStoreServiceResponse<FileStreamResponse>>;
-    uploadFile(file: Express.Multer.File, request: UpdateFileRequest): Promise<IStoreServiceResponse<UploadFileResponse>>;
+    uploadFile(file: Express.Multer.File, request?: UpdateFileRequest): Promise<IStoreServiceResponse<UploadFileResponse>>;
 }

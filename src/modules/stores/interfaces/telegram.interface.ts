@@ -1,6 +1,7 @@
 import { AxiosRequestConfig } from 'axios';
 import { HttpMethod } from '../../../common/enums';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
+import { TelegramEndpoint } from '../enums';
 
 export interface ITelegramDocument {
     fileId: string;
@@ -19,8 +20,8 @@ export interface ITelegramFile {
 }
 
 export interface ITelegramRequest {
-    endpoint: string;
     method: HttpMethod;
+    endpoint: TelegramEndpoint;
     file?: Express.Multer.File;
     uploadRequest?: TelegramUploadDocumentRequest;
     options: {

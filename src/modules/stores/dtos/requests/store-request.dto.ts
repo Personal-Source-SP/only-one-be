@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
 import { StoreType } from '../../enums';
 import { TelegramUploadDocumentRequest } from './telegram-request.dto';
 
@@ -55,11 +55,8 @@ export class UpdateStoreRequest {
 }
 
 export class StoreUploadFileRequest {
-    @ApiProperty()
-    @IsUUID()
-    storeId: string;
-
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsObject()
-    payload: TelegramUploadDocumentRequest;
+    payload?: TelegramUploadDocumentRequest;
 }

@@ -42,8 +42,8 @@ export class StoreService extends BaseService<StoreEntity, StoreDto> {
         return super.update(id, request);
     }
 
-    async uploadFile(file: Express.Multer.File, request: StoreUploadFileRequest): Promise<UploadFileResponse> {
-        const { storeId, payload } = request;
+    async uploadFile(file: Express.Multer.File, storeId: string, request?: StoreUploadFileRequest): Promise<UploadFileResponse> {
+        const { payload } = request ?? {};
 
         const store = await this.findById(storeId);
         if (!store) throw new BadRequestException(`Store with id ${storeId} not found`);

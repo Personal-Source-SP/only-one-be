@@ -10,6 +10,7 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
 import { FileStreamResponse, UploadFileResponse } from '../dtos/responses';
+import { TelegramEndpoint } from '../enums';
 import { IStoreService, IStoreServiceResponse, ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
 
 @Injectable()
@@ -29,11 +30,11 @@ export class TelegramStoreService implements IStoreService {
 
     async uploadFile(
         file: Express.Multer.File,
-        request: TelegramUploadDocumentRequest,
+        request?: TelegramUploadDocumentRequest,
     ): Promise<IStoreServiceResponse<UploadFileResponse>> {
-        const { messageId } = request;
+        const { messageId } = request ?? {};
 
-        const endpoint = messageId ? 'editMessageMedia' : 'sendDocument';
+        const endpoint = messageId ? TelegramEndpoint.EDIT_MESSAGE_MEDIA : TelegramEndpoint.SEND_DOCUMENT;
 
         try {
             const result = await this.callTelegramApi<UploadFileResponse>({
@@ -46,14 +47,14 @@ export class TelegramStoreService implements IStoreService {
                 },
             });
 
-            if (messageId && result.document?.fileId) {
+            if (result?.document?.fileId) {
                 try {
                     const fileInfo = await this.fetchFileInfo(result.document.fileId);
                     const pathUrl = `${this.cloudflareConfig.workerDomain}/${fileInfo.filePath}`;
 
                     result.pathUrl = pathUrl;
                 } catch (error) {
-                    this.logger.error(`Failed to fetch file info for updated message ${messageId}: ${error.message || error}`);
+                    this.logger.error(`Failed to fetch file info for updated message ${result.messageId}: ${error.message || error}`);
                     return {
                         isSuccess: false,
                         errorMessage: error.message || 'Failed to fetch file info',
@@ -127,8 +128,8 @@ export class TelegramStoreService implements IStoreService {
         }
     }
 
-    private buildDocumentFormData(file: Express.Multer.File, request: TelegramUploadDocumentRequest, messageId?: number): FormData {
-        const { chatId, caption, parseMode, replyToMessageId, disableNotification } = request;
+    private buildDocumentFormData(file: Express.Multer.File, request?: TelegramUploadDocumentRequest, messageId?: number): FormData {
+        const { chatId, caption, parseMode, replyToMessageId, disableNotification } = request ?? {};
 
         const filePayload = file.buffer?.length ? file.buffer : file.stream;
         if (!filePayload) {
@@ -196,8 +197,8 @@ export class TelegramStoreService implements IStoreService {
 
     private async fetchFileInfo(fileId: string): Promise<ITelegramFile> {
         const fileInfo = await this.callTelegramApi<ITelegramFile>({
-            endpoint: 'getFile',
             method: HttpMethod.GET,
+            endpoint: TelegramEndpoint.GET_FILE,
             options: {
                 config: {
                     params: { fileId },
@@ -220,7 +221,7 @@ export class TelegramStoreService implements IStoreService {
         const url = `${this.telegramConfig.apiBaseUrl}/${endpoint}`;
 
         let form: FormData;
-        if (uploadRequest && file) {
+        if (file) {
             form = this.buildDocumentFormData(file, uploadRequest, messageId);
         }
 
