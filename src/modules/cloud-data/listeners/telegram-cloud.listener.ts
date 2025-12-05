@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { TELEGRAM_CLOUD_EVENTS } from '../constants';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
-import { TelegramCloudService } from '../services/telegram-cloud-data.service';
+import { TelegramCloudService } from '../services/cloud-service/telegram-cloud-data.service';
 
 @Injectable()
 export class TelegramCloudListener {

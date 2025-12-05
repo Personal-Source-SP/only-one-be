@@ -13,7 +13,7 @@ import { ScheduleEntity } from './entities/schedule.entity';
 import { ExecutionServiceEnum } from './enums';
 import { IScheduleExecutionInterface } from './interfaces';
 import { ScheduleProfile } from './schedule.profile';
-import { DataProviderScheduleService } from './services/data-provider-schedule.service';
+import { DataProviderScheduleService } from './services/schedule-execution/data-provider-schedule.service';
 import { RedisLockService } from './services/redis-lock.service';
 import { ScheduleJobEventService } from './services/schedule-job-event.service';
 import { ScheduleJobService } from './services/schedule-job.service';

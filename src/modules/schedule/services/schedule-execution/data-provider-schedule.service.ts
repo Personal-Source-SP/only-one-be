@@ -2,18 +2,18 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { v4 as uuidv4 } from 'uuid';
 
 import { Job } from 'bull';
-import { LoggerService } from '../../../shared/services/logger.service';
-import { ProcessScrapeDataRequestDto } from '../../data-provider/dtos/requests';
-import { DataProviderStatus } from '../../data-provider/enums';
-import { DataProviderService } from '../../data-provider/services/data-provider.service';
-import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
-import { IScrapingJobQueueInterface } from '../../queue/interfaces';
-import { QueueService } from '../../queue/services/queue.service';
-import { PayloadScheduleDto } from '../dtos/requests';
-import { ScheduleJobEventEntity } from '../entities/schedule-job-event.entity';
-import { ScheduleJobEventType, ScheduleType } from '../enums';
-import { IAddJobRequest, IScheduleExecutionInterface } from '../interfaces';
-import { ScheduleJobEventService } from './schedule-job-event.service';
+import { LoggerService } from '../../../../shared/services/logger.service';
+import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
+import { DataProviderStatus } from '../../../data-provider/enums';
+import { DataProviderService } from '../../../data-provider/services/data-provider.service';
+import { QUEUE_NAME } from '../../../queue/enums/queue-name.enum';
+import { IScrapingJobQueueInterface } from '../../../queue/interfaces';
+import { QueueService } from '../../../queue/services/queue.service';
+import { PayloadScheduleDto } from '../../dtos/requests';
+import { ScheduleJobEventEntity } from '../../entities/schedule-job-event.entity';
+import { ScheduleJobEventType, ScheduleType } from '../../enums';
+import { IAddJobRequest, IScheduleExecutionInterface } from '../../interfaces';
+import { ScheduleJobEventService } from '../schedule-job-event.service';
 
 @Injectable()
 export class DataProviderScheduleService implements IScheduleExecutionInterface {

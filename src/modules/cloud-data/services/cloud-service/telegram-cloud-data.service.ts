@@ -1,17 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import FormData from 'form-data';
-
-import { HttpMethod } from '../../../common/enums';
-import { ICloudflareConfig, ITelegramConfig } from '../../../shared/interfaces';
-import { AppConfigService } from '../../../shared/services/app-config.service';
-import { BaseHttpService } from '../../../shared/services/base-http.service';
-import { LoggerService } from '../../../shared/services/logger.service';
-import { UtilsService } from '../../../shared/services/utils.service';
-import { TelegramUploadDocumentRequest } from '../dtos/requests';
-import { FileStreamResponse, UploadFileResponse } from '../dtos/responses';
-import { TelegramEndpoint } from '../enums';
-import { ICloudDataService, ICloudDataServiceResponse, ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../interfaces';
+import { HttpMethod } from '../../../../common/enums';
+import { ICloudflareConfig, ITelegramConfig } from '../../../../shared/interfaces';
+import { AppConfigService } from '../../../../shared/services/app-config.service';
+import { BaseHttpService } from '../../../../shared/services/base-http.service';
+import { LoggerService } from '../../../../shared/services/logger.service';
+import { UtilsService } from '../../../../shared/services/utils.service';
+import { TelegramUploadDocumentRequest } from '../../dtos/requests';
+import { FileStreamResponse, UploadFileResponse } from '../../dtos/responses';
+import { TelegramEndpoint } from '../../enums';
+import { ICloudDataService, ICloudDataServiceResponse, ITelegramApiResponse, ITelegramFile, ITelegramRequest } from '../../interfaces';
 
 @Injectable()
 export class TelegramCloudService implements ICloudDataService {

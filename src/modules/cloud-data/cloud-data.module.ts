@@ -12,7 +12,7 @@ import { ICloudDataService } from './interfaces';
 import { TelegramCloudListener } from './listeners/telegram-cloud.listener';
 import { CloudDataItemService } from './services/cloud-data-item.service';
 import { CloudDataProviderService } from './services/cloud-data-provider.service';
-import { TelegramCloudService } from './services/telegram-cloud-data.service';
+import { TelegramCloudService } from './services/cloud-service/telegram-cloud-data.service';
 
 const listeners = [TelegramCloudListener];
 const entities = [CloudDataProviderEntity, CloudDataItemEntity];
