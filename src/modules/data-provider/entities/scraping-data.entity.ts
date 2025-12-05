@@ -44,6 +44,14 @@ export class ScrapingDataEntity extends AbstractEntity {
     @AutoMap()
     metadata?: Record<string, any>;
 
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    cloudDataItemId?: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    @AutoMap()
+    cloudDataUrl?: string;
+
     @ManyToOne(() => DataProviderEntity, (entity) => entity.scrapingData, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'data_provider_id' })
     @AutoMap(() => DataProviderEntity)

@@ -16,6 +16,9 @@ export class ProcessScrapeDataProviderResponse {
         mimeType: string;
         data: Record<string, any>;
         lastModified?: Date;
+
+        cloudDataUrl?: string;
+        cloudDataItemId?: string;
     }[];
 
     errors?: {
@@ -50,6 +53,9 @@ export class ProcessScrapeDataResponse {
         mimeType: string;
         data: Record<string, any>;
         lastModified?: Date;
+
+        cloudDataUrl?: string;
+        cloudDataItemId?: string;
     }[];
 
     errors?: {

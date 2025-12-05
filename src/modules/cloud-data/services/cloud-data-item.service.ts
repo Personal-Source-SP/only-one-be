@@ -58,7 +58,10 @@ export class CloudDataItemService extends BaseService<CloudDataItemEntity, Cloud
         const savedCloudDataItem = await this.create(cloudDataItemEntity);
         if (!savedCloudDataItem) throw new BadRequestException('Failed to save cloud data item');
 
-        return response.data;
+        return {
+            ...response.data,
+            cloudDataItemId: savedCloudDataItem.id,
+        };
     }
 
     async uploadFileFromUrl(request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
@@ -87,6 +90,9 @@ export class CloudDataItemService extends BaseService<CloudDataItemEntity, Cloud
         const savedCloudDataItem = await this.create(cloudDataItemEntity);
         if (!savedCloudDataItem) throw new BadRequestException('Failed to save cloud data item');
 
-        return response.data;
+        return {
+            ...response.data,
+            cloudDataItemId: savedCloudDataItem.id,
+        };
     }
 }

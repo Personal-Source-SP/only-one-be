@@ -1,10 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsDate, IsObject, IsOptional, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
 import { MimeType } from '../../../../common/enums/mime-type';
-import { DataProviderItemEntity } from '../../entities/data-provider-item.entity';
-import { DataProviderEntity } from '../../entities/data-provider.entity';
-import { IDataProviderScraperService } from '../../interfaces/data-provider-scraper-service.interface';
 
 export class CreateScrapingDataRequestDto {
     @ApiProperty()

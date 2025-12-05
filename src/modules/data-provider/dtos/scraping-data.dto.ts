@@ -39,6 +39,14 @@ export class ScrapingDataDto extends AbstractDto {
     metadata?: Record<string, any>;
 
     @ApiResponseProperty()
+    @AutoMap()
+    cloudDataItemId?: string;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    cloudDataUrl?: string;
+
+    @ApiResponseProperty()
     @AutoMap(() => DataProviderDto)
     dataProvider?: DataProviderDto;
 

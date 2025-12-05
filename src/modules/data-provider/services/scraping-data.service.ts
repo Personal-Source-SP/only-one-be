@@ -4,15 +4,18 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
+import { v4 as uuidv4 } from 'uuid';
 import { BaseService } from '../../../common/base.service';
 import { MimeType } from '../../../common/enums/mime-type';
+import { CloudDataUploadFileRequest } from '../../cloud-data/dtos/requests';
+import { CloudDataItemService } from '../../cloud-data/services/cloud-data-item.service';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
-import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessDataProviderItemResponse, ProcessScrapeDataProviderResponse, ProcessScrapeDataResponse } from '../dtos/responses';
-import { ScrapingDataEntity } from '../entities/scraping-data.entity';
+import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
+import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 import { DataProviderStatus } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
@@ -21,8 +24,10 @@ import { DataProviderService } from './data-provider.service';
 export class ScrapingDataService extends BaseService<ScrapingDataEntity, ScrapingDataDto> {
     constructor(
         private readonly dataProviderService: DataProviderService,
+        private readonly cloudDataItemService: CloudDataItemService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScrapingDataEntity) scrapingDataRepository: Repository<ScrapingDataEntity>,
+        @InjectRepository(DataProviderItemEntity) private readonly dataProviderItemRepository: Repository<DataProviderItemEntity>,
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {
@@ -63,6 +68,7 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
         const validatedResponse = await this.validateResponseForScrape(request, response);
         const scrapingDataEntities: ScrapingDataEntity[] = validatedResponse.successData.map((successData) => {
             return this.repository.create({
+                id: uuidv4(),
                 scrapeTimestamp: new Date(),
                 metadata: successData.data,
                 dataId: successData.dataId,
@@ -72,6 +78,8 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                 lastModified: successData.lastModified,
                 dataProviderId: successData.dataProviderId,
                 dataProviderItemId: successData.dataProviderItemId,
+                cloudDataUrl: undefined,
+                cloudDataItemId: undefined,
             });
         });
 
@@ -84,7 +92,10 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
             });
         }
 
-        const savedScrapingDataEntities = await this.createMany(scrapingDataEntities);
+        // Upload cloud data
+        const updatedScrapingDataEntities = await this.handleCloudDataUpload(scrapingDataEntities);
+
+        const savedScrapingDataEntities = await this.createMany(updatedScrapingDataEntities);
         if (!savedScrapingDataEntities.length) {
             return new ProcessScrapeDataResponse({
                 process: 0,
@@ -130,12 +141,12 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                 response.success++;
 
                 const data = itemExtractData.data;
-                data?.forEach((item) => {
+                const successData = data?.flatMap((item) => {
                     if (!item?.id || !item?.mimeType || !item?.url) {
-                        return;
+                        return [];
                     }
 
-                    response.successData.push({
+                    return {
                         dataProviderId: dataProvider.id,
                         dataProviderName: dataProvider.name,
                         itemId: dataProviderItem.itemId,
@@ -146,8 +157,12 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                         dataId: item.id,
                         mimeType: item.mimeType,
                         lastModified: item?.lastModified || new Date(),
-                    });
+                        cloudDataUrl: undefined,
+                        cloudDataItemId: undefined,
+                    };
                 });
+
+                response.successData.push(...(successData ?? []));
             }
         }
 
@@ -238,5 +253,45 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                 errorMessage: error?.message || 'Unknown error',
             });
         }
+    }
+
+    private async handleCloudDataUpload(scrapingDataEntities: ScrapingDataEntity[]): Promise<ScrapingDataEntity[]> {
+        const dataProviderItemIds = [...new Set(scrapingDataEntities.map((data) => data.dataProviderItemId))];
+        const dataProviderItems = await this.dataProviderItemRepository.find({
+            where: { id: In(dataProviderItemIds) },
+            select: { id: true, isSavedToCloudData: true, cloudDataProviderId: true },
+        });
+
+        const dataProviderItemMap = new Map(dataProviderItems.map((item) => [item.id, item]));
+
+        const updatedEntities: ScrapingDataEntity[] = [];
+        for (const entity of scrapingDataEntities) {
+            const dataProviderItem = dataProviderItemMap.get(entity.dataProviderItemId);
+            if (!dataProviderItem?.isSavedToCloudData || !dataProviderItem?.cloudDataProviderId) {
+                updatedEntities.push(entity);
+                continue;
+            }
+
+            try {
+                const uploadRequest: CloudDataUploadFileRequest = {
+                    fileUrl: entity.url,
+                    cloudDataProviderId: dataProviderItem.cloudDataProviderId,
+                };
+
+                const response = await this.cloudDataItemService.uploadFileFromUrl(uploadRequest);
+                if (response.pathUrl) {
+                    entity.cloudDataUrl = response.pathUrl;
+                    entity.cloudDataItemId = response.cloudDataItemId;
+
+                    updatedEntities.push(entity);
+                }
+            } catch (error) {
+                this.loggerService.error(
+                    `Failed to upload file to cloud for dataProviderItemId ${entity.dataProviderItemId}: ${error?.message || error}`,
+                );
+            }
+        }
+
+        return updatedEntities;
     }
 }

@@ -5,6 +5,10 @@ import { ITelegramDocument } from '../../interfaces';
 export class UploadFileResponse {
     @ApiResponseProperty()
     @IsNotEmpty()
+    cloudDataItemId: string;
+
+    @ApiResponseProperty()
+    @IsNotEmpty()
     date: number;
 
     @ApiResponseProperty()
