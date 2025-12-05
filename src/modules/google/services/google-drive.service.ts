@@ -13,6 +13,7 @@ import { GoogleDriveFolderEntity } from '../entities/google-drive-folder.entity'
 import { GoogleApiType, GoogleDriveType } from '../enums';
 import { IGenerateParams, IGoogleApiParams, IGoogleDriveFile } from '../interfaces';
 import { GoogleAuthService } from './google-auth.service';
+import { UtilsService } from '../../../shared/services/utils.service';
 
 @Injectable()
 export class GoogleDriveService {
@@ -105,12 +106,12 @@ export class GoogleDriveService {
                             new GoogleDrivePreviewItem({
                                 name: f.name,
                                 googleDriveId: f.id,
-                                mimeType: f.mimeType,
                                 webViewLink: f.webViewLink,
                                 thumbnailLink: f.thumbnailLink,
                                 webContentLink: f.webContentLink,
                                 size: f.size ? Number(f.size) : undefined,
                                 parentFolderId: f.parents?.[0] || undefined,
+                                mimeType: UtilsService.transformMimeType(f.mimeType),
                                 lastModified: f.modifiedTime ? new Date(f.modifiedTime) : undefined,
                                 isTrashed: Boolean(f.trashed),
                                 isStarred: Boolean(f.starred),

@@ -3,6 +3,8 @@ import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import path from 'path';
 
+import { MimeType } from '../../common/enums/mime-type';
+
 export class UtilsService {
     static generateHash(password: string): string {
         return bcrypt.hashSync(password, 10);
@@ -175,5 +177,71 @@ export class UtilsService {
         }
 
         return obj as T;
+    }
+
+    static transformMimeType(mimeType: string): MimeType {
+        if (!mimeType) {
+            return MimeType.OTHER;
+        }
+
+        const upperCaseMimeType = mimeType.toUpperCase();
+        if (Object.values(MimeType).includes(upperCaseMimeType as MimeType)) {
+            return upperCaseMimeType as MimeType;
+        }
+
+        const normalizedMimeType = mimeType.toLowerCase();
+
+        switch (normalizedMimeType) {
+            case 'application/msword':
+            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            case 'application/vnd.google-apps.document':
+            case 'application/rtf':
+            case 'text/plain': {
+                return MimeType.DOCUMENT;
+            }
+
+            case 'application/vnd.ms-excel':
+            case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            case 'application/vnd.google-apps.spreadsheet':
+            case 'text/csv': {
+                return MimeType.SPREADSHEET;
+            }
+
+            case 'application/vnd.ms-powerpoint':
+            case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+            case 'application/vnd.google-apps.presentation': {
+                return MimeType.PRESENTATION;
+            }
+
+            case 'application/pdf': {
+                return MimeType.PDF;
+            }
+
+            case 'application/zip':
+            case 'application/x-zip-compressed':
+            case 'application/x-7z-compressed':
+            case 'application/x-rar-compressed':
+            case 'application/vnd.rar':
+            case 'application/x-tar':
+            case 'application/gzip': {
+                return MimeType.ARCHIVE;
+            }
+
+            default: {
+                if (normalizedMimeType.startsWith('image/')) {
+                    return MimeType.IMAGE;
+                }
+
+                if (normalizedMimeType.startsWith('video/')) {
+                    return MimeType.VIDEO;
+                }
+
+                if (normalizedMimeType.startsWith('audio/')) {
+                    return MimeType.AUDIO;
+                }
+
+                return MimeType.OTHER;
+            }
+        }
     }
 }

@@ -19,6 +19,7 @@ import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 import { DataProviderStatus } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
+import { UtilsService } from '../../../shared/services/utils.service';
 
 @Injectable()
 export class ScrapingDataService extends BaseService<ScrapingDataEntity, ScrapingDataDto> {
@@ -155,8 +156,8 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                         data: item,
                         url: item.url,
                         dataId: item.id,
-                        mimeType: item.mimeType,
                         lastModified: item?.lastModified || new Date(),
+                        mimeType: UtilsService.transformMimeType(item.mimeType),
                         cloudDataUrl: undefined,
                         cloudDataItemId: undefined,
                     };

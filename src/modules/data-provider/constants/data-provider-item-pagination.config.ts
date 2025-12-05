@@ -7,6 +7,7 @@ import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 const dataProviderItemColumns = getColumnNames(DataProviderItemEntity);
 const itemColumns = getRelationColumns(DataProviderItemEntity, 'item', ['itemId']);
 const dataProviderColumns = getRelationColumns(DataProviderItemEntity, 'dataProvider', ['dataProviderId']);
+const cloudDataProviderColumns = getRelationColumns(DataProviderItemEntity, 'cloudDataProvider', ['cloudDataProviderId']);
 
 export const DATA_PROVIDER_ITEM_PAGINATION_CONFIG = createPaginationConfig<DataProviderItemEntity>({
     searchableColumns: ['itemUrl'],
@@ -17,9 +18,10 @@ export const DATA_PROVIDER_ITEM_PAGINATION_CONFIG = createPaginationConfig<DataP
         isActive: [FilterOperator.EQ],
         itemId: [FilterOperator.IN],
         dataProviderId: [FilterOperator.IN],
+        cloudDataProviderId: [FilterOperator.IN],
     },
-    relations: ['item', 'dataProvider'],
-    select: [...dataProviderItemColumns, ...dataProviderColumns, ...itemColumns],
+    relations: ['item', 'dataProvider', 'cloudDataProvider'],
+    select: [...dataProviderItemColumns, ...dataProviderColumns, ...itemColumns, ...cloudDataProviderColumns],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

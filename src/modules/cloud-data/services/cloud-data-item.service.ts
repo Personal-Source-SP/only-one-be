@@ -4,14 +4,15 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
+import { MimeType } from '../../../common/enums';
+import { UtilsService } from '../../../shared/services/utils.service';
+import { CLOUD_DATA_SERVICE_MAP } from '../constants';
 import { CloudDataItemDto } from '../dtos/cloud-data-item.dto';
-import { CloudDataItemEntity } from '../entities/cloud-data-item.entity';
 import { CloudDataUploadFileRequest } from '../dtos/requests';
 import { UploadFileResponse } from '../dtos/responses';
+import { CloudDataItemEntity } from '../entities/cloud-data-item.entity';
 import { ICloudDataService } from '../interfaces';
-import { CLOUD_DATA_SERVICE_MAP } from '../constants';
 import { CloudDataProviderService } from './cloud-data-provider.service';
-import { MimeType } from '../../../common/enums';
 
 @Injectable()
 export class CloudDataItemService extends BaseService<CloudDataItemEntity, CloudDataItemDto> {
@@ -52,7 +53,7 @@ export class CloudDataItemService extends BaseService<CloudDataItemEntity, Cloud
             fileSize,
             pathUrl,
             pathId: fileId,
-            mimeType: mimeType as MimeType,
+            mimeType: UtilsService.transformMimeType(mimeType),
         });
 
         const savedCloudDataItem = await this.create(cloudDataItemEntity);

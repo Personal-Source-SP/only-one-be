@@ -3,7 +3,6 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'type
 
 import { AbstractEntity } from '../../../common/entities';
 import { CloudDataProviderEntity } from '../../cloud-data/entities/cloud-data-provider.entity';
-import { DisplayType } from '../enums';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
@@ -29,10 +28,6 @@ export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'boolean', default: false })
     @AutoMap()
     isSavedToCloudData: boolean;
-
-    @Column({ type: 'varchar', length: 50, default: DisplayType.IMAGE })
-    @AutoMap()
-    displayType: DisplayType;
 
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()

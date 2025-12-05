@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
+import { MimeType } from '../../../../common/enums';
 
 export class GoogleDriveFileResponseDto {
     @ApiProperty({ description: 'File ID' })
@@ -16,7 +17,7 @@ export class GoogleDriveFileResponseDto {
 
     @ApiProperty({ description: 'MIME type' })
     @AutoMap()
-    mimeType: string;
+    mimeType: MimeType;
 
     @ApiProperty({ description: 'File size in bytes' })
     @AutoMap()

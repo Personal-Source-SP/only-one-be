@@ -1,3 +1,4 @@
+import { MimeType } from '../../../../common/enums';
 import { ScrapeItemDataResponseItemDto } from './scrape-item-data-response.dto';
 
 export class ProcessScrapeDataProviderResponse {
@@ -13,7 +14,7 @@ export class ProcessScrapeDataProviderResponse {
 
         url: string;
         dataId: string;
-        mimeType: string;
+        mimeType: MimeType;
         data: Record<string, any>;
         lastModified?: Date;
 
@@ -50,7 +51,7 @@ export class ProcessScrapeDataResponse {
 
         url: string;
         dataId: string;
-        mimeType: string;
+        mimeType: MimeType;
         data: Record<string, any>;
         lastModified?: Date;
 

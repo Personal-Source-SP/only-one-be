@@ -4,6 +4,7 @@ import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { DataProviderItemDto } from './data-provider-item.dto';
 import { DataProviderDto } from './data-provider.dto';
 import { ItemDto } from './item.dto';
+import { MimeType } from '../../../common/enums';
 
 export class ScrapingDataDto extends AbstractDto {
     @ApiResponseProperty()
@@ -24,7 +25,7 @@ export class ScrapingDataDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    type?: string;
+    type?: MimeType;
 
     @ApiResponseProperty()
     @AutoMap()

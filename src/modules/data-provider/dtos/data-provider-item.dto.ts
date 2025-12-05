@@ -3,7 +3,6 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { CloudDataProviderDto } from '../../cloud-data/dtos/cloud-data-provider.dto';
-import { DisplayType } from '../enums';
 import { DataProviderDto } from './data-provider.dto';
 import { ItemDto } from './item.dto';
 import { ScrapingDataDto } from './scraping-data.dto';
@@ -28,10 +27,6 @@ export class DataProviderItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     isSavedToCloudData: boolean;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    displayType: DisplayType;
 
     @ApiResponseProperty()
     @AutoMap()

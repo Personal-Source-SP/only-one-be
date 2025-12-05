@@ -5,6 +5,7 @@ import { AbstractEntity } from '../../../common/entities';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
+import { MimeType } from '../../../common/enums';
 
 @Entity({ name: 'scraping_data', synchronize: false })
 export class ScrapingDataEntity extends AbstractEntity {
@@ -30,7 +31,7 @@ export class ScrapingDataEntity extends AbstractEntity {
 
     @Column({ type: 'varchar', length: 255 })
     @AutoMap()
-    type: string;
+    type: MimeType;
 
     @Column({ type: 'varchar', length: 255 })
     @AutoMap()
