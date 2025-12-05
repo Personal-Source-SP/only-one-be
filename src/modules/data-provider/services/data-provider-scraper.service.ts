@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
@@ -10,6 +10,7 @@ import { DataProviderItemService } from './data-provider-item.service';
 @Injectable()
 export class DataProviderScraperService {
     constructor(
+        @Inject(forwardRef(() => DataProviderItemService))
         private readonly dataProviderItemService: DataProviderItemService,
 
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
