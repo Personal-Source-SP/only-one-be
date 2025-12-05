@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
-import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../dtos/responses';
-import { ExtractDataHelper } from '../helpers/extract-data.helper';
+import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
+import { ExtractDataHelper } from '../../helpers/extract-data.helper';
 import {
     IDataProviderScraperService,
     IExtractDataResponse,
@@ -9,11 +9,11 @@ import {
     IScrapeItemDataRequest,
     ITargetConfig,
     IValidateParserFunctionRequest,
-} from '../interfaces';
-import { ScraperService } from './scraper.service';
+} from '../../interfaces';
+import { ScraperService } from '../scraper.service';
 
 @Injectable()
-export class ApiDataProviderScraperService implements IDataProviderScraperService {
+export class GenericDataProviderScraperService implements IDataProviderScraperService {
     constructor(
         private readonly scraperService: ScraperService,
         private readonly extractDataHelper: ExtractDataHelper,
@@ -22,7 +22,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
         const { dataProvider, dataProviderItem } = request;
 
-        const targetConfig: ITargetConfig = dataProvider.targetConfig;
+        const targetConfig: ITargetConfig = dataProvider?.parent?.targetConfig ?? dataProvider.targetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
@@ -58,6 +58,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
             return new ScrapeItemDataResponseDto({
                 ...defaultResponse,
                 status: 'success',
+                html: extractData.html,
                 extractedDataResult: extractData.data,
             });
         } catch (error) {
@@ -81,13 +82,6 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
                 });
             }
 
-            if (isEmpty(extractData.data)) {
-                return new ValidateParserFunctionResponseDto({
-                    status: 'error',
-                    error: 'Function parse data is not valid, cannot parse data',
-                });
-            }
-
             return new ValidateParserFunctionResponseDto({
                 status: 'success',
                 data: extractData.data,
@@ -102,23 +96,26 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     }
 
     async getExtractData(request: IGetExtractDataRequest): Promise<IExtractDataResponse> {
-        const { targetConfig, dataContent, url, lastScrapedTimestamp } = request;
-        const { functionGenerator, maxResults } = targetConfig;
+        const { targetConfig, url, htmlContentString } = request;
+        const { functionGenerator, mainContentSelector, isGetParentElement, maxResults } = targetConfig;
 
         try {
             // Get html content if not provided
-            let data = dataContent;
-            if (!data) {
-                const dataContent = await this.scraperService.getApiContent(url, targetConfig, lastScrapedTimestamp);
-                if (dataContent.status !== 'success') {
-                    return { error: dataContent.error_message || `Not found data content from ${url}` };
+            let html = htmlContentString;
+            if (!html) {
+                const htmlContent = await this.scraperService.getHtmlContent(url, targetConfig);
+                if (htmlContent.status !== 'success') {
+                    return { error: htmlContent.error_message || `Not found html content from ${url}` };
                 }
-                data = dataContent.data;
+
+                html = htmlContent.html;
             }
 
-            const extractData = await this.extractDataHelper.runApiFunctionExtractData({
-                data,
+            const extractData = await this.extractDataHelper.runFunctionExtractData({
+                htmlContent: html,
                 functionGenerator,
+                isGetParentElement,
+                mainContentSelector,
             });
 
             if (isEmpty(extractData)) {
@@ -129,7 +126,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
                 return { data: extractData.slice(0, maxResults) };
             }
 
-            return { data: extractData };
+            return { data: extractData, html };
         } catch (error) {
             console.error(error);
             return { error: error?.message || 'Unknown error' };
