@@ -55,4 +55,14 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         const response = await this.cloudDataItemService.uploadFile(file, request);
         return response;
     }
+
+    @ApiOperation({ summary: 'Upload file to cloud data from URL' })
+    @Version('1')
+    @HttpCode(HttpStatus.OK)
+    @Post('upload-from-url')
+    @BaseApiOkResponse(UploadFileResponse)
+    async uploadFileFromUrl(@Body() request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
+        const response = await this.cloudDataItemService.uploadFileFromUrl(request);
+        return response;
+    }
 }

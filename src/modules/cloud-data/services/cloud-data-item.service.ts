@@ -60,4 +60,33 @@ export class CloudDataItemService extends BaseService<CloudDataItemEntity, Cloud
 
         return response.data;
     }
+
+    async uploadFileFromUrl(request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
+        const { cloudDataProviderId, fileUrl, payload } = request;
+
+        const cloudDataProvider = await this.cloudDataProviderService.findById(cloudDataProviderId);
+        if (!cloudDataProvider) throw new BadRequestException(`Cloud data provider with id ${cloudDataProviderId} not found`);
+
+        const cloudDataService = this.cloudDataServiceMap[cloudDataProvider.type];
+        if (!cloudDataService) throw new BadRequestException(`Cloud data service for type ${cloudDataProvider.type} not found`);
+
+        const response = await cloudDataService.uploadFileFromUrl(fileUrl, payload);
+        if (!response.isSuccess || !response.data?.document) throw new BadRequestException(response.errorMessage);
+
+        const { pathUrl, document } = response.data;
+        const { fileId, fileName, mimeType, fileSize } = document ?? {};
+        const cloudDataItemEntity = this.repository.create({
+            cloudDataProviderId,
+            fileName,
+            fileSize,
+            pathUrl,
+            pathId: fileId,
+            mimeType: mimeType as MimeType,
+        });
+
+        const savedCloudDataItem = await this.create(cloudDataItemEntity);
+        if (!savedCloudDataItem) throw new BadRequestException('Failed to save cloud data item');
+
+        return response.data;
+    }
 }

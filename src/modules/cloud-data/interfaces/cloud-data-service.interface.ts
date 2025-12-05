@@ -11,5 +11,6 @@ type UpdateFileRequest = TelegramUploadDocumentRequest;
 
 export interface ICloudDataService {
     getFileStream(fileId: string): Promise<ICloudDataServiceResponse<FileStreamResponse>>;
+    uploadFileFromUrl(fileUrl: string, request?: UpdateFileRequest): Promise<ICloudDataServiceResponse<UploadFileResponse>>;
     uploadFile(file: Express.Multer.File, request?: UpdateFileRequest): Promise<ICloudDataServiceResponse<UploadFileResponse>>;
 }

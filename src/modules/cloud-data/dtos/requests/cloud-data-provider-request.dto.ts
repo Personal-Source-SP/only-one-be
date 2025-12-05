@@ -61,6 +61,11 @@ export class CloudDataUploadFileRequest {
 
     @ApiPropertyOptional()
     @IsOptional()
+    @IsString()
+    fileUrl?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsObject()
     payload?: TelegramUploadDocumentRequest;
 }
