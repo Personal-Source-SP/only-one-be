@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
+import { CloudDataProviderEntity } from '../../cloud-data/entities/cloud-data-provider.entity';
 import { DisplayType } from '../enums';
 import { DataProviderEntity } from './data-provider.entity';
 import { ItemEntity } from './item.entity';
@@ -25,6 +26,10 @@ export class DataProviderItemEntity extends AbstractEntity {
     @AutoMap()
     isActive: boolean;
 
+    @Column({ type: 'boolean', default: false })
+    @AutoMap()
+    isSavedToCloudData: boolean;
+
     @Column({ type: 'varchar', length: 50, default: DisplayType.IMAGE })
     @AutoMap()
     displayType: DisplayType;
@@ -32,6 +37,10 @@ export class DataProviderItemEntity extends AbstractEntity {
     @Column({ type: 'timestamptz', nullable: true })
     @AutoMap()
     lastScrapedTimestamp?: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    cloudDataProviderId?: string;
 
     @ManyToOne(() => ItemEntity, (entity) => entity.dataProviderItems, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'item_id' })
@@ -42,6 +51,11 @@ export class DataProviderItemEntity extends AbstractEntity {
     @JoinColumn({ name: 'data_provider_id' })
     @AutoMap(() => DataProviderEntity)
     dataProvider: Relation<DataProviderEntity>;
+
+    @ManyToOne(() => CloudDataProviderEntity, (cloudDataProvider) => cloudDataProvider.dataProviderItems, { onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'cloud_data_provider_id' })
+    @AutoMap(() => CloudDataProviderEntity)
+    cloudDataProvider?: Relation<CloudDataProviderEntity>;
 
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProviderItem)
     @AutoMap(() => [ScrapingDataEntity])

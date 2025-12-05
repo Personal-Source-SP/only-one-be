@@ -45,6 +45,18 @@ export class CreateDataProviderItemRequestDto {
     @IsOptional()
     @IsBoolean()
     checkDuplicateData?: boolean;
+
+    @ApiPropertyOptional({ description: 'Is saved to cloud data', default: false })
+    @IsOptional()
+    @IsBoolean()
+    @AutoMap()
+    isSavedToCloudData?: boolean;
+
+    @ApiPropertyOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
+    @IsOptional()
+    @IsUUID()
+    @AutoMap()
+    cloudDataProviderId?: string;
 }
 
 export class UpdateDataProviderItemRequestDto {
@@ -75,6 +87,18 @@ export class UpdateDataProviderItemRequestDto {
     @IsEnum(DisplayType)
     @AutoMap()
     displayType?: DisplayType;
+
+    @ApiPropertyOptional({ description: 'Is saved to cloud data', default: false })
+    @IsOptional()
+    @IsBoolean()
+    @AutoMap()
+    isSavedToCloudData?: boolean;
+
+    @ApiPropertyOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
+    @IsOptional()
+    @IsUUID()
+    @AutoMap()
+    cloudDataProviderId?: string;
 }
 
 export class CreateManuallyTriggerScrapingRequestDto {

@@ -3,6 +3,7 @@ import { Column, Entity, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { ColumnNumericTransformer } from '../../../common/transformers';
+import { DataProviderItemEntity } from '../../data-provider/entities/data-provider-item.entity';
 import { CloudDataProviderType } from '../enums';
 import { CloudDataItemEntity } from './cloud-data-item.entity';
 
@@ -35,4 +36,8 @@ export class CloudDataProviderEntity extends AbstractEntity {
     @OneToMany(() => CloudDataItemEntity, (cloudDataItem) => cloudDataItem.cloudDataProvider)
     @AutoMap(() => [CloudDataItemEntity])
     cloudDataItems?: Relation<CloudDataItemEntity>[];
+
+    @OneToMany(() => DataProviderItemEntity, (dataProviderItem) => dataProviderItem.cloudDataProvider)
+    @AutoMap(() => [DataProviderItemEntity])
+    dataProviderItems?: Relation<DataProviderItemEntity>[];
 }
