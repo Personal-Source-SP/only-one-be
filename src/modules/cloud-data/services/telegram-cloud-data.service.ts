@@ -74,6 +74,22 @@ export class TelegramCloudService implements ICloudDataService {
         }
     }
 
+    async uploadFileFromUrl(
+        fileUrl: string,
+        request?: TelegramUploadDocumentRequest,
+    ): Promise<ICloudDataServiceResponse<UploadFileResponse>> {
+        try {
+            const file = await this.downloadFileFromUrl(fileUrl);
+            return await this.uploadFile(file, request);
+        } catch (error) {
+            this.logger.error(`Failed to upload file from URL ${fileUrl}: ${error.message || error}`);
+            return {
+                isSuccess: false,
+                errorMessage: error.message || 'Failed to upload file from URL',
+            };
+        }
+    }
+
     async getFileStream(fileId: string): Promise<ICloudDataServiceResponse<FileStreamResponse>> {
         const fileInfo = await this.fetchFileInfo(fileId);
 
@@ -195,6 +211,23 @@ export class TelegramCloudService implements ICloudDataService {
         return UtilsService.convertSnakeToCamelCase(payload.result);
     }
 
+    private extractFileNameFromUrl(url: string): string {
+        try {
+            const urlObj = new URL(url);
+            const pathname = urlObj.pathname;
+            const fileName = pathname.split('/').pop() || '';
+
+            if (fileName && fileName.includes('.')) {
+                return decodeURIComponent(fileName);
+            }
+
+            return '';
+        } catch (error) {
+            this.logger.error(`Failed to extract filename from URL ${url}: ${error.message || error}`);
+            return '';
+        }
+    }
+
     private async fetchFileInfo(fileId: string): Promise<ITelegramFile> {
         const fileInfo = await this.callTelegramApi<ITelegramFile>({
             method: HttpMethod.GET,
@@ -250,5 +283,56 @@ export class TelegramCloudService implements ICloudDataService {
         }
 
         return this.extractTelegramResult<T>(response.data, endpoint);
+    }
+
+    private async downloadFileFromUrl(fileUrl: string): Promise<Express.Multer.File> {
+        const response = await this.baseHttpService.get<ArrayBuffer>(fileUrl, {
+            responseType: 'arraybuffer',
+        });
+
+        const contentType = (response.headers?.['content-type'] as string) || 'application/octet-stream';
+        const contentDisposition = response.headers?.['content-disposition'] as string;
+
+        let fileName = this.extractFileNameFromUrl(fileUrl);
+
+        if (contentDisposition) {
+            const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (fileNameMatch && fileNameMatch[1]) {
+                fileName = fileNameMatch[1].replace(/['"]/g, '');
+            }
+        }
+
+        if (!fileName || !fileName.includes('.')) {
+            const extensionMap: Record<string, string> = {
+                'application/pdf': 'pdf',
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/gif': 'gif',
+                'image/webp': 'webp',
+                'video/mp4': 'mp4',
+                'audio/mpeg': 'mp3',
+                'application/json': 'json',
+                'text/plain': 'txt',
+                'application/zip': 'zip',
+            };
+
+            const ext = extensionMap[contentType] || 'bin';
+            fileName = fileName ? `${fileName}.${ext}` : `file.${ext}`;
+        }
+
+        const fileBuffer = Buffer.from(response.data);
+
+        return {
+            path: '',
+            stream: null,
+            destination: '',
+            encoding: '7bit',
+            fieldname: 'document',
+            filename: fileName,
+            originalname: fileName,
+            buffer: fileBuffer,
+            mimetype: contentType,
+            size: fileBuffer.length,
+        };
     }
 }
