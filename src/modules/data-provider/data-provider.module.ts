@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
-import { DATA_PROVIDER_SCRAPER_SERVICE_MAP, DATA_PROVIDER_SCRAPER_SERVICE_MAP_KEY } from './constants/data-provider-scraper-service-map';
+import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from './constants/data-provider-scraper-service-map';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DataProviderController } from './controllers/data-provider.controller';
 import { ItemController } from './controllers/item.controller';
@@ -13,6 +13,7 @@ import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
+import { ScraperServiceEnum } from './enums';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { IDataProviderScraperService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
@@ -21,6 +22,7 @@ import { DataProviderItemService } from './services/data-provider-item.service';
 import { DataProviderScraperService } from './services/data-provider-scraper.service';
 import { ApiDataProviderScraperService } from './services/data-provider-scraper/api-data-provider-scraper.service';
 import { GenericDataProviderScraperService } from './services/data-provider-scraper/generic-data-provider-scraper.service';
+import { LocalDataProviderScraperService } from './services/data-provider-scraper/local-data-provider-scraper.service';
 import { DataProviderService } from './services/data-provider.service';
 import { ItemService } from './services/item.service';
 import { ParserService } from './services/parser.service';
@@ -41,6 +43,7 @@ const services = [
     DataProviderItemService,
     DataProviderScraperService,
     ApiDataProviderScraperService,
+    LocalDataProviderScraperService,
     GenericDataProviderScraperService,
 ];
 
@@ -56,12 +59,14 @@ const services = [
             provide: DATA_PROVIDER_SCRAPER_SERVICE_MAP,
             useFactory: (
                 apiDataProviderScraperService: ApiDataProviderScraperService,
+                localDataProviderScraperService: LocalDataProviderScraperService,
                 genericDataProviderScraperService: GenericDataProviderScraperService,
             ): Record<string, IDataProviderScraperService> => ({
-                [DATA_PROVIDER_SCRAPER_SERVICE_MAP_KEY.API]: apiDataProviderScraperService,
-                [DATA_PROVIDER_SCRAPER_SERVICE_MAP_KEY.GENERIC]: genericDataProviderScraperService,
+                [ScraperServiceEnum.API]: apiDataProviderScraperService,
+                [ScraperServiceEnum.LOCAL]: localDataProviderScraperService,
+                [ScraperServiceEnum.GENERIC]: genericDataProviderScraperService,
             }),
-            inject: [ApiDataProviderScraperService, GenericDataProviderScraperService],
+            inject: [ApiDataProviderScraperService, GenericDataProviderScraperService, LocalDataProviderScraperService],
         },
     ],
     exports: [...helpers, ...services, ...listeners, DataProviderProfile],
