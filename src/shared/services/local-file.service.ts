@@ -236,6 +236,41 @@ export class LocalFileService {
         }
     }
 
+    getMimeTypeFromExtension(ext: string): string {
+        const mimeTypes: Record<string, string> = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.bmp': 'image/bmp',
+            '.svg': 'image/svg+xml',
+            '.ico': 'image/x-icon',
+            '.tiff': 'image/tiff',
+            '.tif': 'image/tiff',
+            '.mp4': 'video/mp4',
+            '.avi': 'video/x-msvideo',
+            '.mov': 'video/quicktime',
+            '.wmv': 'video/x-ms-wmv',
+            '.flv': 'video/x-flv',
+            '.webm': 'video/webm',
+            '.mkv': 'video/x-matroska',
+            '.m4v': 'video/x-m4v',
+            '.3gp': 'video/3gpp',
+            '.mpg': 'video/mpeg',
+            '.mpeg': 'video/mpeg',
+            '.pdf': 'application/pdf',
+            '.json': 'application/json',
+            '.txt': 'text/plain',
+            '.zip': 'application/zip',
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.ogg': 'audio/ogg',
+        };
+
+        return mimeTypes[ext] || 'application/octet-stream';
+    }
+
     private resolvePath(filePath: string): string {
         return path.isAbsolute(filePath) ? filePath : path.resolve(process.cwd(), filePath);
     }

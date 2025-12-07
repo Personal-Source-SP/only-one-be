@@ -150,11 +150,12 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
 
             try {
                 const fileStats = await this.localFileService.getFileStats(fullPath);
+                const mimeType = this.localFileService.getMimeTypeFromExtension(ext);
                 const fileData: ScrapeItemDataResponseItemDto = {
+                    mimeType,
                     id: fileName,
                     url: fullPath,
                     lastModified: fileStats.modifiedAt,
-                    mimeType: this.getMimeTypeFromExtension(ext),
                 };
 
                 dataList.push(fileData);
@@ -175,32 +176,5 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
         const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp', '.mpg', '.mpeg'];
 
         return imageExtensions.includes(ext) || videoExtensions.includes(ext);
-    }
-
-    private getMimeTypeFromExtension(ext: string): string {
-        const mimeTypes: Record<string, string> = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.bmp': 'image/bmp',
-            '.svg': 'image/svg+xml',
-            '.ico': 'image/x-icon',
-            '.tiff': 'image/tiff',
-            '.tif': 'image/tiff',
-            '.mp4': 'video/mp4',
-            '.avi': 'video/x-msvideo',
-            '.mov': 'video/quicktime',
-            '.wmv': 'video/x-ms-wmv',
-            '.flv': 'video/x-flv',
-            '.webm': 'video/webm',
-            '.mkv': 'video/x-matroska',
-            '.m4v': 'video/x-m4v',
-            '.3gp': 'video/3gpp',
-            '.mpg': 'video/mpeg',
-            '.mpeg': 'video/mpeg',
-        };
-        return mimeTypes[ext] || 'application/octet-stream';
     }
 }

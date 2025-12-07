@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import FormData from 'form-data';
+import * as path from 'path';
 import { HttpMethod } from '../../../../common/enums';
 import { ICloudflareConfig, ITelegramConfig } from '../../../../shared/interfaces';
 import { AppConfigService } from '../../../../shared/services/app-config.service';
 import { BaseHttpService } from '../../../../shared/services/base-http.service';
+import { LocalFileService } from '../../../../shared/services/local-file.service';
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { UtilsService } from '../../../../shared/services/utils.service';
 import { TelegramUploadDocumentRequest } from '../../dtos/requests';
@@ -22,6 +24,7 @@ export class TelegramCloudService implements ICloudDataService {
     constructor(
         private readonly baseHttpService: BaseHttpService,
         private readonly appConfigService: AppConfigService,
+        private readonly localFileService: LocalFileService,
     ) {
         this.telegramConfig = this.appConfigService.telegramConfig;
         this.cloudflareConfig = this.appConfigService.cloudflareConfig;
@@ -285,6 +288,12 @@ export class TelegramCloudService implements ICloudDataService {
     }
 
     private async downloadFileFromUrl(fileUrl: string): Promise<Express.Multer.File> {
+        const isLocalFile = !fileUrl.startsWith('http://') && !fileUrl.startsWith('https://');
+
+        if (isLocalFile) {
+            return await this.readLocalFile(fileUrl);
+        }
+
         const response = await this.baseHttpService.get<ArrayBuffer>(fileUrl, {
             responseType: 'arraybuffer',
         });
@@ -333,5 +342,35 @@ export class TelegramCloudService implements ICloudDataService {
             mimetype: contentType,
             size: fileBuffer.length,
         };
+    }
+
+    private async readLocalFile(filePath: string): Promise<Express.Multer.File> {
+        try {
+            const fileExists = await this.localFileService.fileExists(filePath);
+            if (!fileExists) {
+                throw new BadRequestException(`File not found: ${filePath}`);
+            }
+
+            const fileBuffer = (await this.localFileService.readFile(filePath)) as Buffer;
+            const fileName = path.basename(filePath);
+            const ext = path.extname(filePath).toLowerCase();
+            const contentType = this.localFileService.getMimeTypeFromExtension(ext);
+
+            return {
+                path: filePath,
+                stream: null,
+                destination: '',
+                encoding: '7bit',
+                fieldname: 'document',
+                filename: fileName,
+                originalname: fileName,
+                buffer: fileBuffer,
+                mimetype: contentType,
+                size: fileBuffer.length,
+            };
+        } catch (error) {
+            this.logger.error(`Failed to read local file ${filePath}: ${error.message || error}`);
+            throw new BadRequestException(`Failed to read local file: ${error.message || error}`);
+        }
     }
 }
