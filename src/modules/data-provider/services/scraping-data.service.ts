@@ -263,6 +263,10 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
             select: { id: true, isSavedToCloudData: true, cloudDataProviderId: true },
         });
 
+        if (!dataProviderItems.length) {
+            return scrapingDataEntities;
+        }
+
         const dataProviderItemMap = new Map(dataProviderItems.map((item) => [item.id, item]));
 
         const updatedEntities: ScrapingDataEntity[] = [];

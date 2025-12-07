@@ -269,9 +269,16 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         const { scraperService, targetConfig, itemUrl } = data;
         if (!targetConfig) throw new BadRequestException('Target config not found');
 
-        const requiredProperties: Array<keyof ITargetConfig> = ['functionGenerator'];
-        if (scraperService === ScraperServiceEnum.GENERIC) {
-            requiredProperties.push('mainContentSelector', 'isGetParentElement');
+        const requiredProperties: Array<keyof ITargetConfig> = [];
+        switch (scraperService) {
+            case ScraperServiceEnum.API: {
+                requiredProperties.push('functionGenerator');
+                break;
+            }
+            case ScraperServiceEnum.GENERIC: {
+                requiredProperties.push('functionGenerator', 'mainContentSelector', 'isGetParentElement');
+                break;
+            }
         }
 
         const missingProperties: Array<keyof ITargetConfig> = requiredProperties.filter((prop) => !(prop in targetConfig));

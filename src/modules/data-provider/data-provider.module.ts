@@ -66,7 +66,7 @@ const services = [
                 [ScraperServiceEnum.LOCAL]: localDataProviderScraperService,
                 [ScraperServiceEnum.GENERIC]: genericDataProviderScraperService,
             }),
-            inject: [ApiDataProviderScraperService, GenericDataProviderScraperService, LocalDataProviderScraperService],
+            inject: [ApiDataProviderScraperService, LocalDataProviderScraperService, GenericDataProviderScraperService],
         },
     ],
     exports: [...helpers, ...services, ...listeners, DataProviderProfile],

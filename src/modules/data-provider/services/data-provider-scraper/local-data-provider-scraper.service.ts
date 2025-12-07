@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import * as path from 'path';
 import { isEmpty } from 'lodash';
-import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
+import * as path from 'path';
+import { LocalFileService } from '../../../../shared/services/local-file.service';
+import { ScrapeItemDataResponseDto, ScrapeItemDataResponseItemDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
 import {
     IDataProviderScraperService,
     IExtractDataResponse,
@@ -10,8 +11,6 @@ import {
     ITargetConfig,
     IValidateParserFunctionRequest,
 } from '../../interfaces';
-import { IScraperResponse } from '../../interfaces/scraper.interface';
-import { LocalFileService } from '../../../../shared/services/local-file.service';
 
 @Injectable()
 export class LocalDataProviderScraperService implements IDataProviderScraperService {
@@ -107,10 +106,7 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
             let data = dataContent;
             if (!data) {
                 const fileContent = await this.getLocalFileContent(url);
-                if (fileContent.status !== 'success') {
-                    return { error: fileContent.error_message || `Not found data content from ${url}` };
-                }
-                data = fileContent.data;
+                data = fileContent;
             }
 
             const extractData = Array.isArray(data) ? data : [data];
@@ -130,61 +126,81 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
         }
     }
 
-    private async getLocalFileContent(filePath: string): Promise<IScraperResponse> {
-        const startTime = Date.now();
-
-        try {
-            const fileExists = await this.localFileService.fileExists(filePath);
-            if (!fileExists) {
-                return {
-                    status: 'error',
-                    execution_time: Date.now() - startTime,
-                    error_code: 'FILE_NOT_FOUND',
-                    error_message: `File not found: ${filePath}`,
-                };
-            }
-
-            const isFile = await this.localFileService.isFile(filePath);
-            if (!isFile) {
-                return {
-                    status: 'error',
-                    execution_time: Date.now() - startTime,
-                    error_code: 'NOT_A_FILE',
-                    error_message: `Path is not a file: ${filePath}`,
-                };
-            }
-
-            const ext = path.extname(filePath).toLowerCase();
-            let data: Record<string, any>;
-
-            if (ext === '.json') {
-                try {
-                    data = await this.localFileService.readFileAsJson(filePath);
-                } catch (parseError) {
-                    return {
-                        status: 'error',
-                        execution_time: Date.now() - startTime,
-                        error_code: 'INVALID_JSON',
-                        error_message: `Failed to parse JSON file: ${parseError?.message}`,
-                    };
-                }
-            } else {
-                const fileContent = await this.localFileService.readFile(filePath, { encoding: 'utf-8' });
-                data = { content: fileContent as string };
-            }
-
-            return {
-                status: 'success',
-                data,
-                execution_time: Date.now() - startTime,
-            };
-        } catch (error) {
-            return {
-                status: 'error',
-                execution_time: Date.now() - startTime,
-                error_code: error?.name || 'UNKNOWN_ERROR',
-                error_message: error?.message || 'Unknown error',
-            };
+    private async getLocalFileContent(filePath: string): Promise<ScrapeItemDataResponseItemDto[]> {
+        const isDirectory = await this.localFileService.isDirectory(filePath);
+        if (!isDirectory) {
+            throw new Error(`Path is not a directory: ${filePath}`);
         }
+
+        const files = await this.localFileService.listDirectory(filePath);
+        const dataList: ScrapeItemDataResponseItemDto[] = [];
+
+        for (const fileName of files) {
+            const fullPath = path.join(filePath, fileName);
+            const isFileItem = await this.localFileService.isFile(fullPath);
+
+            if (!isFileItem) {
+                continue;
+            }
+
+            const ext = path.extname(fullPath).toLowerCase();
+            if (!this.isImageOrVideo(ext)) {
+                continue;
+            }
+
+            try {
+                const fileStats = await this.localFileService.getFileStats(fullPath);
+                const fileData: ScrapeItemDataResponseItemDto = {
+                    id: fileName,
+                    url: fullPath,
+                    lastModified: fileStats.modifiedAt,
+                    mimeType: this.getMimeTypeFromExtension(ext),
+                };
+
+                dataList.push(fileData);
+            } catch (error) {
+                continue;
+            }
+        }
+
+        if (isEmpty(dataList)) {
+            throw new Error(`No image or video files found in directory: ${filePath}`);
+        }
+
+        return dataList;
+    }
+
+    private isImageOrVideo(ext: string): boolean {
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.ico', '.tiff', '.tif'];
+        const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp', '.mpg', '.mpeg'];
+
+        return imageExtensions.includes(ext) || videoExtensions.includes(ext);
+    }
+
+    private getMimeTypeFromExtension(ext: string): string {
+        const mimeTypes: Record<string, string> = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.bmp': 'image/bmp',
+            '.svg': 'image/svg+xml',
+            '.ico': 'image/x-icon',
+            '.tiff': 'image/tiff',
+            '.tif': 'image/tiff',
+            '.mp4': 'video/mp4',
+            '.avi': 'video/x-msvideo',
+            '.mov': 'video/quicktime',
+            '.wmv': 'video/x-ms-wmv',
+            '.flv': 'video/x-flv',
+            '.webm': 'video/webm',
+            '.mkv': 'video/x-matroska',
+            '.m4v': 'video/x-m4v',
+            '.3gp': 'video/3gpp',
+            '.mpg': 'video/mpeg',
+            '.mpeg': 'video/mpeg',
+        };
+        return mimeTypes[ext] || 'application/octet-stream';
     }
 }

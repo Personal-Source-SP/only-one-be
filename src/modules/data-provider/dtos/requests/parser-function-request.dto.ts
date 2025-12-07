@@ -1,12 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { IsObject, IsOptional, IsString, ValidateIf } from 'class-validator';
 import { UpdateTargetConfigRequestDto } from './data-provider-request.dto';
 
 export class TestParserFunctionRequestDto extends UpdateTargetConfigRequestDto {
     @ApiPropertyOptional({ description: 'URL' })
     @IsOptional()
     @ValidateIf((o) => !o.htmlContentString)
-    @IsUrl()
+    @IsString()
     url?: string;
 
     @ApiPropertyOptional({ description: 'HTML content' })

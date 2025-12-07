@@ -11,8 +11,7 @@ export class ParserService {
     ) {}
 
     async testParserFunction(request: TestParserFunctionRequestDto): Promise<IExtractDataResponse> {
-        const { url, dataContent, htmlContentString, scraperService, ...rest } = request;
-
+        const { url, dataContent, htmlContentString, scraperService } = request;
         if (!url && !dataContent && !htmlContentString) throw new BadRequestException('URL, Data content or Html content is required');
 
         const dataProviderScraperService = this.dataProviderScraperServiceMap[scraperService];
