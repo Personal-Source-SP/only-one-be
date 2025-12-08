@@ -5,11 +5,13 @@ import { SimulationItemController } from './controllers/simulation-item.controll
 import { SimulationController } from './controllers/simulation.controller';
 import { SimulationContextEntity } from './entities/simulation-context.entity';
 import { SimulationItemEntity } from './entities/simulation-item.entity';
+import { BrowserHelper } from './helpers/browser.helper';
 import { SimulationContextService } from './services/simulation-context.service';
-import { SimulationItemService } from './services/simulation-item.service';
 import { SimulationExecutionService } from './services/simulation-execution.service';
+import { SimulationItemService } from './services/simulation-item.service';
 import { SimulationProfile } from './simulation.profile';
 
+const helpers = [BrowserHelper];
 const entities = [SimulationContextEntity, SimulationItemEntity];
 const services = [SimulationExecutionService, SimulationContextService, SimulationItemService];
 const controllers = [SimulationController, SimulationContextController, SimulationItemController];
@@ -17,7 +19,7 @@ const controllers = [SimulationController, SimulationContextController, Simulati
 @Module({
     imports: [TypeOrmModule.forFeature(entities)],
     controllers: [...controllers],
-    providers: [...services, SimulationProfile],
-    exports: [...services, SimulationProfile],
+    providers: [...services, ...helpers, SimulationProfile],
+    exports: [...services, ...helpers, SimulationProfile],
 })
 export class SimulationModule {}
