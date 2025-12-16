@@ -79,14 +79,17 @@ export class SimulationExecutionService {
         };
     }
 
-    private async executeSimulationActions(page: Page, actions: SimulationActionRequest[]): Promise<SimulationActionResult[]> {
-        const results: SimulationActionResult[] = [];
+    private async executeSimulationActions(page: Page, actions: SimulationActionRequest[]): Promise<ServiceExecutionInternalResult> {
+        const actionResults: SimulationActionResult[] = [];
+
+        let stepError: string | undefined;
+        let errorMessage: string | undefined;
 
         for (const [index, action] of actions.entries()) {
             let isSuccess = false;
+
             const actionType = action.type;
             const actionStartedAt = Date.now();
-            let actionErrorMessage: string | undefined;
 
             try {
                 switch (actionType) {
@@ -122,27 +125,39 @@ export class SimulationExecutionService {
                         isSuccess = true;
                         break;
                     default:
-                        this.loggerService.error(`[${actionType}] unsupported action type`);
+                        throw new Error(`[${actionType}] unsupported action type`);
                 }
             } catch (error) {
-                actionErrorMessage = (error as Error)?.message ?? 'Execution failed';
-                this.loggerService.error(`[${actionType}] execution failed: ${actionErrorMessage}`);
-            } finally {
-                const actionEndedAt = Date.now();
-
-                results.push({
-                    index,
-                    isSuccess,
-                    type: actionType,
-                    errorMessage: actionErrorMessage,
-                    endedAt: new Date(actionEndedAt).toISOString(),
-                    startedAt: new Date(actionStartedAt).toISOString(),
-                    durationInMs: actionEndedAt - actionStartedAt,
-                });
+                stepError = actionType;
+                errorMessage = error?.message ?? 'Execution failed';
             }
+
+            if (stepError || !isSuccess) {
+                return {
+                    isSuccess: false,
+                    actions: actionResults,
+                    stepError,
+                    errorMessage,
+                };
+            }
+
+            const actionEndedAt = Date.now();
+            actionResults.push({
+                index,
+                isSuccess,
+                type: actionType,
+                durationInMs: actionEndedAt - actionStartedAt,
+                endedAt: new Date(actionEndedAt).toISOString(),
+                startedAt: new Date(actionStartedAt).toISOString(),
+            });
         }
 
-        return results;
+        return {
+            stepError,
+            errorMessage,
+            isSuccess: true,
+            actions: actionResults,
+        };
     }
 
     private async runUnlucidAi(page: Page): Promise<ServiceExecutionInternalResult> {
@@ -265,20 +280,9 @@ export class SimulationExecutionService {
         ];
 
         this.loggerService.info('Email filled. Waiting for user to complete Google login (up to 10 minutes)...');
+
         const results = await this.executeSimulationActions(page, actions);
-
-        const clicked = results[2]?.isSuccess ?? false;
-        const googleClicked = results[4]?.isSuccess ?? false;
-        const isRedirectedBack = results[6]?.isSuccess ?? false;
-
-        const currentUrl = page.url();
-        this.loggerService.info(`Final URL after login: ${currentUrl}`);
-        const isLoginSuccessful = currentUrl.includes('unlucid.ai') || (await page.$('button[data-button-root]')) !== null;
-
-        return {
-            actions: results,
-            isSuccess: clicked && googleClicked && isRedirectedBack && isLoginSuccessful,
-        };
+        return results;
     }
 
     private async getCurrentPage(pageId: string): Promise<Page> {

@@ -76,7 +76,6 @@ export interface SimulationActionResult {
     isSuccess: boolean;
     startedAt: string;
     durationInMs: number;
-    errorMessage?: string;
 }
 
 export interface SimulationExecutionSummary {
@@ -95,4 +94,6 @@ export interface SimulationExecuteRequest<TPayload = unknown> {
 export interface ServiceExecutionInternalResult {
     isSuccess: boolean;
     actions: SimulationActionResult[];
+    stepError?: string;
+    errorMessage?: string;
 }

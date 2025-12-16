@@ -114,7 +114,7 @@ export class PuppeteerService {
         const pages = await context.pages();
         const page: Page = pages.length > 0 ? pages[0] : await context.newPage();
 
-        await page.setViewport({ width: 1366, height: 768 });
+        await page.setViewport({ width: 1920, height: 1080 });
 
         const wsEndpoint = this.getWsEndpoint(browser);
 
