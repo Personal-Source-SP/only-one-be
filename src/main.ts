@@ -17,6 +17,8 @@ import { AppConfigService } from './shared/services/app-config.service';
 import { LoggerService } from './shared/services/logger.service';
 import { SharedModule } from './shared/shared.module';
 import { setupSwagger } from './shared/swagger/setup';
+import { RedisClientOptions } from 'redis';
+import { RedisIoAdapter } from './modules/websocket/adapter/redis-io.adapter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(), { cors: true });
@@ -92,16 +94,16 @@ async function bootstrap() {
         await connection.runMigrations();
     }
 
-    // const redisIoAdapter = new RedisIoAdapter(app);
-    // const redisOptions: RedisClientOptions = {
-    //     url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
-    //     ...(configService.get('REDIS_USERNAME') && { username: configService.get('REDIS_USERNAME') }),
-    //     ...(configService.get('REDIS_PASSWORD') && { password: configService.get('REDIS_PASSWORD') }),
-    // };
+    const redisIoAdapter = new RedisIoAdapter(app);
+    const redisOptions: RedisClientOptions = {
+        url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
+        ...(configService.get('REDIS_USERNAME') && { username: configService.get('REDIS_USERNAME') }),
+        ...(configService.get('REDIS_PASSWORD') && { password: configService.get('REDIS_PASSWORD') }),
+    };
 
-    // await redisIoAdapter.connectToRedis(redisOptions);
+    await redisIoAdapter.connectToRedis(redisOptions);
 
-    // app.useWebSocketAdapter(redisIoAdapter);
+    app.useWebSocketAdapter(redisIoAdapter);
 
     // Listen
     await app.listen(port, host);

@@ -20,7 +20,6 @@ import { WebSocketMessage, WebSocketResponse } from '../interfaces/websocket.int
     transports: ['websocket', 'polling'],
     path: process.env.WEBSOCKET_PATH || '/socket.io',
     namespace: process.env.WEBSOCKET_NAMESPACE || '/',
-    port: parseInt(process.env.WEBSOCKET_PORT || '3000'),
 })
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly loggerService: LoggerService = new LoggerService(WebsocketGateway.name);
