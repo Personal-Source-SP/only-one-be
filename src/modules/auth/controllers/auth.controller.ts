@@ -19,7 +19,7 @@ export class AuthController {
     @Version('1')
     @Post('signup')
     @BaseApiOkResponse(UserDto)
-    public async signUp(@Body() dto: CreateUserRequestDto): Promise<UserDto> {
+    async signUp(@Body() dto: CreateUserRequestDto): Promise<UserDto> {
         const result = await this.authService.signUp(dto);
         return result;
     }
@@ -29,7 +29,7 @@ export class AuthController {
     @Version('1')
     @Post('login')
     @BaseApiOkResponse(SignInResponseDto)
-    public async signIn(@Body() dto: SignInRequestDto): Promise<SignInResponseDto> {
+    async signIn(@Body() dto: SignInRequestDto): Promise<SignInResponseDto> {
         const result = await this.authService.login(dto);
         return result;
     }
@@ -41,7 +41,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('refresh-token')
     @BaseApiOkResponse(RefreshTokenResponseDto)
-    public async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {
+    async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {
         const result = await this.authService.refreshToken(dto);
         return result;
     }
