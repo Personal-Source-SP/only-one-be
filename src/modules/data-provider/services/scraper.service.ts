@@ -211,8 +211,11 @@ export class ScraperService implements OnModuleDestroy {
                 );
             }
 
+            const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+
             this.browser = await puppeteer.launch({
                 headless: stealthMode ? 'shell' : true,
+                executablePath: executablePath || undefined,
                 args,
                 ignoreDefaultArgs: stealthMode ? ['--enable-automation'] : [],
             });

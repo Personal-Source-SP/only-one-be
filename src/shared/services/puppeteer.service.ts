@@ -32,10 +32,20 @@ export class PuppeteerService {
         }
     }
 
+    private resolveHeadless(options?: IPuppeteerOptions): boolean {
+        if (options?.headless !== undefined) {
+            return options.headless;
+        }
+
+        return process.env.PUPPETEER_HEADLESS === 'true';
+    }
+
     async getBrowserSession(pageId: string, options?: IPuppeteerOptions): Promise<Browser> {
         if (!this.browserSessions.has(pageId)) {
+            const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
             const browser: Browser = await puppeteer.launch({
-                headless: options?.headless ?? false,
+                headless: this.resolveHeadless(options),
+                executablePath: executablePath || undefined,
                 slowMo: options?.slowMo ?? 50,
                 dumpio: options?.dumpio ?? true,
                 devtools: options?.devtools ?? false,

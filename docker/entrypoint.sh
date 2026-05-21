@@ -7,6 +7,7 @@ echo "=========================================="
 
 if [ -f .buildenv ]; then
     echo "Loading build info..."
+    # shellcheck disable=SC2046
     export $(grep -v '^#' .buildenv | xargs)
 fi
 
@@ -24,12 +25,10 @@ echo "Configuration:"
 echo "   Environment:     ${NODE_ENV}"
 echo "   Port:            ${PORT}"
 echo "   Swagger Version: ${SWAGGER_VERSION:-N/A}"
-echo "=========================================="
-
-echo "Environment variables (full):"
-printenv | while IFS='=' read -r name value; do
-    echo "   $name=$value"
-done
+echo "   Build Date:      ${BUILD_DATE:-N/A}"
+echo "   VCS Ref:         ${VCS_REF:-N/A}"
+echo "   Database Host:   ${DATABASE_HOST:-<unset>}"
+echo "   Redis Host:      ${REDIS_HOST:-<unset>}"
 echo "=========================================="
 
 echo "Starting NestJS server..."

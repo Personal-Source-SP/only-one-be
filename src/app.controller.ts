@@ -16,6 +16,12 @@ export class AppController {
         private readonly db: TypeOrmHealthIndicator,
     ) {}
 
+    @Get('health/live')
+    @HttpCode(HttpStatus.OK)
+    live(): { status: string } {
+        return { status: 'ok' };
+    }
+
     @Get('health')
     @HealthCheck()
     check() {
