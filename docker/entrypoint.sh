@@ -9,7 +9,7 @@ if [ -f .buildenv ]; then
     echo "Loading build info..."
     # Use set -a / . (source) instead of export $() to avoid word-splitting issues
     # shellcheck source=/dev/null
-    set -a; . .buildenv; set +a
+    set -a; . ./.buildenv; set +a
 fi
 
 export PORT=${PORT:-3001}
