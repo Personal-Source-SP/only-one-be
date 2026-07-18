@@ -1,0 +1,10 @@
+node_modules/
+dist/
+src/migrations/
+package-lock.json
+logs/
+*.json
+*.js
+*.yaml
+*.yml
+README.md
