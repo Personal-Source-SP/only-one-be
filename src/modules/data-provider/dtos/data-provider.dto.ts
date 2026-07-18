@@ -52,19 +52,19 @@ export class DataProviderDto extends AbstractDto {
     @AutoMap()
     parentId?: string;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => [DataProviderItemDto] })
     @AutoMap(() => [DataProviderItemDto])
     dataProviderItems?: DataProviderItemDto[];
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => [ConfigVersionDto] })
     @AutoMap(() => [ConfigVersionDto])
     configVersions?: ConfigVersionDto[];
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => DataProviderDto })
     @AutoMap(() => DataProviderDto)
     parent?: DataProviderDto;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => [DataProviderDto] })
     @AutoMap(() => [DataProviderDto])
     children?: DataProviderDto[];
 }

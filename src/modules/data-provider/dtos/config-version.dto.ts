@@ -40,7 +40,7 @@ export class ConfigVersionDto extends AbstractDto {
     @AutoMap(() => UserDto)
     user: UserDto;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => DataProviderDto })
     @AutoMap(() => DataProviderDto)
     dataProvider: DataProviderDto;
 }

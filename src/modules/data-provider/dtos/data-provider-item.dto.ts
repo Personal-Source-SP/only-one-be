@@ -40,7 +40,7 @@ export class DataProviderItemDto extends AbstractDto {
     @AutoMap(() => ItemDto)
     item: ItemDto;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => DataProviderDto })
     @AutoMap(() => DataProviderDto)
     dataProvider: DataProviderDto;
 
