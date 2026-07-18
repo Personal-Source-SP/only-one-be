@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # ==========================================
 # Stage 1: Base (build + runtime tooling)
 # ==========================================
@@ -17,26 +18,26 @@ RUN chown -R node:node /app
 # ==========================================
 FROM base AS dependencies
 USER node
-WORKDIR /app
 
 ENV HUSKY=0 \
     PUPPETEER_SKIP_DOWNLOAD=true
 
 COPY --chown=node:node package*.json ./
-RUN npm ci
+# BuildKit cache mount: npm cache is reused across builds (no re-download)
+RUN --mount=type=cache,target=/home/node/.npm,uid=1000 \
+    npm ci --prefer-offline
 
 # ==========================================
 # Stage 3: Build
 # ==========================================
 FROM dependencies AS build
-USER node
-WORKDIR /app
 
-COPY --chown=node:node ./src ./src
-COPY --chown=node:node ./ts*.json ./
-COPY --chown=node:node package*.json ./
+# Config files first (change less frequently) → better cache hit rate
 COPY --chown=node:node nest-cli.json ./
+COPY --chown=node:node ts*.json ./
 COPY --chown=node:node ormconfig.ts ./
+# Source code last (changes most frequently)
+COPY --chown=node:node ./src ./src
 
 RUN npm run build
 RUN npm prune --omit=dev
@@ -46,43 +47,16 @@ RUN npm prune --omit=dev
 # ==========================================
 FROM base AS runner
 
-USER root
+# Install ca-certificates and curl for healthcheck/HTTPS calls
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    chromium \
     ca-certificates \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    xdg-utils \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-USER node
-WORKDIR /app
 
 ARG SWAGGER_VERSION
 ARG BUILD_DATE
 ARG VCS_REF
-
-ENV PORT=3001 \
-    NODE_ENV=production \
-    SWAGGER_VERSION=${SWAGGER_VERSION} \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    PUPPETEER_HEADLESS=true \
-    PUPPETEER_SKIP_DOWNLOAD=true
 
 LABEL maintainer="admin@oo.com" \
       version="${SWAGGER_VERSION}" \
@@ -90,28 +64,38 @@ LABEL maintainer="admin@oo.com" \
       vcs-ref="${VCS_REF}" \
       description="NestJS Application"
 
+USER node
+WORKDIR /app
+
+ENV PORT=3001 \
+    NODE_ENV=production \
+    SWAGGER_VERSION=${SWAGGER_VERSION} \
+    # Limit Node.js heap; tune this value to match container memory limits
+    NODE_OPTIONS="--max-old-space-size=512"
+
 RUN echo "SWAGGER_VERSION=${SWAGGER_VERSION}" >> .buildenv && \
     echo "BUILD_DATE=${BUILD_DATE}" >> .buildenv && \
     echo "VCS_REF=${VCS_REF}" >> .buildenv
 
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
-COPY --from=build --chown=node:node /app/ormconfig.ts ./ormconfig.ts
-
 COPY --chown=node:node package.json ./
-COPY --chown=node:node .env.sample ./
-COPY --chown=node:node ./docker/entrypoint.sh ./
+# --chmod=755 sets executable bit at copy time — no need for a separate USER root chmod step
+COPY --chown=node:node --chmod=755 ./docker/entrypoint.sh ./entrypoint.sh
 
 EXPOSE 3001
 
+# Uses curl (lightweight) instead of spawning a new node process every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/health/live', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))"
-
-USER root
-RUN sed -i 's/\r$//' ./entrypoint.sh && \
-    chmod +x ./entrypoint.sh && \
-    chown node:node ./entrypoint.sh
-USER node
+    CMD curl -f http://localhost:${PORT:-3001}/health/live || exit 1
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/bin/sh", "entrypoint.sh"]
+
+# ==========================================
+# Stage 5: Migration (CLI only — NOT deployed to production)
+# Build target: docker build --target migration -t app:migration .
+# ==========================================
+FROM runner AS migration
+# TypeScript source required for TypeORM CLI (ts-node) migration commands
+COPY --from=build --chown=node:node /app/ormconfig.ts ./ormconfig.ts

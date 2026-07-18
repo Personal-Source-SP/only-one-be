@@ -53,3 +53,6 @@ docs
 .cache
 temp
 tmp
+
+# Build artifacts (generated inside container at runtime — must not be pre-seeded from host)
+.buildenv

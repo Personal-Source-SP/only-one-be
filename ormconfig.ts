@@ -27,7 +27,12 @@ export const connectionSource = new DataSource({
         process.env.DATABASE_SSL == 'true'
             ? {
                   ssl: {
-                      rejectUnauthorized: false,
+                      // Default: true (reject untrusted certs) — prevents MITM attacks.
+                      // Set DATABASE_SSL_REJECT_UNAUTHORIZED=false only for dev environments
+                      // with self-signed certificates; never disable in production.
+                      rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false',
+                      // Optional: provide a custom CA certificate (e.g. AWS RDS CA bundle)
+                      ...(process.env.DATABASE_SSL_CA ? { ca: process.env.DATABASE_SSL_CA } : {}),
                   },
               }
             : {},
