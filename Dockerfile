@@ -87,7 +87,7 @@ EXPOSE 3001
 
 # Uses curl (lightweight) instead of spawning a new node process every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3001}/api/v1/health/live || exit 1
+    CMD curl -f http://localhost:${PORT:-3001}/api/health/live || exit 1
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/bin/sh", "entrypoint.sh"]
