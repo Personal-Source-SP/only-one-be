@@ -52,6 +52,7 @@ jobs:
         name: Build & Push Docker Image
         needs: validate
         runs-on: ubuntu-latest
+        environment: DOCKER
 
         steps:
             - name: Checkout code
