@@ -1,4 +1,5 @@
 name: Dev CI
+run-name: Branch ${{ github.ref_name }} - #${{ github.run_number }}
 
 on:
     push:
