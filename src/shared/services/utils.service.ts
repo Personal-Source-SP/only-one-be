@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import * as _ from 'lodash';
+import { snakeCase } from 'lodash';
 import path from 'path';
 
 import { MimeType } from '../../common/enums/mime-type';
@@ -146,7 +146,7 @@ export class UtilsService {
             const converted: Record<string, any> = {};
 
             for (const [key, value] of Object.entries(obj)) {
-                const snakeKey = _.snakeCase(key);
+                const snakeKey = snakeCase(key);
                 converted[snakeKey] = this.convertCamelToSnakeCase(value);
             }
 

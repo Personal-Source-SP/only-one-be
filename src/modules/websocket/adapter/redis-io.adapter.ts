@@ -2,6 +2,7 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient, RedisClientOptions } from 'redis';
 import { ServerOptions } from 'socket.io';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 
 export class RedisIoAdapter extends IoAdapter {

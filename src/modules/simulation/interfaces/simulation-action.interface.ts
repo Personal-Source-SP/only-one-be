@@ -1,6 +1,7 @@
 import { type FrameWaitForFunctionOptions, type Page, type WaitForOptions, type WaitForSelectorOptions } from 'puppeteer';
-import { SimulationActionType } from '../enums/simulation-action.enum';
+
 import { SimulationService } from '../enums';
+import { SimulationActionType } from '../enums/simulation-action.enum';
 
 export interface SimulationActionOptionsMap {
     [SimulationActionType.GO_TO]: {

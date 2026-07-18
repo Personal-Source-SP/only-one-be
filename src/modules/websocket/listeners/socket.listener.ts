@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-
 import { OnEvent } from '@nestjs/event-emitter';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 import { SOCKET_EVENTS } from '../constants/socket.constant';
 import { WebsocketGateway } from '../gateways/websocket.gateway';

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
+
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
 import {

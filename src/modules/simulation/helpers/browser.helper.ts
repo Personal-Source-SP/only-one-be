@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ElementHandle, type Page } from 'puppeteer';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 import { SimulationActionType } from '../enums';
 import {

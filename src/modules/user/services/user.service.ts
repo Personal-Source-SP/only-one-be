@@ -1,10 +1,10 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Brackets, Not, Repository } from 'typeorm';
 
-import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '../../../common/base.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { ChangePasswordRequestDto, CreateUserRequestDto, UpdateUserRequestDto } from '../dtos/requests';

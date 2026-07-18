@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
-
 import { ApiResponseProperty } from '@nestjs/swagger';
+
 import { AbstractDto } from '../../../common/dto';
 import { CloudDataProviderType } from '../enums';
 import { CloudDataItemDto } from './cloud-data-item.dto';

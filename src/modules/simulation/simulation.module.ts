@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { SimulationController } from './controllers/simulation.controller';
 import { SimulationContextController } from './controllers/simulation-context.controller';
 import { SimulationItemController } from './controllers/simulation-item.controller';
-import { SimulationController } from './controllers/simulation.controller';
 import { SimulationContextEntity } from './entities/simulation-context.entity';
 import { SimulationItemEntity } from './entities/simulation-item.entity';
 import { BrowserHelper } from './helpers/browser.helper';

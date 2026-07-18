@@ -1,4 +1,5 @@
 import { AutoMap } from '@automapper/classes';
+
 import { ConfigVersionType } from '../../enums';
 import { ITargetConfig } from '../../interfaces';
 

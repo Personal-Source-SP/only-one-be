@@ -2,10 +2,10 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AppConfigService } from '../../shared/services/app-config.service';
-import { QueueModule } from '../queue/queue.module';
-import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
-import { ScheduleExecutorModule } from '../schedule/schedule.module';
 import { DataProviderModule } from '../data-provider/data-provider.module';
+import { QueueModule } from '../queue/queue.module';
+import { ScheduleExecutorModule } from '../schedule/schedule.module';
+import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
 
 const processors = [ScrapingWorkerProcessor];
 

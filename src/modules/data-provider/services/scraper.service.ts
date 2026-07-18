@@ -1,14 +1,14 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { AxiosRequestConfig } from 'axios';
 import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { BaseHttpService } from './../../../shared/services/base-http.service';
 
-import { AxiosRequestConfig } from 'axios';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { IScraperResponse } from '../interfaces/scraper.interface';
 import { ITargetConfig } from '../interfaces/target-config.interface';
+import { BaseHttpService } from './../../../shared/services/base-http.service';
 
 @Injectable()
 export class ScraperService implements OnModuleDestroy {

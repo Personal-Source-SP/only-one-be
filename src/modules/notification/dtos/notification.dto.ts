@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
+
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { NotificationType } from '../enum/notification.enum';
 

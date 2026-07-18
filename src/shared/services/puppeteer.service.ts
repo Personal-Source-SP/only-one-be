@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import puppeteer, { type Browser, type BrowserContext, type Page } from 'puppeteer';
+
 import { IPuppeteerOptions, IPuppeteerSession } from './../interfaces/index';
 import { LoggerService } from './logger.service';
 

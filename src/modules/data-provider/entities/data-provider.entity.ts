@@ -5,8 +5,8 @@ import { AbstractEntity } from '../../../common/entities';
 import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ISearchConfig, ITargetConfig } from '../interfaces';
 import { ConfigVersionEntity } from './config-version.entity';
-import { ScrapingDataEntity } from './scraping-data.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
+import { ScrapingDataEntity } from './scraping-data.entity';
 
 @Entity({ name: 'data_providers', synchronize: false })
 @Check(`"base_url" NOT LIKE '%/'`)

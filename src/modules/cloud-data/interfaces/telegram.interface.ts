@@ -1,4 +1,5 @@
 import { AxiosRequestConfig } from 'axios';
+
 import { HttpMethod } from '../../../common/enums';
 import { TelegramUploadDocumentRequest } from '../dtos/requests';
 import { TelegramEndpoint } from '../enums';

@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
+
 import { CloudDataProviderType } from '../../enums';
 import { TelegramUploadDocumentRequest } from './telegram-request.dto';
 

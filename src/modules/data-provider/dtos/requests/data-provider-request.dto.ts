@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+
 import { ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderRequestDto {

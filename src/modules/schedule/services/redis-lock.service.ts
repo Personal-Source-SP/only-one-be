@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import Redlock, { Lock } from 'redlock';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 import { LOCK_TTL_SECONDS, REDLOCK_CONFIG, SCRAPING_SCHEDULE_LOCK } from '../constants/redlock.constant';
 

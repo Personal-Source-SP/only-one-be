@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Unique } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/entities';
 import { SettingType } from '../enums';
 

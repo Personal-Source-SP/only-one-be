@@ -1,5 +1,6 @@
 import { ApiResponseProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
+
 import { ITelegramDocument } from '../../interfaces';
 
 export class UploadFileResponse {

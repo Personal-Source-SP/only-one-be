@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { SettingController } from './controllers/setting.controller';
 import { SettingEntity } from './entities/setting.entity';
-import { SettingProfile } from './setting.profile';
 import { SettingService } from './services/setting.service';
+import { SettingProfile } from './setting.profile';
 
 const services = [SettingService];
 const entities = [SettingEntity];

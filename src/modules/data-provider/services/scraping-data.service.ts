@@ -3,23 +3,23 @@ import { InjectMapper } from '@automapper/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-
 import { v4 as uuidv4 } from 'uuid';
+
 import { BaseService } from '../../../common/base.service';
 import { MimeType } from '../../../common/enums/mime-type';
+import { UtilsService } from '../../../shared/services/utils.service';
 import { CloudDataUploadFileRequest } from '../../cloud-data/dtos/requests';
 import { CloudDataItemService } from '../../cloud-data/services/cloud-data-item.service';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessDataProviderItemResponse, ProcessScrapeDataProviderResponse, ProcessScrapeDataResponse } from '../dtos/responses';
 import { ScrapingDataDto } from '../dtos/scraping-data.dto';
-import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DataProviderEntity } from '../entities/data-provider.entity';
+import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 import { DataProviderStatus } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
-import { UtilsService } from '../../../shared/services/utils.service';
 
 @Injectable()
 export class ScrapingDataService extends BaseService<ScrapingDataEntity, ScrapingDataDto> {

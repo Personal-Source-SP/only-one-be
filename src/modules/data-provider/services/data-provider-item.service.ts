@@ -1,10 +1,10 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BaseService } from '../../../common/base.service';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
 import { SCRAPING_DATA_EVENTS } from '../constants/scraping-data-event.config';

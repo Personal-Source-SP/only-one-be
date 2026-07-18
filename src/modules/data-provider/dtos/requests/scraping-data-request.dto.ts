@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
+
 import { MimeType } from '../../../../common/enums/mime-type';
 
 export class CreateScrapingDataRequestDto {

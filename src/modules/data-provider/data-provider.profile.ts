@@ -1,26 +1,27 @@
 import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
+
 import { ConfigVersionDto } from './dtos/config-version.dto';
-import { ScrapingDataDto } from './dtos/scraping-data.dto';
-import { DataProviderItemDto } from './dtos/data-provider-item.dto';
 import { DataProviderDto } from './dtos/data-provider.dto';
+import { DataProviderItemDto } from './dtos/data-provider-item.dto';
 import { ItemDto } from './dtos/item.dto';
 import {
     CreateConfigVersionRequestDto,
-    CreateScrapingDataRequestDto,
     CreateDataProviderItemRequestDto,
     CreateDataProviderRequestDto,
     CreateItemRequestDto,
+    CreateScrapingDataRequestDto,
     UpdateDataProviderItemRequestDto,
     UpdateDataProviderRequestDto,
     UpdateItemRequestDto,
 } from './dtos/requests';
+import { ScrapingDataDto } from './dtos/scraping-data.dto';
 import { ConfigVersionEntity } from './entities/config-version.entity';
-import { ScrapingDataEntity } from './entities/scraping-data.entity';
-import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
+import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { ItemEntity } from './entities/item.entity';
+import { ScrapingDataEntity } from './entities/scraping-data.entity';
 
 @Injectable()
 export class DataProviderProfile extends AutomapperProfile {

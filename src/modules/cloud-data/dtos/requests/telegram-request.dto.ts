@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+
 import { TelegramParseMode } from '../../enums';
 
 export class TelegramUploadDocumentRequest {

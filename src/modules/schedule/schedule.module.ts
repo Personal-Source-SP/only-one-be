@@ -1,23 +1,24 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Redis from 'ioredis';
+
 import { AppConfigService } from '../../shared/services/app-config.service';
 import { DataProviderModule } from '../data-provider/data-provider.module';
 import { SCHEDULE_EXECUTION_SERVICE_MAP } from './constants/schedule-execution-service-map';
-import { ScheduleJobEventController } from './controllers/schedule-job-event.controller';
-import { ScheduleJobController } from './controllers/schedule-job.controller';
 import { ScheduleController } from './controllers/schedule.controller';
-import { ScheduleJobEventEntity } from './entities/schedule-job-event.entity';
-import { ScheduleJobEntity } from './entities/schedule-job.entity';
+import { ScheduleJobController } from './controllers/schedule-job.controller';
+import { ScheduleJobEventController } from './controllers/schedule-job-event.controller';
 import { ScheduleEntity } from './entities/schedule.entity';
+import { ScheduleJobEntity } from './entities/schedule-job.entity';
+import { ScheduleJobEventEntity } from './entities/schedule-job-event.entity';
 import { ExecutionServiceEnum } from './enums';
 import { IScheduleExecutionInterface } from './interfaces';
 import { ScheduleProfile } from './schedule.profile';
-import { DataProviderScheduleService } from './services/schedule-execution/data-provider-schedule.service';
 import { RedisLockService } from './services/redis-lock.service';
-import { ScheduleJobEventService } from './services/schedule-job-event.service';
-import { ScheduleJobService } from './services/schedule-job.service';
 import { ScheduleService } from './services/schedule.service';
+import { DataProviderScheduleService } from './services/schedule-execution/data-provider-schedule.service';
+import { ScheduleJobService } from './services/schedule-job.service';
+import { ScheduleJobEventService } from './services/schedule-job-event.service';
 
 const executionServices = [DataProviderScheduleService];
 const entities = [ScheduleEntity, ScheduleJobEntity, ScheduleJobEventEntity];

@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, OneToMany, Relation } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/entities';
 import { ExecutionServiceEnum, ScheduleType } from '../enums';
 import { ScheduleJobEntity } from './schedule-job.entity';

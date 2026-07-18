@@ -6,19 +6,19 @@ import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express
 import cors from 'cors';
 import { json } from 'express';
 import morgan from 'morgan'; // HTTP request logger
+import { RedisClientOptions } from 'redis';
 import { DataSource } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import { AppClusterService } from './app-cluster.service';
 import { AppModule } from './app.module';
+import { AppClusterService } from './app-cluster.service';
 import { AllExceptionsFilter } from './filters/all-exception.filter';
 import { TransformResponseInterceptor } from './interceptors/transform-response.interceptor';
+import { RedisIoAdapter } from './modules/websocket/adapter/redis-io.adapter';
 import { AppConfigService } from './shared/services/app-config.service';
 import { LoggerService } from './shared/services/logger.service';
 import { SharedModule } from './shared/shared.module';
 import { setupSwagger } from './shared/swagger/setup';
-import { RedisClientOptions } from 'redis';
-import { RedisIoAdapter } from './modules/websocket/adapter/redis-io.adapter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(), { cors: true });

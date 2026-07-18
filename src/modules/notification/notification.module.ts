@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { NotificationEntity } from './entities/notification.entity';
 import { NotificationListener } from './listeners/notification.listener';
 import { NotificationProfile } from './notification.profile';

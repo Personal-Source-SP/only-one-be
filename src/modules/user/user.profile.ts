@@ -2,11 +2,11 @@ import { createMap, forMember, mapFrom, Mapper, MappingProfile } from '@automapp
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
+import { UtilsService } from '../../shared/services/utils.service';
 import { SignInResponseDto } from '../auth/dtos/responses/auth.response.dto';
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos/requests';
 import { UserDto } from './dtos/user.dto';
 import { UserEntity } from './entities/user.entity';
-import { UtilsService } from '../../shared/services/utils.service';
 
 @Injectable()
 export class UserProfile extends AutomapperProfile {

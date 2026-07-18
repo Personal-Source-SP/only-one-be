@@ -2,10 +2,10 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DataProviderItemEntity } from './data-provider-item.entity';
-import { DataProviderEntity } from './data-provider.entity';
-import { ItemEntity } from './item.entity';
 import { MimeType } from '../../../common/enums';
+import { DataProviderEntity } from './data-provider.entity';
+import { DataProviderItemEntity } from './data-provider-item.entity';
+import { ItemEntity } from './item.entity';
 
 @Entity({ name: 'scraping_data', synchronize: false })
 export class ScrapingDataEntity extends AbstractEntity {

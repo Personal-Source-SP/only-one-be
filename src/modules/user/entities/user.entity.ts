@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/entities';
 import { GoogleAuthEntity } from '../../google/entities/google-auth.entity';
 

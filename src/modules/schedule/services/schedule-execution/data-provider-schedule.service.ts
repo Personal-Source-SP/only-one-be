@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Job } from 'bull';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Job } from 'bull';
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
 import { DataProviderStatus } from '../../../data-provider/enums';
@@ -28,19 +28,15 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
     async addJob(request: IAddJobRequest): Promise<boolean> {
         const { scheduleJobId, scheduleType, jobPayload } = request;
 
-        try {
-            const jobs = await this.getJobData(scheduleJobId, scheduleType, jobPayload);
+        const jobs = await this.getJobData(scheduleJobId, scheduleType, jobPayload);
 
-            const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
-            if (!queues.length) {
-                this.loggerService.error(`[DataProviderScheduleService] Error adding job to queue: ${scheduleJobId}`);
-                throw new BadRequestException('Error adding job to queue');
-            }
-
-            return true;
-        } catch (error) {
-            throw error;
+        const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
+        if (!queues.length) {
+            this.loggerService.error(`[DataProviderScheduleService] Error adding job to queue: ${scheduleJobId}`);
+            throw new BadRequestException('Error adding job to queue');
         }
+
+        return true;
     }
 
     private async getJobData(
@@ -89,7 +85,8 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
                     throw new NotFoundException('No data providers available to scrape');
                 }
 
-                for (const dataProviderId of jobPayload?.dataProviderIds) {
+                const dataProviderIds = jobPayload?.dataProviderIds || [];
+                for (const dataProviderId of dataProviderIds) {
                     requests.push(
                         new ProcessScrapeDataRequestDto({
                             mimeTypes: [],
@@ -109,7 +106,8 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
                     throw new NotFoundException('No items available to scrape');
                 }
 
-                for (const itemId of jobPayload?.itemIds) {
+                const itemIds = jobPayload?.itemIds || [];
+                for (const itemId of itemIds) {
                     requests.push(
                         new ProcessScrapeDataRequestDto({
                             mimeTypes: [],

@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CloudDataProfile } from './cloud-data.profile';
 import { CLOUD_DATA_SERVICE_MAP } from './constants';
 import { CloudDataItemController } from './controllers/cloud-data-item.controller';

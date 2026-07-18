@@ -3,6 +3,7 @@ import { BadRequestException, HttpException, NotFoundException } from '@nestjs/c
 import { isEmpty } from 'lodash';
 import { paginate, PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+
 import { LoggerService } from '../shared/services/logger.service';
 import { PayloadDto } from './dto/payload.dto';
 import { AbstractEntity } from './entities';

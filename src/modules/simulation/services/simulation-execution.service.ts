@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { type BrowserContext, type Page } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
 import { SimulateResponse } from '../dtos/responses/simulate.response';

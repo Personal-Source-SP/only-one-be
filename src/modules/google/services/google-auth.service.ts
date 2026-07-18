@@ -4,6 +4,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
 import { Repository } from 'typeorm';
+
 import { BaseService } from '../../../common/base.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
@@ -82,7 +83,7 @@ export class GoogleAuthService extends BaseService<GoogleAuthEntity, GoogleAuthD
             throw new NotFoundException('No access token found for user');
         }
 
-        let token = googleAuth.googleAccessToken;
+        const token = googleAuth.googleAccessToken;
 
         const isExpiredToken = this.isExpiredToken(googleAuth.googleExpiresAt);
         if (isExpiredToken) {

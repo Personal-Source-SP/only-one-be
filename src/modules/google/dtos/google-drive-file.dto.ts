@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
+
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { GoogleAuthDto } from './google-auth.dto';
 import { GoogleDriveFolderDto } from './google-drive-folder.dto';

@@ -1,8 +1,9 @@
 import { FilterOperator } from 'nestjs-paginate';
+
 import { createPaginationConfig } from '../../../common/pagination/pagination-config.factory';
 import { getColumnNames, getRelationColumns } from '../../../shared/helpers/typeorm.helper';
-import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 import { ScheduleEntity } from '../entities/schedule.entity';
+import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 
 const scheduleColumns = getColumnNames(ScheduleEntity);
 const scheduleJobColumns = getRelationColumns(ScheduleJobEntity, 'schedule', ['scheduleId']);

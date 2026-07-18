@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Optional } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsObject, IsString } from 'class-validator';
+
 import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
 import { ExecutionServiceEnum, ScheduleJobTriggerType } from '../../enums';
 

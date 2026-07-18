@@ -1,5 +1,5 @@
-import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DataProviderDto } from '../dtos/data-provider.dto';
+import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto, ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
 import { ITargetConfig } from './target-config.interface';

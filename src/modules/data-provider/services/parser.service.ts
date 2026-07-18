@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { TestParserFunctionRequestDto } from '../dtos/requests';
 import { IDataProviderScraperService, IExtractDataResponse, ITargetConfig } from '../interfaces';

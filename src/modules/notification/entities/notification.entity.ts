@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/entities';
 import { NotificationType } from '../enum/notification.enum';
 

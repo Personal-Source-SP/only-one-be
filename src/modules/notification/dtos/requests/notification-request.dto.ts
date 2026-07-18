@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+
 import { NotificationType } from '../../enum/notification.enum';
 
 export class CreateNotificationRequest {

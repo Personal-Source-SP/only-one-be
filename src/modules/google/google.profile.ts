@@ -4,15 +4,15 @@ import { Injectable } from '@nestjs/common';
 
 import { FileTagDto } from './dtos/file-tag.dto';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
-import { GoogleDriveFileTagDto } from './dtos/google-drive-file-tag.dto';
 import { GoogleDriveFileDto } from './dtos/google-drive-file.dto';
+import { GoogleDriveFileTagDto } from './dtos/google-drive-file-tag.dto';
 import { GoogleDriveFolderDto } from './dtos/google-drive-folder.dto';
 import { UpdateGoogleDriveFolderRequest } from './dtos/requests';
 import { GoogleDrivePreviewItem } from './dtos/responses/google-drive-preview-response.dto';
 import { FileTagEntity } from './entities/file-tag.entity';
 import { GoogleAuthEntity } from './entities/google-auth.entity';
-import { GoogleDriveFileTagEntity } from './entities/google-drive-file-tag.entity';
 import { GoogleDriveFileEntity } from './entities/google-drive-file.entity';
+import { GoogleDriveFileTagEntity } from './entities/google-drive-file-tag.entity';
 import { GoogleDriveFolderEntity } from './entities/google-drive-folder.entity';
 
 @Injectable()

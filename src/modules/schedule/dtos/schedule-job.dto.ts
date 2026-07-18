@@ -1,9 +1,10 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
+
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ExecutionServiceEnum, ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
-import { ScheduleJobEventDto } from './schedule-job-event.dto';
 import { ScheduleDto } from './schedule.dto';
+import { ScheduleJobEventDto } from './schedule-job-event.dto';
 
 export class ScheduleJobDto extends AbstractDto {
     @ApiResponseProperty()

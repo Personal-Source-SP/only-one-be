@@ -18,6 +18,7 @@ on:
 env:
     REGISTRY: ${{ inputs.registry || 'sevenpain' }}
     IMAGE_NAME: ${{ inputs.image_name || 'only-one-backend' }}
+    ESLINT_USE_FLAT_CONFIG: false
 
 jobs:
     validate:

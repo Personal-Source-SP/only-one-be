@@ -1,6 +1,7 @@
 import { createMap, Mapper, MappingProfile } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
+
 import { CreateSimulationContextRequest, CreateSimulationItemRequest } from './dtos/requests';
 import { SimulationContextDto } from './dtos/simulation-context.dto';
 import { SimulationItemDto } from './dtos/simulation-item.dto';

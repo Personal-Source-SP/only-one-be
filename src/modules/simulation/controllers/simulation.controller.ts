@@ -1,12 +1,12 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai.request';
 
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
 import { SimulationService } from '../enums';
 import { SimulationExecutionSummary } from '../interfaces';
 import { SimulationExecutionService } from '../services/simulation-execution.service';
+import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai.request';
 
 @Controller('simulations')
 @ApiTags('Simulations')

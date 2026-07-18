@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsObject, IsOptional, IsString, ValidateIf } from 'class-validator';
+
 import { UpdateTargetConfigRequestDto } from './data-provider-request.dto';
 
 export class TestParserFunctionRequestDto extends UpdateTargetConfigRequestDto {

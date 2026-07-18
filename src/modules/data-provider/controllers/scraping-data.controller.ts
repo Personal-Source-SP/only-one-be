@@ -4,9 +4,9 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { SCRAPING_DATA_PAGINATION_CONFIG } from '../constants/scraping-data.config';
-import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessScrapeDataResponse } from '../dtos/responses';
+import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { ScrapingDataEntity } from '../entities/scraping-data.entity';
 import { ScrapingDataService } from '../services/scraping-data.service';
 

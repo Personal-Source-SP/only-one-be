@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Socket } from 'socket.io';
+
 import { LoggerService } from '../../../shared/services/logger.service';
 
 @Injectable()

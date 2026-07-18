@@ -1,10 +1,10 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BaseService } from '../../../common/base.service';
 import { SOCKET_EVENTS } from '../../websocket/constants/socket.constant';
 import { NotificationDto } from '../dtos/notification.dto';

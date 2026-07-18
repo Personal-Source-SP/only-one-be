@@ -1,6 +1,6 @@
 export * from './config-version-request.dto';
-export * from './scraping-data-request.dto';
 export * from './data-provider-item-request.dto';
 export * from './data-provider-request.dto';
 export * from './item-request.dto';
 export * from './parser-function-request.dto';
+export * from './scraping-data-request.dto';

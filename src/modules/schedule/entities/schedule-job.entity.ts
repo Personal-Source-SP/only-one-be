@@ -1,9 +1,10 @@
 import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/entities';
 import { ExecutionServiceEnum, ScheduleJobTriggerType, ScheduleJobType, ScheduleType } from '../enums';
-import { ScheduleJobEventEntity } from './schedule-job-event.entity';
 import { ScheduleEntity } from './schedule.entity';
+import { ScheduleJobEventEntity } from './schedule-job-event.entity';
 
 @Entity({ name: 'schedule_jobs', synchronize: false })
 export class ScheduleJobEntity extends AbstractEntity {
