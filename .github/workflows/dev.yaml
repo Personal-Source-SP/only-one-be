@@ -1,4 +1,4 @@
-name: Dev CI
+name: Dev
 run-name: "Branch ${{ github.ref_name }} - #${{ github.run_number }}"
 
 on:
