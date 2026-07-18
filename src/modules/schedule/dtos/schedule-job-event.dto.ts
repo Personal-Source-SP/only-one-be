@@ -38,7 +38,7 @@ export class ScheduleJobEventDto extends AbstractDto {
     @AutoMap()
     finishedAt?: Date;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => ScheduleJobDto })
     @AutoMap(() => ScheduleJobDto)
     scheduleJob: ScheduleJobDto;
 }

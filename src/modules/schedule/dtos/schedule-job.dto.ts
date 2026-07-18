@@ -59,11 +59,11 @@ export class ScheduleJobDto extends AbstractDto {
     @AutoMap()
     eventPendingCount?: number;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => ScheduleDto })
     @AutoMap(() => ScheduleDto)
     schedule: ScheduleDto;
 
-    @ApiResponseProperty()
+    @ApiResponseProperty({ type: () => [ScheduleJobEventDto] })
     @AutoMap(() => [ScheduleJobEventDto])
     scheduleJobEvents?: ScheduleJobEventDto[];
 }
