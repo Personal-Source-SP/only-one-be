@@ -114,3 +114,15 @@ junit.xml
 
 .diskcache
 .request_logs
+
+# AI project settings
+.agent/
+.agents/
+.claude/
+.cursor/
+
+# Openspec
+openspec/
+
+# Git Nexus
+.gitnexus/
