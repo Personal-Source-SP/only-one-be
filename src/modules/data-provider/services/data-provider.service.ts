@@ -9,10 +9,15 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
-import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto, UpdateTargetConfigRequestDto } from '../dtos/requests';
+import {
+    CreateDataProviderRequestDto,
+    UpdateDataProviderRequestDto,
+    UpdateSearchConfigRequestDto,
+    UpdateTargetConfigRequestDto,
+} from '../dtos/requests';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { DataProviderEntity } from '../entities/data-provider.entity';
-import { DataProviderStatus, ScraperServiceEnum } from '../enums';
+import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
 import { ITargetConfig } from '../interfaces/target-config.interface';
 import { ConfigVersionService } from './config-version.service';
 import { DataProviderItemService } from './data-provider-item.service';
@@ -293,5 +298,23 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         });
 
         return response;
+    }
+
+    async updateSearchConfig(id: string, request: UpdateSearchConfigRequestDto): Promise<boolean> {
+        const dataProvider = await this.findById(id);
+        if (!dataProvider) {
+            throw new NotFoundException(`Data provider with ID ${id} not found`);
+        }
+
+        const searchStatus =
+            request.enableSearch !== false && request.searchConfig
+                ? DataProviderSearchStatus.READY
+                : DataProviderSearchStatus.UNCONFIGURED;
+
+        const result = await super.update(id, {
+            searchConfig: request.searchConfig,
+            searchStatus,
+        });
+        return result;
     }
 }

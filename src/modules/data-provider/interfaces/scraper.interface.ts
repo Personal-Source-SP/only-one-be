@@ -1,3 +1,12 @@
+export interface IScraperRequest {
+    url: string;
+    use_browser?: boolean;
+    waitForSelector?: string;
+    cookies?: string;
+    headers?: Record<string, string>;
+    [key: string]: any;
+}
+
 export interface IScraperResponse {
     status: 'success' | 'error';
 
