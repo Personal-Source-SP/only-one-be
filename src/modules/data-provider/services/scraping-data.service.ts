@@ -17,7 +17,7 @@ import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ScrapingDataEntity } from '../entities/scraping-data.entity';
-import { DataProviderStatus } from '../enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
 
@@ -117,12 +117,14 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
             successData: [],
         });
 
-        const dataProviderScraperService = this.dataProviderScraperServiceMap[dataProvider.scraperService];
+        const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
+        const scraperServiceName = scrapingFeature?.service || ScraperServiceEnum.GENERIC;
+        const dataProviderScraperService = this.dataProviderScraperServiceMap[scraperServiceName];
         if (!dataProviderScraperService) {
             response.error++;
             response.errors.push({
                 dataProviderName: dataProvider.name,
-                errorMessage: `Scraper service ${dataProvider.scraperService} not found`,
+                errorMessage: `Scraper service ${scraperServiceName} not found`,
             });
 
             return response;
@@ -175,9 +177,12 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
 
         const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
+            .innerJoinAndSelect('dataProvider.features', 'feature', 'feature.type = :featureType', {
+                featureType: DataProviderFeatureType.SCRAPING,
+            })
             .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
             .leftJoinAndSelect('dataProviderItem.item', 'item')
-            .where('dataProvider.status = :status', { status: DataProviderStatus.READY })
+            .where('feature.status = :status', { status: DataProviderFeatureStatus.READY })
             .andWhere('dataProviderItem.isActive = :isActive', { isActive: true });
 
         if (dataProviderIds?.length) {

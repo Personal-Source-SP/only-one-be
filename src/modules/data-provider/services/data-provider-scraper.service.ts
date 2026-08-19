@@ -3,7 +3,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { DataProviderStatus } from '../enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { IDataProviderScraperService, ITargetConfig } from '../interfaces';
 import { DataProviderItemService } from './data-provider-item.service';
 
@@ -32,17 +32,19 @@ export class DataProviderScraperService {
         }
 
         const dataProvider = dataProviderItem.dataProvider;
-        if (dataProvider.status !== DataProviderStatus.READY) {
+        const scrapingFeature = dataProvider?.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
+
+        if (!scrapingFeature || scrapingFeature.status !== DataProviderFeatureStatus.READY) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
                 dataProviderItemId,
-                dataProviderId: dataProvider.id,
+                dataProviderId: dataProvider?.id,
                 itemUrl: dataProviderItem.itemUrl,
-                error: 'Data provider is not ready',
+                error: 'Data provider scraping feature is not ready',
             });
         }
 
-        const targetConfig = dataProvider?.targetConfig;
+        const targetConfig = scrapingFeature.config as ITargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
@@ -53,14 +55,15 @@ export class DataProviderScraperService {
             });
         }
 
-        const dataProviderScraperService = this.dataProviderScraperServiceMap[dataProvider.scraperService];
+        const scraperServiceName = scrapingFeature.service || ScraperServiceEnum.GENERIC;
+        const dataProviderScraperService = this.dataProviderScraperServiceMap[scraperServiceName];
         if (!dataProviderScraperService) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
                 dataProviderItemId,
                 dataProviderId: dataProvider.id,
                 itemUrl: dataProviderItem.itemUrl,
-                error: `${dataProvider.scraperService} service not found`,
+                error: `${scraperServiceName} service not found`,
             });
         }
 

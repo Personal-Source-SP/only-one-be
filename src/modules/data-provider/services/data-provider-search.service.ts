@@ -4,9 +4,9 @@ import { Repository } from 'typeorm';
 
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
 import { SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
-import { DataProviderEntity } from '../entities/data-provider.entity';
-import { DataProviderSearchStatus } from '../enums';
-import { IDataProviderSearchService, IValidateSearchConfigurationDto } from '../interfaces/data-provider-search-service.interface';
+import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
+import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { IDataProviderSearchService, ISearchConfig, IValidateSearchConfigurationDto } from '../interfaces';
 import { SearchOptions } from '../interfaces/search-config.interface';
 
 export interface ISearchProductsParams {
@@ -19,19 +19,20 @@ export interface ISearchProductsParams {
 @Injectable()
 export class DataProviderSearchService {
     constructor(
-        @InjectRepository(DataProviderEntity)
-        private readonly dataProviderRepository: Repository<DataProviderEntity>,
+        @InjectRepository(DataProviderFeatureEntity)
+        private readonly dataProviderFeatureRepository: Repository<DataProviderFeatureEntity>,
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
         private readonly dataProviderSearchServiceMap: Record<string, IDataProviderSearchService>,
     ) {}
 
     async searchProducts(params: ISearchProductsParams): Promise<SearchProductsResponseDto> {
         const { dataProviderId, searchQuery, barcode, options } = params;
-        const dataProvider = await this.dataProviderRepository.findOne({
-            where: { id: dataProviderId },
+        const feature = await this.dataProviderFeatureRepository.findOne({
+            where: { dataProviderId, type: DataProviderFeatureType.SEARCH },
+            relations: { dataProvider: true },
         });
 
-        if (!dataProvider) {
+        if (!feature || !feature.dataProvider) {
             const errRes = new SearchProductsResponseDto({
                 searchQuery,
                 dataProviderId,
@@ -41,7 +42,7 @@ export class DataProviderSearchService {
             return errRes;
         }
 
-        if (dataProvider.searchStatus !== DataProviderSearchStatus.READY) {
+        if (feature.status !== DataProviderFeatureStatus.READY) {
             const errRes = new SearchProductsResponseDto({
                 searchQuery,
                 dataProviderId,
@@ -51,24 +52,24 @@ export class DataProviderSearchService {
             return errRes;
         }
 
-        const searchService = this.dataProviderSearchServiceMap[dataProvider.searchService];
+        const searchService = this.dataProviderSearchServiceMap[feature.service];
         if (!searchService) {
             const errRes = new SearchProductsResponseDto({
                 searchQuery,
                 dataProviderId,
                 status: 'error',
-                error: `Search service '${dataProvider.searchService}' not found`,
+                error: `Search service '${feature.service}' not found`,
             });
             return errRes;
         }
 
-        const searchConfig = dataProvider?.searchConfig;
+        const searchConfig = feature.config as ISearchConfig;
         const finalSearchQuery = searchConfig?.enableBarcodeSearch && barcode ? barcode : searchQuery;
 
         const result = await searchService.searchProducts({
             options,
             searchQuery: finalSearchQuery,
-            dataProvider,
+            dataProvider: feature.dataProvider,
             barcode,
         });
         return result;

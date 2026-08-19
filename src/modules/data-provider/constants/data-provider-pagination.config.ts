@@ -8,12 +8,12 @@ const dataProviderColumns = getColumnNames(DataProviderEntity);
 
 export const DATA_PROVIDER_PAGINATION_CONFIG = createPaginationConfig<DataProviderEntity>({
     sortableColumns: ['name', 'baseUrl', 'identifier', 'createdAt'],
-    searchableColumns: ['name', 'status', 'searchStatus'],
+    searchableColumns: ['name', 'baseUrl', 'identifier'],
     defaultSortBy: [['name', 'ASC']],
     filterableColumns: {
         name: [FilterOperator.ILIKE, FilterOperator.EQ],
-        status: [FilterOperator.EQ],
-        searchStatus: [FilterOperator.EQ],
+        baseUrl: [FilterOperator.ILIKE, FilterOperator.EQ],
+        identifier: [FilterOperator.EQ],
     },
     select: [...dataProviderColumns],
     maxLimit: Number.MAX_SAFE_INTEGER,

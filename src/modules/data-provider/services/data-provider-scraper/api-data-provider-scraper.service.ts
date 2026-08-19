@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
+import { DataProviderFeatureType } from '../../enums';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
 import {
     IDataProviderScraperService,
@@ -23,7 +24,8 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
         const { dataProvider, dataProviderItem } = request;
 
-        const targetConfig: ITargetConfig = dataProvider.targetConfig;
+        const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
+        const targetConfig: ITargetConfig = scrapingFeature?.config as ITargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',

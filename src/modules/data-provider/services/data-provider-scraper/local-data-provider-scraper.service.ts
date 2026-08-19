@@ -4,6 +4,7 @@ import * as path from 'path';
 
 import { LocalFileService } from '../../../../shared/services/local-file.service';
 import { ScrapeItemDataResponseDto, ScrapeItemDataResponseItemDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
+import { DataProviderFeatureType } from '../../enums';
 import {
     IDataProviderScraperService,
     IExtractDataResponse,
@@ -20,7 +21,8 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {
         const { dataProvider, dataProviderItem } = request;
 
-        const targetConfig: ITargetConfig = dataProvider.targetConfig;
+        const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
+        const targetConfig: ITargetConfig = scrapingFeature?.config as ITargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',

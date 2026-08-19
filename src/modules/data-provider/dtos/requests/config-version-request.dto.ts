@@ -1,14 +1,13 @@
 import { AutoMap } from '@automapper/classes';
 
 import { ConfigVersionType } from '../../enums';
-import { ITargetConfig } from '../../interfaces';
 
 export class CreateConfigVersionRequestDto {
     @AutoMap()
-    dataProviderId: string;
+    featureId: string;
 
     @AutoMap()
-    targetConfig: ITargetConfig;
+    config: Record<string, any>;
 
     @AutoMap()
     isActive: boolean;

@@ -2,9 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
-import { ISearchConfig, ITargetConfig } from '../interfaces';
-import { ConfigVersionDto } from './config-version.dto';
+import { DataProviderFeatureDto } from './data-provider-feature.dto';
 import { DataProviderItemDto } from './data-provider-item.dto';
 
 export class DataProviderDto extends AbstractDto {
@@ -18,41 +16,13 @@ export class DataProviderDto extends AbstractDto {
 
     @ApiResponseProperty()
     @AutoMap()
-    scraperService: ScraperServiceEnum;
-
-    @ApiResponseProperty()
-    @AutoMap()
     baseUrl: string;
 
-    @ApiResponseProperty()
-    @AutoMap()
-    status: DataProviderStatus;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    searchService: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    searchStatus: DataProviderSearchStatus;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    targetConfig?: ITargetConfig;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    lastSuccessfulScrapeAt?: Date;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    searchConfig?: ISearchConfig;
+    @ApiResponseProperty({ type: () => [DataProviderFeatureDto] })
+    @AutoMap(() => [DataProviderFeatureDto])
+    features?: DataProviderFeatureDto[];
 
     @ApiResponseProperty({ type: () => [DataProviderItemDto] })
     @AutoMap(() => [DataProviderItemDto])
     dataProviderItems?: DataProviderItemDto[];
-
-    @ApiResponseProperty({ type: () => [ConfigVersionDto] })
-    @AutoMap(() => [ConfigVersionDto])
-    configVersions?: ConfigVersionDto[];
 }

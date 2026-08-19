@@ -7,6 +7,7 @@ import {
     SearchProductsResponseDto,
     ValidateSearchConfigurationResponseDto,
 } from '../../dtos/responses/search-products-response.dto';
+import { DataProviderFeatureType } from '../../enums';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
 import {
     IDataProviderSearchService,
@@ -31,7 +32,8 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
 
     async searchProducts(dto: ISearchProductsDto): Promise<SearchProductsResponseDto> {
         const { dataProvider, searchQuery, options, barcode } = dto;
-        const searchConfig: ISearchConfig = dataProvider?.searchConfig;
+        const searchFeature = dataProvider?.features?.find((f) => f.type === DataProviderFeatureType.SEARCH);
+        const searchConfig: ISearchConfig = searchFeature?.config as ISearchConfig;
 
         if (isEmpty(searchConfig)) {
             const errRes = new SearchProductsResponseDto({

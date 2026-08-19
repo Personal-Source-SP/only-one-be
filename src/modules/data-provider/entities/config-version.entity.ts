@@ -4,14 +4,13 @@ import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { UserEntity } from '../../user/entities/user.entity';
 import { ConfigVersionType } from '../enums';
-import { ITargetConfig } from '../interfaces';
-import { DataProviderEntity } from './data-provider.entity';
+import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 
 @Entity({ name: 'data_provider_config_versions', synchronize: false })
 export class ConfigVersionEntity extends AbstractEntity {
     @Column({ type: 'uuid' })
     @AutoMap()
-    dataProviderId: string;
+    featureId: string;
 
     @Column({ type: 'boolean', default: false })
     @AutoMap()
@@ -23,7 +22,7 @@ export class ConfigVersionEntity extends AbstractEntity {
 
     @Column({ type: 'jsonb' })
     @AutoMap()
-    targetConfig: ITargetConfig;
+    config: Record<string, any>;
 
     @Column({ type: 'varchar', length: 100 })
     @AutoMap()
@@ -42,8 +41,8 @@ export class ConfigVersionEntity extends AbstractEntity {
     @AutoMap(() => UserEntity)
     user: Relation<UserEntity>;
 
-    @ManyToOne(() => DataProviderEntity, (dataProvider) => dataProvider.configVersions, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'data_provider_id' })
-    @AutoMap(() => DataProviderEntity)
-    dataProvider: Relation<DataProviderEntity>;
+    @ManyToOne(() => DataProviderFeatureEntity, (feature) => feature.versions, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'feature_id' })
+    @AutoMap(() => DataProviderFeatureEntity)
+    feature: Relation<DataProviderFeatureEntity>;
 }

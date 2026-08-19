@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
-import { DataProviderStatus } from '../../../data-provider/enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType } from '../../../data-provider/enums';
 import { DataProviderService } from '../../../data-provider/services/data-provider.service';
 import { QUEUE_NAME } from '../../../queue/enums/queue-name.enum';
 import { IScrapingJobQueueInterface } from '../../../queue/interfaces';
@@ -48,14 +48,15 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
 
         switch (scheduleType) {
             case ScheduleType.GLOBAL: {
-                const dataProviders = await this.dataProviderService.findListByFilter(
-                    {
-                        status: DataProviderStatus.READY,
-                    },
-                    {
-                        relations: { dataProviderItems: true },
-                    },
-                );
+                const dataProviders = await this.dataProviderService.repository
+                    .createQueryBuilder('dataProvider')
+                    .innerJoin('dataProvider.features', 'feature', 'feature.type = :type AND feature.status = :status', {
+                        type: DataProviderFeatureType.SCRAPING,
+                        status: DataProviderFeatureStatus.READY,
+                    })
+                    .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
+                    .where('dataProviderItem.isActive = :isActive', { isActive: true })
+                    .getMany();
 
                 if (!dataProviders.length) {
                     this.loggerService.error(`[ScheduleJobService] No data providers available to scrape: ${scheduleType}`);

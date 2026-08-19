@@ -2,9 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
-import { ISearchConfig, ITargetConfig } from '../interfaces';
-import { ConfigVersionEntity } from './config-version.entity';
+import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
 
@@ -21,45 +19,17 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     name: string;
 
-    @Column({ length: 100, default: ScraperServiceEnum.GENERIC })
-    @AutoMap()
-    scraperService: ScraperServiceEnum;
-
     @Column({ length: 255 })
     @AutoMap()
     baseUrl: string;
 
-    @Column({ type: 'varchar', length: 100, default: DataProviderStatus.UNCONFIGURED })
-    @AutoMap()
-    status: DataProviderStatus;
-
-    @Column({ type: 'varchar', length: 50, default: 'generic' })
-    @AutoMap()
-    searchService: string;
-
-    @Column({ type: 'varchar', length: 100, default: DataProviderSearchStatus.UNCONFIGURED })
-    @AutoMap()
-    searchStatus: DataProviderSearchStatus;
-
-    @Column({ type: 'jsonb', nullable: true })
-    @AutoMap()
-    targetConfig?: ITargetConfig;
-
-    @Column({ type: 'timestamp', nullable: true })
-    @AutoMap()
-    lastSuccessfulScrapeAt?: Date;
-
-    @Column({ type: 'jsonb', nullable: true })
-    @AutoMap()
-    searchConfig?: ISearchConfig;
+    @OneToMany(() => DataProviderFeatureEntity, (feature) => feature.dataProvider)
+    @AutoMap(() => [DataProviderFeatureEntity])
+    features?: Relation<DataProviderFeatureEntity>[];
 
     @OneToMany(() => DataProviderItemEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [DataProviderItemEntity])
     dataProviderItems?: Relation<DataProviderItemEntity>[];
-
-    @OneToMany(() => ConfigVersionEntity, (entity) => entity.dataProvider)
-    @AutoMap(() => [ConfigVersionEntity])
-    configVersions?: Relation<ConfigVersionEntity>[];
 
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [ScrapingDataEntity])

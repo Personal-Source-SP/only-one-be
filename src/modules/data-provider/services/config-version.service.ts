@@ -24,7 +24,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
     async create(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<ConfigVersionDto> {
         const latestVersion = await this.repository
             .createQueryBuilder('dataProviderConfigVersions')
-            .where('dataProviderConfigVersions.dataProviderId = :dataProviderId', { dataProviderId: request.dataProviderId })
+            .where('dataProviderConfigVersions.featureId = :featureId', { featureId: request.featureId })
             .orderBy('dataProviderConfigVersions.versionId', 'DESC')
             .select(['dataProviderConfigVersions.versionId'])
             .getOne();
@@ -39,7 +39,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
 
                 if (request.isActive) {
                     await dataProviderConfigVersionsRepository.update(
-                        { dataProviderId: request.dataProviderId, isActive: true },
+                        { featureId: request.featureId, isActive: true },
                         { isActive: false },
                     );
                 }
@@ -55,41 +55,47 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         }
     }
 
-    async getConfigVersionOptions(dataProviderId: string): Promise<ConfigVersionDto[]> {
+    async getConfigVersionOptionsByFeature(featureId: string): Promise<ConfigVersionDto[]> {
         const dataProviderConfigVersions = await this.repository
             .createQueryBuilder('dataProviderConfigVersions')
             .leftJoinAndSelect('dataProviderConfigVersions.user', 'user')
-            .where('dataProviderConfigVersions.dataProviderId = :dataProviderId', { dataProviderId })
+            .where('dataProviderConfigVersions.featureId = :featureId', { featureId })
             .orderBy('dataProviderConfigVersions.versionId', 'DESC')
             .select([
                 'dataProviderConfigVersions.id',
                 'dataProviderConfigVersions.versionId',
                 'dataProviderConfigVersions.changeType',
                 'dataProviderConfigVersions.isActive',
+                'dataProviderConfigVersions.config',
+                'dataProviderConfigVersions.createdAt',
             ])
             .getMany();
 
         if (!dataProviderConfigVersions?.length) {
-            this.loggerService.warn(`No data provider config versions found for data provider ID: ${dataProviderId}`);
+            this.loggerService.warn(`No config versions found for feature ID: ${featureId}`);
             return [];
         }
 
         return this.mapEntityToDto(dataProviderConfigVersions) as ConfigVersionDto[];
     }
 
-    async rollbackToVersionId(dataProviderId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
+    async rollbackToVersionIdByFeature(featureId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
         const dataProviderConfigVersion = await this.findOneByFilter({
-            dataProviderId,
+            featureId,
             versionId,
         });
+
+        if (!dataProviderConfigVersion) {
+            throw new NotFoundException(`Config version ${versionId} not found for feature ID ${featureId}`);
+        }
 
         if (dataProviderConfigVersion.isActive) return true;
 
         const requestCreate = new CreateConfigVersionRequestDto({
-            dataProviderId,
+            featureId,
             isActive: true,
             changeType: ConfigVersionType.ROLLBACK,
-            targetConfig: dataProviderConfigVersion.targetConfig,
+            config: dataProviderConfigVersion.config,
             changeDescription: `Rollback to version id: ${versionId}`,
         });
 
@@ -97,23 +103,19 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         return !!configVersion;
     }
 
-    async deleteConfigVersion(dataProviderId: string, versionId: number): Promise<boolean> {
+    async deleteConfigVersionByFeature(featureId: string, versionId: number): Promise<boolean> {
         const dataProviderConfigVersion = await this.findOneByFilter({
-            dataProviderId,
+            featureId,
             versionId,
         });
 
         if (!dataProviderConfigVersion) {
-            this.loggerService.warn(
-                `No data provider config version found for data provider ID: ${dataProviderId} and version id: ${versionId}`,
-            );
+            this.loggerService.warn(`No config version found for feature ID: ${featureId} and version id: ${versionId}`);
             throw new NotFoundException('No data provider config version found');
         }
 
         if (dataProviderConfigVersion.isActive) {
-            this.loggerService.warn(
-                `Cannot delete active data provider config version for data provider ID: ${dataProviderId} and version id: ${versionId}`,
-            );
+            this.loggerService.warn(`Cannot delete active config version for feature ID: ${featureId} and version id: ${versionId}`);
             throw new BadRequestException('Cannot delete active data provider config version');
         }
 
