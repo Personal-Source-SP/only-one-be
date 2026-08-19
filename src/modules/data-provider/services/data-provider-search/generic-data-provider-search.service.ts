@@ -31,7 +31,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
 
     async searchProducts(dto: ISearchProductsDto): Promise<SearchProductsResponseDto> {
         const { dataProvider, searchQuery, options, barcode } = dto;
-        const searchConfig: ISearchConfig = dataProvider?.parent?.searchConfig ?? dataProvider?.searchConfig;
+        const searchConfig: ISearchConfig = dataProvider?.searchConfig;
 
         if (isEmpty(searchConfig)) {
             const errRes = new SearchProductsResponseDto({
@@ -66,7 +66,11 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
             });
 
             if (searchResults?.error) {
-                const errRes = new SearchProductsResponseDto({ ...defaultResponse, error: searchResults.error, request: requestOptions.data });
+                const errRes = new SearchProductsResponseDto({
+                    ...defaultResponse,
+                    error: searchResults.error,
+                    request: requestOptions.data,
+                });
                 return errRes;
             }
 

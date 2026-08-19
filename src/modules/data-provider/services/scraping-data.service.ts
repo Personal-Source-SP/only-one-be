@@ -175,7 +175,6 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
 
         const builder = this.dataProviderService.repository
             .createQueryBuilder('dataProvider')
-            .leftJoinAndSelect('dataProvider.parent', 'parent')
             .leftJoinAndSelect('dataProvider.dataProviderItems', 'dataProviderItem')
             .leftJoinAndSelect('dataProviderItem.item', 'item')
             .where('dataProvider.status = :status', { status: DataProviderStatus.READY })

@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
@@ -41,15 +41,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
     }
 
     async findById(id: string, options?: IFindOptions<DataProviderEntity>): Promise<DataProviderDto> {
-        const dataProviderDto = await super.findById(id, { ...options, relations: { parent: true } });
-        if (!dataProviderDto) return null;
-
-        if (dataProviderDto.parentId) {
-            dataProviderDto.targetConfig = dataProviderDto?.parent?.targetConfig ?? null;
-            dataProviderDto.searchConfig = dataProviderDto?.parent?.searchConfig ?? null;
-        }
-
-        return dataProviderDto;
+        return await super.findById(id, options);
     }
 
     async create(data: CreateDataProviderRequestDto): Promise<DataProviderDto> {
@@ -66,14 +58,13 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
             }
         }
 
-        if (data?.parentId) {
-            const parent = await this.findById(data.parentId);
-            if (!parent) {
-                this.loggerService.error(`Parent Data Provider with ID ${data.parentId} not found`);
-                throw new NotFoundException(`Parent Data Provider with ID ${data.parentId} not found`);
-            }
+        if (data?.identifier) {
+            const existingDataProviderWithIdentifier = await this.exists({ identifier: data.identifier });
 
-            data.identifier = parent.identifier;
+            if (existingDataProviderWithIdentifier) {
+                this.loggerService.error(`Data provider with identifier ${data.identifier} already exists`);
+                throw new ConflictException(`Data provider with identifier ${data.identifier} already exists`);
+            }
         }
 
         const entity = this.mapper.map(data, CreateDataProviderRequestDto, DataProviderEntity);
@@ -88,35 +79,15 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
             throw new NotFoundException(`Data provider with ID ${id} not found`);
         }
 
-        if (existingDataProvider.parentId) {
-            if (!data.parentId) throw new BadRequestException('Child data provider must have a parent data provider');
-            delete data.identifier;
-        }
-
-        const isParentDataProvider = await this.exists({ parentId: id });
-        if (isParentDataProvider) delete data.parentId;
-
-        // Check parent data provider exists
-        if (data?.parentId) {
-            if (data.parentId === id) throw new BadRequestException('A data provider cannot be its own parent.');
-
-            const parentExists = await this.exists({ id: data.parentId, parentId: IsNull() });
-            if (!parentExists) {
-                this.loggerService.error(`Parent data provider with ID ${data.parentId} not found`);
-                throw new NotFoundException(`Parent data provider with ID ${data.parentId} not found`);
-            }
-        }
-
         // Check if identifier is valid
         if (data?.identifier && !/^[a-z0-9-]+$/.test(data.identifier)) {
             throw new BadRequestException('Identifier must contain lowercase letters, numbers, and dashes');
         }
 
-        // Check unique identifier for root data provider
+        // Check unique identifier
         if (data?.identifier) {
             const countExistingDataProvider = await this.exists({
                 id: Not(id),
-                parentId: IsNull(),
                 identifier: data.identifier,
             });
 
@@ -148,7 +119,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
     }
 
     async updateTargetConfig(id: string, request: UpdateTargetConfigRequestDto): Promise<boolean> {
-        const dataProvider = await this.findOneByFilter({ id, parentId: IsNull() });
+        const dataProvider = await this.findById(id);
         if (!dataProvider) throw new NotFoundException(`Data provider with ID ${id} not found`);
 
         const { scraperService, ...targetConfig } = request;
@@ -207,52 +178,31 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         const dataProvider = await this.findById(id);
         if (!dataProvider) throw new BadRequestException(`No data provider found with ID ${id}`);
 
-        if (!dataProvider.parentId) {
-            switch (status) {
-                case DataProviderStatus.READY: {
-                    if (dataProvider.status !== DataProviderStatus.TESTING) {
-                        throw new BadRequestException('Not allowed to switch status to READY');
-                    }
-                    break;
+        switch (status) {
+            case DataProviderStatus.READY: {
+                if (dataProvider.status !== DataProviderStatus.TESTING) {
+                    throw new BadRequestException('Not allowed to switch status to READY');
                 }
 
-                case DataProviderStatus.TESTING: {
-                    if (dataProvider.status !== DataProviderStatus.READY) {
-                        throw new BadRequestException('Not allowed to switch status to TESTING');
-                    }
-                    break;
+                const product = await this.getProviderItemRandom(id);
+                const validateParserFunction = await this.validateTargetConfig({
+                    itemUrl: product.itemUrl,
+                    targetConfig: dataProvider?.targetConfig,
+                    scraperService: dataProvider?.scraperService,
+                });
+
+                if (validateParserFunction.status !== 'success') {
+                    throw new BadRequestException(validateParserFunction?.error ?? 'Function parser is not valid');
                 }
+
+                break;
             }
-        } else {
-            const parent = dataProvider.parent;
-            if (!parent) throw new BadRequestException(`No parent data provider found for ID ${id}`);
 
-            switch (status) {
-                case DataProviderStatus.READY: {
-                    if (dataProvider.status !== DataProviderStatus.TESTING || parent?.status !== DataProviderStatus.READY) {
-                        throw new BadRequestException('Not allowed to switch status to READY');
-                    }
-
-                    const product = await this.getProviderItemRandom(id);
-                    const validateParserFunction = await this.validateTargetConfig({
-                        itemUrl: product.itemUrl,
-                        targetConfig: parent?.targetConfig,
-                        scraperService: parent?.scraperService,
-                    });
-
-                    if (validateParserFunction.status !== 'success') {
-                        throw new BadRequestException(validateParserFunction?.error ?? 'Function parser is not valid');
-                    }
-
-                    break;
+            case DataProviderStatus.TESTING: {
+                if (dataProvider.status !== DataProviderStatus.READY) {
+                    throw new BadRequestException('Not allowed to switch status to TESTING');
                 }
-
-                case DataProviderStatus.TESTING: {
-                    if (![DataProviderStatus.READY, DataProviderStatus.UNCONFIGURED].includes(parent?.status)) {
-                        throw new BadRequestException('Not allowed to switch status to TESTING');
-                    }
-                    break;
-                }
+                break;
             }
         }
 
@@ -307,9 +257,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         }
 
         const searchStatus =
-            request.enableSearch !== false && request.searchConfig
-                ? DataProviderSearchStatus.READY
-                : DataProviderSearchStatus.UNCONFIGURED;
+            request.enableSearch !== false && request.searchConfig ? DataProviderSearchStatus.READY : DataProviderSearchStatus.UNCONFIGURED;
 
         const result = await super.update(id, {
             searchConfig: request.searchConfig,

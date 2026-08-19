@@ -48,10 +48,6 @@ export class DataProviderDto extends AbstractDto {
     @AutoMap()
     searchConfig?: ISearchConfig;
 
-    @ApiResponseProperty()
-    @AutoMap()
-    parentId?: string;
-
     @ApiResponseProperty({ type: () => [DataProviderItemDto] })
     @AutoMap(() => [DataProviderItemDto])
     dataProviderItems?: DataProviderItemDto[];
@@ -59,12 +55,4 @@ export class DataProviderDto extends AbstractDto {
     @ApiResponseProperty({ type: () => [ConfigVersionDto] })
     @AutoMap(() => [ConfigVersionDto])
     configVersions?: ConfigVersionDto[];
-
-    @ApiResponseProperty({ type: () => DataProviderDto })
-    @AutoMap(() => DataProviderDto)
-    parent?: DataProviderDto;
-
-    @ApiResponseProperty({ type: () => [DataProviderDto] })
-    @AutoMap(() => [DataProviderDto])
-    children?: DataProviderDto[];
 }

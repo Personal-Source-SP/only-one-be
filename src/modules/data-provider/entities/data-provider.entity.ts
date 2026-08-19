@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { Check, Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
+import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { DataProviderSearchStatus, DataProviderStatus, ScraperServiceEnum } from '../enums';
@@ -53,10 +53,6 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     searchConfig?: ISearchConfig;
 
-    @Column({ type: 'uuid', nullable: true })
-    @AutoMap()
-    parentId?: string;
-
     @OneToMany(() => DataProviderItemEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [DataProviderItemEntity])
     dataProviderItems?: Relation<DataProviderItemEntity>[];
@@ -68,13 +64,4 @@ export class DataProviderEntity extends AbstractEntity {
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [ScrapingDataEntity])
     scrapingData?: Relation<ScrapingDataEntity>[];
-
-    @OneToMany(() => DataProviderEntity, (entity) => entity.parent)
-    @AutoMap(() => [DataProviderEntity])
-    children?: Relation<DataProviderEntity>[];
-
-    @ManyToOne(() => DataProviderEntity, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'parent_id' })
-    @AutoMap(() => DataProviderEntity)
-    parent?: Relation<DataProviderEntity>;
 }

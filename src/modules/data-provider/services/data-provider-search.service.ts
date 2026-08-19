@@ -3,10 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
-import {
-    SearchProductsResponseDto,
-    ValidateSearchConfigurationResponseDto,
-} from '../dtos/responses/search-products-response.dto';
+import { SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderSearchStatus } from '../enums';
 import { IDataProviderSearchService, IValidateSearchConfigurationDto } from '../interfaces/data-provider-search-service.interface';
@@ -32,7 +29,6 @@ export class DataProviderSearchService {
         const { dataProviderId, searchQuery, barcode, options } = params;
         const dataProvider = await this.dataProviderRepository.findOne({
             where: { id: dataProviderId },
-            relations: ['parent'],
         });
 
         if (!dataProvider) {
@@ -66,7 +62,7 @@ export class DataProviderSearchService {
             return errRes;
         }
 
-        const searchConfig = dataProvider?.parent?.searchConfig ?? dataProvider?.searchConfig;
+        const searchConfig = dataProvider?.searchConfig;
         const finalSearchQuery = searchConfig?.enableBarcodeSearch && barcode ? barcode : searchQuery;
 
         const result = await searchService.searchProducts({

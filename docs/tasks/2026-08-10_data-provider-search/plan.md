@@ -7,21 +7,21 @@ Tài liệu này chi tiết hóa phương án triển khai tính năng Tìm ki�
 ### Hiện trạng thực thi
 
 1. **Thực thể DataProvider (`DataProviderEntity`)**:
-   - Đã có các trường dữ liệu phục vụ tìm kiếm: `searchService` (mặc định `'generic'`), `searchStatus` (mặc định `UNCONFIGURED`), `searchConfig` (kiểu `ISearchConfig`) và mối quan hệ cha-con (`parentId`/`parent`).
-   - Tham chiếu: [data-provider.entity.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider.entity.ts#L36-L58)
+    - Đã có các trường dữ liệu phục vụ tìm kiếm: `searchService` (mặc định `'generic'`), `searchStatus` (mặc định `UNCONFIGURED`), `searchConfig` (kiểu `ISearchConfig`) và mối quan hệ cha-con (`parentId`/`parent`).
+    - Tham chiếu: [data-provider.entity.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider.entity.ts#L36-L58)
 
 2. **Interface Cấu hình Tìm kiếm (`ISearchConfig`)**:
-   - Đã khai báo interface `ISearchConfig` trong [search-config.interface.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/interfaces/search-config.interface.ts#L1-L22) với các tham số: `searchUrlPattern`, `queryPlaceholder`, `mainContentSelector`, `resultSelector`, `maxResults`, `useBrowser`, `functionGenerator`, `isGetParentElement`, `enableBarcodeSearch`.
+    - Đã khai báo interface `ISearchConfig` trong [search-config.interface.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/interfaces/search-config.interface.ts#L1-L22) với các tham số: `searchUrlPattern`, `queryPlaceholder`, `mainContentSelector`, `resultSelector`, `maxResults`, `useBrowser`, `functionGenerator`, `isGetParentElement`, `enableBarcodeSearch`.
 
 3. **Cơ chế Scraper & ExtractData**:
-   - `ScraperService` ([scraper.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/scraper.service.ts)) hỗ trợ lấy HTML content từ URL.
-   - `ExtractDataHelper` ([extract-data.helper.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/helpers/extract-data.helper.ts)) mới chỉ có các method trích xuất dữ liệu chi tiết sản phẩm (`runFunctionExtractData`, `runApiFunctionExtractData`), **chưa có** method chạy hàm tìm kiếm sản phẩm `runFunctionSearchData`.
+    - `ScraperService` ([scraper.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/scraper.service.ts)) hỗ trợ lấy HTML content từ URL.
+    - `ExtractDataHelper` ([extract-data.helper.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/helpers/extract-data.helper.ts)) mới chỉ có các method trích xuất dữ liệu chi tiết sản phẩm (`runFunctionExtractData`, `runApiFunctionExtractData`), **chưa có** method chạy hàm tìm kiếm sản phẩm `runFunctionSearchData`.
 
 4. **Thiếu hụt**:
-   - Chưa có `DataProviderSearchService` điều phối tìm kiếm.
-   - Chưa có `GenericDataProviderSearchService` thực thi logic cào trang kết quả tìm kiếm và trích xuất danh sách sản phẩm.
-   - Chưa có `DATA_PROVIDER_SEARCH_SERVICE_MAP` để đăng ký động các Search Service (Generic, Amazon, v.v.).
-   - Chưa có các DTO và Controller Endpoints phục vụ API cào kết quả tìm kiếm (`searchProducts`), test cấu hình tìm kiếm (`testSearchFunction`), và cập nhật `searchConfig`.
+    - Chưa có `DataProviderSearchService` điều phối tìm kiếm.
+    - Chưa có `GenericDataProviderSearchService` thực thi logic cào trang kết quả tìm kiếm và trích xuất danh sách sản phẩm.
+    - Chưa có `DATA_PROVIDER_SEARCH_SERVICE_MAP` để đăng ký động các Search Service (Generic, Amazon, v.v.).
+    - Chưa có các DTO và Controller Endpoints phục vụ API cào kết quả tìm kiếm (`searchProducts`), test cấu hình tìm kiếm (`testSearchFunction`), và cập nhật `searchConfig`.
 
 ---
 
@@ -30,24 +30,27 @@ Tài liệu này chi tiết hóa phương án triển khai tính năng Tìm ki�
 ### Các phương án triển khai
 
 #### Phương án 1 (Recommended): Kiến trúc Strategy Pattern kết hợp Dynamic Injection Map
+
 - **Cách hoạt động**:
-  - Tạo `IDataProviderSearchService` interface định nghĩa các contract `searchProducts`, `validateSearchConfiguration`, `getSearchResults`, `prepareRequestOptions`, `filterSearchResults`.
-  - Triển khai `GenericDataProviderSearchService` trong thư mục `src/modules/data-provider/services/data-provider-search/` cho tìm kiếm qua HTML/Cheerio/Dynamic Function.
-  - Sử dụng Token Provider `DATA_PROVIDER_SEARCH_SERVICE_MAP` trong `DataProviderModule` để map tên service (`generic`, `amazon`, ...) tới instance tương ứng.
-  - `DataProviderSearchService` đóng vai trò Facade/Dispatcher kiểm tra trạng thái `READY`, fallback cấu hình từ `parent` nếu là child provider, và gọi đúng Search Service.
+    - Tạo `IDataProviderSearchService` interface định nghĩa các contract `searchProducts`, `validateSearchConfiguration`, `getSearchResults`, `prepareRequestOptions`, `filterSearchResults`.
+    - Triển khai `GenericDataProviderSearchService` trong thư mục `src/modules/data-provider/services/data-provider-search/` cho tìm kiếm qua HTML/Cheerio/Dynamic Function.
+    - Sử dụng Token Provider `DATA_PROVIDER_SEARCH_SERVICE_MAP` trong `DataProviderModule` để map tên service (`generic`, `amazon`, ...) tới instance tương ứng.
+    - `DataProviderSearchService` đóng vai trò Facade/Dispatcher kiểm tra trạng thái `READY`, fallback cấu hình từ `parent` nếu là child provider, và gọi đúng Search Service.
 - **Ưu điểm**:
-  - Tuân thủ nguyên lý Single Responsibility & Open/Closed Principle.
-  - Dễ dàng mở rộng thêm các Search Engine mới (ví dụ Amazon Search, Serper Search, API Search) trong tương lai nằm trong thư mục `data-provider-search/`.
-  - Khớp với kiến trúc mô-đun của hệ thống.
+    - Tuân thủ nguyên lý Single Responsibility & Open/Closed Principle.
+    - Dễ dàng mở rộng thêm các Search Engine mới (ví dụ Amazon Search, Serper Search, API Search) trong tương lai nằm trong thư mục `data-provider-search/`.
+    - Khớp với kiến trúc mô-đun của hệ thống.
 - **Nhược điểm**: Cần tạo mới nhiều file interface, dto, service.
 - **Đánh giá rủi ro**: Rất thấp, không ảnh hưởng đến các API cào dữ liệu chi tiết hiện có.
 
 #### Phương án 2: Tích hợp trực tiếp logic Search vào `DataProviderScraperService`
+
 - **Cách hoạt động**: Viết trực tiếp logic search trong `DataProviderScraperService` hoặc `DataProviderService`.
 - **Ưu điểm**: Tạo ít file mới hơn.
 - **Nhược điểm**: Vi phạm Single Responsibility Principle, làm file `DataProviderService` phình to, khó mở rộng khi cần hỗ trợ provider đặc thù như Amazon/API search.
 
 ### Lựa chọn đề xuất
+
 Ưu tiên chọn **Phương án 1** vì giữ cho codebase sạch sẽ, phân tách rõ ràng trách nhiệm, nhóm các search service cụ thể vào thư mục `services/data-provider-search/`.
 
 ---
@@ -292,7 +295,12 @@ export class UpdateSearchConfigRequestDto {
 **Symbols:** `IDataProviderSearchService`, `ISearchProductsDto`, `IValidateSearchConfigurationDto`, `IGetSearchResultsDto`, `IFilterSearchResultsDto`, `IPrepareRequestOptionsResponse`
 
 ```ts
-import { DiscoveredProductDto, ExtractSearchResultsResponse, SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
+import {
+    DiscoveredProductDto,
+    ExtractSearchResultsResponse,
+    SearchProductsResponseDto,
+    ValidateSearchConfigurationResponseDto,
+} from '../dtos/responses/search-products-response.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { IScraperRequest } from './scraper.interface';
 import { ISearchConfig, SearchOptions } from './search-config.interface';
@@ -391,9 +399,21 @@ async runFunctionSearchData(dto: IRunFunctionSearchData): Promise<DiscoveredProd
 import { Injectable, Logger } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
-import { DiscoveredProductDto, ExtractSearchResultsResponse, SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../../dtos/responses/search-products-response.dto';
+import {
+    DiscoveredProductDto,
+    ExtractSearchResultsResponse,
+    SearchProductsResponseDto,
+    ValidateSearchConfigurationResponseDto,
+} from '../../dtos/responses/search-products-response.dto';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
-import { IDataProviderSearchService, IFilterSearchResultsDto, IGetSearchResultsDto, IPrepareRequestOptionsResponse, ISearchProductsDto, IValidateSearchConfigurationDto } from '../../interfaces/data-provider-search-service.interface';
+import {
+    IDataProviderSearchService,
+    IFilterSearchResultsDto,
+    IGetSearchResultsDto,
+    IPrepareRequestOptionsResponse,
+    ISearchProductsDto,
+    IValidateSearchConfigurationDto,
+} from '../../interfaces/data-provider-search-service.interface';
 import { IScraperRequest } from '../../interfaces/scraper.interface';
 import { ISearchConfig } from '../../interfaces/search-config.interface';
 import { ScraperService } from '../scraper.service';
@@ -444,7 +464,11 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
             });
 
             if (searchResults?.error) {
-                const errRes = new SearchProductsResponseDto({ ...defaultResponse, error: searchResults.error, request: requestOptions.data });
+                const errRes = new SearchProductsResponseDto({
+                    ...defaultResponse,
+                    error: searchResults.error,
+                    request: requestOptions.data,
+                });
                 return errRes;
             }
 
@@ -728,7 +752,11 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../../../common/base.controller';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { SearchProductsRequestDto, TestSearchFunctionRequestDto, UpdateSearchConfigRequestDto } from '../dtos/requests/search-products-request.dto';
+import {
+    SearchProductsRequestDto,
+    TestSearchFunctionRequestDto,
+    UpdateSearchConfigRequestDto,
+} from '../dtos/requests/search-products-request.dto';
 import { SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
 import { DataProviderSearchService } from '../services/data-provider-search.service';
 import { DataProviderService } from '../services/data-provider.service';
@@ -797,32 +825,33 @@ export class DataProviderSearchController extends BaseController {
 ### Kịch bản Unit Test & Integration Test
 
 1. **Test `DataProviderSearchService.searchProducts`**:
-   - **Mục đích**: Kiểm tra logic điều phối khi provider tìm thấy, không tìm thấy, chưa READY, hoặc không hỗ trợ searchService.
-   - **Precondition**: Mock `dataProviderRepository.findOne`.
-   - **Action**: Gọi `searchProducts({ dataProviderId: 'uuid', searchQuery: 'laptop' })`.
-   - **Expected**: Trả về `SearchProductsResponseDto` với status tương ứng (`error` khi chưa ready, `success` khi cào thành công).
-   - **File**: `src/modules/data-provider/services/__tests__/data-provider-search.service.spec.ts`
+    - **Mục đích**: Kiểm tra logic điều phối khi provider tìm thấy, không tìm thấy, chưa READY, hoặc không hỗ trợ searchService.
+    - **Precondition**: Mock `dataProviderRepository.findOne`.
+    - **Action**: Gọi `searchProducts({ dataProviderId: 'uuid', searchQuery: 'laptop' })`.
+    - **Expected**: Trả về `SearchProductsResponseDto` với status tương ứng (`error` khi chưa ready, `success` khi cào thành công).
+    - **File**: `src/modules/data-provider/services/__tests__/data-provider-search.service.spec.ts`
 
 2. **Test `GenericDataProviderSearchService.searchProducts`**:
-   - **Mục đích**: Kiểm tra cào HTML và trích xuất danh sách sản phẩm.
-   - **Precondition**: Mock `ScraperService.getHtmlContent` trả về HTML mẫu.
-   - **Action**: Gọi `searchProducts` với data provider có `searchConfig` hợp lệ.
-   - **Expected**: Trả về mảng `discoveredProducts` đã được chuẩn hóa URL và giới hạn theo `maxResults`.
-   - **File**: `src/modules/data-provider/services/data-provider-search/__tests__/generic-data-provider-search.service.spec.ts`
+    - **Mục đích**: Kiểm tra cào HTML và trích xuất danh sách sản phẩm.
+    - **Precondition**: Mock `ScraperService.getHtmlContent` trả về HTML mẫu.
+    - **Action**: Gọi `searchProducts` với data provider có `searchConfig` hợp lệ.
+    - **Expected**: Trả về mảng `discoveredProducts` đã được chuẩn hóa URL và giới hạn theo `maxResults`.
+    - **File**: `src/modules/data-provider/services/data-provider-search/__tests__/generic-data-provider-search.service.spec.ts`
 
 3. **Test `ExtractDataHelper.runFunctionSearchData`**:
-   - **Mục đích**: Kiểm tra thực thi JavaScript function sinh bởi AI để trích xuất sản phẩm từ HTML.
-   - **Precondition**: Đưa vào HTML mẫu và functionGenerator string.
-   - **Action**: Gọi `extractDataHelper.runFunctionSearchData(...)`.
-   - **Expected**: Trả về danh sách object `DiscoveredProductDto[]`.
-   - **File**: `src/modules/data-provider/helpers/__tests__/extract-data.helper.spec.ts`
+    - **Mục đích**: Kiểm tra thực thi JavaScript function sinh bởi AI để trích xuất sản phẩm từ HTML.
+    - **Precondition**: Đưa vào HTML mẫu và functionGenerator string.
+    - **Action**: Gọi `extractDataHelper.runFunctionSearchData(...)`.
+    - **Expected**: Trả về danh sách object `DiscoveredProductDto[]`.
+    - **File**: `src/modules/data-provider/helpers/__tests__/extract-data.helper.spec.ts`
 
 4. **Test API Endpoints (`DataProviderSearchController`)**:
-   - **Mục đích**: Phân quyền JWT, validation DTO request, response format.
-   - **Action**: Gọi POST `/v1/data-providers/search`, POST `/v1/data-providers/test-search-function`, PUT `/v1/data-providers/:id/search-config`.
-   - **Expected**: HTTP 200 OK với đúng schema response.
+    - **Mục đích**: Phân quyền JWT, validation DTO request, response format.
+    - **Action**: Gọi POST `/v1/data-providers/search`, POST `/v1/data-providers/test-search-function`, PUT `/v1/data-providers/:id/search-config`.
+    - **Expected**: HTTP 200 OK với đúng schema response.
 
 ### Verification Commands
+
 ```bash
 npm run typecheck
 npm run lint

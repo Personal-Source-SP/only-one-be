@@ -3,10 +3,14 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
-import { SearchProductsRequestDto, TestSearchFunctionRequestDto, UpdateSearchConfigRequestDto } from '../dtos/requests/search-products-request.dto';
+import {
+    SearchProductsRequestDto,
+    TestSearchFunctionRequestDto,
+    UpdateSearchConfigRequestDto,
+} from '../dtos/requests/search-products-request.dto';
 import { SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
-import { DataProviderSearchService } from '../services/data-provider-search.service';
 import { DataProviderService } from '../services/data-provider.service';
+import { DataProviderSearchService } from '../services/data-provider-search.service';
 
 @Controller('data-providers')
 @ApiTags('Data Providers Search')
