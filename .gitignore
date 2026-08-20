@@ -117,3 +117,8 @@ junit.xml
 
 # Only One
 only-one/
+
+# AI project settings
+.agents/
+.claude/
+.cursor/
