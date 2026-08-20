@@ -19,6 +19,7 @@ import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { ScraperServiceEnum } from './enums';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
+import { UrlResolverHelper } from './helpers/url-resolver.helper';
 import { IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
 import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
@@ -38,7 +39,7 @@ import { ItemService } from './services/item.service';
 import { ScraperService } from './services/scraper.service';
 import { ScrapingDataService } from './services/scraping-data.service';
 
-const helpers = [ExtractDataHelper];
+const helpers = [ExtractDataHelper, UrlResolverHelper];
 const listeners = [ScrapingDataListener];
 const entities = [
     DataProviderEntity,

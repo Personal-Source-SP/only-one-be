@@ -17,8 +17,8 @@ export const SCRAPING_DATA_PAGINATION_CONFIG = createPaginationConfig<ScrapingDa
         itemId: [FilterOperator.EQ],
     },
     defaultSortBy: [['scrapeTimestamp', 'DESC']],
-    relations: ['dataProviderItem', 'dataProvider'],
-    select: [...scrapingDataColumns, 'dataProviderItem.itemUrl', 'dataProvider.name'],
+    relations: ['dataProviderItem', 'dataProvider', 'dataProvider.features'],
+    select: [...scrapingDataColumns, 'dataProviderItem.itemUrl', 'dataProvider.name', 'dataProvider.baseUrl'],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: Number.MAX_SAFE_INTEGER,
 });

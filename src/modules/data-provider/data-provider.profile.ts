@@ -25,6 +25,7 @@ import { DataProviderFeatureEntity } from './entities/data-provider-feature.enti
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
+import { UrlResolverHelper } from './helpers/url-resolver.helper';
 
 @Injectable()
 export class DataProviderProfile extends AutomapperProfile {
@@ -53,7 +54,15 @@ export class DataProviderProfile extends AutomapperProfile {
             createMap(mapper, CreateDataProviderItemRequestDto, DataProviderItemEntity);
             createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
 
-            createMap(mapper, ScrapingDataEntity, ScrapingDataDto);
+            createMap(
+                mapper,
+                ScrapingDataEntity,
+                ScrapingDataDto,
+                forMember(
+                    (d) => d.url,
+                    mapFrom((s) => UrlResolverHelper.resolveUrl(s)),
+                ),
+            );
             createMap(
                 mapper,
                 CreateScrapingDataRequestDto,
