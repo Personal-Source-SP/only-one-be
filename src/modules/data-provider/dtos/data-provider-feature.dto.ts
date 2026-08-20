@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { ConfigVersionDto } from './config-version.dto';
 import { DataProviderDto } from './data-provider.dto';
 
@@ -26,6 +26,22 @@ export class DataProviderFeatureDto extends AbstractDto {
     @ApiResponseProperty({ type: Object })
     @AutoMap()
     config?: Record<string, any>;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    consecutiveFailures: number;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    lastErrorMessage?: string;
+
+    @ApiResponseProperty({ enum: DataProviderFeatureErrorType })
+    @AutoMap()
+    lastErrorType?: DataProviderFeatureErrorType;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    lastFailedRunAt?: Date;
 
     @ApiResponseProperty()
     @AutoMap()

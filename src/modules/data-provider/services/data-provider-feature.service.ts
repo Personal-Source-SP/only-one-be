@@ -1,26 +1,32 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { NOTIFICATION_EVENTS } from '../../notification/constants/notification.constant';
+import { NotificationType } from '../../notification/enum/notification.enum';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import { CreateDataProviderFeatureRequestDto, UpdateFeatureConfigRequestDto } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { ConfigVersionType } from '../enums/config-version-type.enum';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { ConfigVersionService } from './config-version.service';
 
 @Injectable()
 export class DataProviderFeatureService extends BaseService<DataProviderFeatureEntity, DataProviderFeatureDto> {
+    public static readonly FAILURE_THRESHOLD = 3;
+
     constructor(
+        private readonly eventEmitter: EventEmitter2,
+        private readonly configVersionService: ConfigVersionService,
+        @InjectMapper() mapper: Mapper,
         @InjectRepository(DataProviderFeatureEntity)
         private readonly dataProviderFeatureRepository: Repository<DataProviderFeatureEntity>,
-        @InjectMapper() mapper: Mapper,
-        private readonly configVersionService: ConfigVersionService,
         @Inject(forwardRef(() => FeatureRunnerRegistry))
         private readonly runnerRegistry: FeatureRunnerRegistry,
     ) {
@@ -38,6 +44,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             type: request.type,
             service: request.service || 'generic',
             config: request.config,
+            consecutiveFailures: 0,
             status: DataProviderFeatureStatus.UNCONFIGURED,
         });
 
@@ -62,15 +69,67 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             user,
         );
 
-        const newStatus = feature.status === DataProviderFeatureStatus.UNCONFIGURED ? DataProviderFeatureStatus.TESTING : feature.status;
+        const newStatus =
+            feature.status === DataProviderFeatureStatus.UNCONFIGURED || feature.status === DataProviderFeatureStatus.ERROR
+                ? DataProviderFeatureStatus.TESTING
+                : feature.status;
 
         await super.update(id, {
             config: request.config,
             service: request.service ?? feature.service,
             status: newStatus,
+            consecutiveFailures: 0,
+            lastErrorMessage: null,
+            lastErrorType: null,
         });
 
         return await this.findById(id);
+    }
+
+    async recordFeatureFailure(
+        id: string,
+        errorMessage: string,
+        errorType: DataProviderFeatureErrorType = DataProviderFeatureErrorType.TRANSIENT,
+    ): Promise<void> {
+        const feature = await this.dataProviderFeatureRepository.findOne({
+            where: { id },
+            relations: { dataProvider: true },
+        });
+        if (!feature) return;
+
+        const consecutiveFailures = (feature.consecutiveFailures || 0) + 1;
+        const isFatal = errorType === DataProviderFeatureErrorType.FATAL;
+        const shouldTripCircuit = isFatal || consecutiveFailures >= DataProviderFeatureService.FAILURE_THRESHOLD;
+
+        const updatePayload: Partial<DataProviderFeatureEntity> = {
+            consecutiveFailures,
+            lastErrorMessage: errorMessage,
+            lastErrorType: errorType,
+            lastFailedRunAt: new Date(),
+        };
+
+        if (shouldTripCircuit && feature.status !== DataProviderFeatureStatus.ERROR) {
+            updatePayload.status = DataProviderFeatureStatus.ERROR;
+            this.loggerService.error(`Feature ${feature.id} (${feature.type}) tripped circuit breaker to ERROR: ${errorMessage}`);
+
+            // Emit Notification Event
+            this.eventEmitter.emit(NOTIFICATION_EVENTS.CREATED, {
+                title: `[DataProvider Error] Feature ${feature.type} disabled`,
+                description: `Provider '${feature.dataProvider?.name || feature.dataProviderId}' feature ${feature.type} failed: ${errorMessage}`,
+                type: NotificationType.ERROR,
+            });
+        }
+
+        await this.dataProviderFeatureRepository.update(id, updatePayload);
+    }
+
+    async recordFeatureSuccess(id: string): Promise<void> {
+        await this.dataProviderFeatureRepository.update(id, {
+            consecutiveFailures: 0,
+            lastErrorMessage: null,
+            lastErrorType: null,
+            lastSuccessfulRunAt: new Date(),
+        });
     }
 
     async switchStatus(id: string, status: DataProviderFeatureStatus): Promise<boolean> {
@@ -88,14 +147,25 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         }
 
         if (status === DataProviderFeatureStatus.READY) {
-            if (feature.status !== DataProviderFeatureStatus.TESTING) {
-                throw new BadRequestException('Not allowed to switch status to READY unless currently TESTING');
+            if (feature.status !== DataProviderFeatureStatus.TESTING && feature.status !== DataProviderFeatureStatus.ERROR) {
+                throw new BadRequestException('Not allowed to switch status to READY unless currently TESTING or ERROR');
             }
 
             const runner = this.runnerRegistry.getRunner(feature.type);
             await runner.testContextual(feature);
+
+            return await super.update(id, {
+                status,
+                consecutiveFailures: 0,
+                lastErrorMessage: null,
+                lastErrorType: null,
+            });
         } else if (status === DataProviderFeatureStatus.TESTING) {
-            if (feature.status !== DataProviderFeatureStatus.READY && feature.status !== DataProviderFeatureStatus.DISABLED) {
+            if (
+                feature.status !== DataProviderFeatureStatus.READY &&
+                feature.status !== DataProviderFeatureStatus.DISABLED &&
+                feature.status !== DataProviderFeatureStatus.ERROR
+            ) {
                 throw new BadRequestException('Not allowed to switch status to TESTING from current state');
             }
         }

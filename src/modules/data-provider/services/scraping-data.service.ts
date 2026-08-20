@@ -17,15 +17,17 @@ import { ScrapingDataDto } from '../dtos/scraping-data.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { ScrapingDataEntity } from '../entities/scraping-data.entity';
-import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { IDataProviderScraperService } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
+import { DataProviderFeatureService } from './data-provider-feature.service';
 
 @Injectable()
 export class ScrapingDataService extends BaseService<ScrapingDataEntity, ScrapingDataDto> {
     constructor(
         private readonly dataProviderService: DataProviderService,
         private readonly cloudDataItemService: CloudDataItemService,
+        private readonly dataProviderFeatureService: DataProviderFeatureService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(ScrapingDataEntity) scrapingDataRepository: Repository<ScrapingDataEntity>,
         @InjectRepository(DataProviderItemEntity) private readonly dataProviderItemRepository: Repository<DataProviderItemEntity>,
@@ -119,22 +121,43 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
 
         const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
         const scraperServiceName = scrapingFeature?.service || ScraperServiceEnum.GENERIC;
+
         const dataProviderScraperService = this.dataProviderScraperServiceMap[scraperServiceName];
         if (!dataProviderScraperService) {
+            const errorMessage = `Scraper service ${scraperServiceName} not found`;
             response.error++;
             response.errors.push({
+                errorMessage,
                 dataProviderName: dataProvider.name,
-                errorMessage: `Scraper service ${scraperServiceName} not found`,
             });
+
+            if (scrapingFeature) {
+                await this.dataProviderFeatureService.recordFeatureFailure(
+                    scrapingFeature.id,
+                    errorMessage,
+                    DataProviderFeatureErrorType.FATAL,
+                );
+            }
 
             return response;
         }
+
+        let itemErrors = 0;
+        let lastErrorMessage = '';
+        let hasFatalError = false;
 
         for (const dataProviderItem of dataProvider.dataProviderItems) {
             const itemExtractData = await this.processDataProviderItem(dataProvider, dataProviderItem, dataProviderScraperService);
 
             if (itemExtractData.status !== 'success') {
                 response.error++;
+                itemErrors++;
+                lastErrorMessage = itemExtractData.errorMessage;
+
+                if (this.isFatalScrapingError(itemExtractData.errorMessage)) {
+                    hasFatalError = true;
+                }
+
                 response.errors.push({
                     dataProviderName: dataProvider.name,
                     errorMessage: itemExtractData.errorMessage,
@@ -166,6 +189,15 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
                 });
 
                 response.successData.push(...(successData ?? []));
+            }
+        }
+
+        if (scrapingFeature) {
+            if (response.success > 0 && itemErrors === 0) {
+                await this.dataProviderFeatureService.recordFeatureSuccess(scrapingFeature.id);
+            } else if (itemErrors > 0) {
+                const errorType = hasFatalError ? DataProviderFeatureErrorType.FATAL : DataProviderFeatureErrorType.TRANSIENT;
+                await this.dataProviderFeatureService.recordFeatureFailure(scrapingFeature.id, lastErrorMessage, errorType);
             }
         }
 
@@ -232,6 +264,27 @@ export class ScrapingDataService extends BaseService<ScrapingDataEntity, Scrapin
             ...response,
             successData,
         });
+    }
+
+    private isFatalScrapingError(errorMessage: string): boolean {
+        if (!errorMessage) return false;
+
+        const fatalKeywords = [
+            'not found',
+            'parser',
+            'selector',
+            'undefined',
+            'null',
+            'cannot read',
+            'unauthorized',
+            'forbidden',
+            '401',
+            '403',
+            'validation failed',
+        ];
+
+        const lower = errorMessage.toLowerCase();
+        return fatalKeywords.some((k) => lower.includes(k));
     }
 
     private async processDataProviderItem(

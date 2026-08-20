@@ -1,4 +1,5 @@
 export * from './config-version-type.enum';
+export * from './data-provider-feature-error-type.enum';
 export * from './data-provider-feature-status.enum';
 export * from './data-provider-feature-type.enum';
 export * from './data-provider-search-status.enum';
