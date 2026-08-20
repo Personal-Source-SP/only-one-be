@@ -19,7 +19,7 @@ export class DataProviderEntity extends AbstractEntity {
     @AutoMap()
     name: string;
 
-    @Column({ length: 255 })
+    @Column({ name: 'base_url', length: 255 })
     @AutoMap()
     baseUrl: string;
 

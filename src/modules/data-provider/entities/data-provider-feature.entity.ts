@@ -9,7 +9,7 @@ import { DataProviderEntity } from './data-provider.entity';
 @Entity({ name: 'data_provider_features', synchronize: false })
 @Unique(['dataProviderId', 'type'])
 export class DataProviderFeatureEntity extends AbstractEntity {
-    @Column({ type: 'uuid' })
+    @Column({ name: 'data_provider_id', type: 'uuid' })
     @AutoMap()
     dataProviderId: string;
 
@@ -29,23 +29,23 @@ export class DataProviderFeatureEntity extends AbstractEntity {
     @AutoMap()
     config?: Record<string, any>;
 
-    @Column({ type: 'integer', default: 0 })
+    @Column({ name: 'consecutive_failures', type: 'integer', default: 0 })
     @AutoMap()
     consecutiveFailures: number;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ name: 'last_error_message', type: 'text', nullable: true })
     @AutoMap()
     lastErrorMessage?: string;
 
-    @Column({ type: 'varchar', length: 50, nullable: true })
+    @Column({ name: 'last_error_type', type: 'varchar', length: 50, nullable: true })
     @AutoMap()
     lastErrorType?: DataProviderFeatureErrorType;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ name: 'last_failed_run_at', type: 'timestamp', nullable: true })
     @AutoMap()
     lastFailedRunAt?: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ name: 'last_successful_run_at', type: 'timestamp', nullable: true })
     @AutoMap()
     lastSuccessfulRunAt?: Date;
 

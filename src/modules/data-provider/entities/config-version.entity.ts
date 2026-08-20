@@ -8,15 +8,15 @@ import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 
 @Entity({ name: 'data_provider_config_versions', synchronize: false })
 export class ConfigVersionEntity extends AbstractEntity {
-    @Column({ type: 'uuid' })
+    @Column({ name: 'feature_id', type: 'uuid' })
     @AutoMap()
     featureId: string;
 
-    @Column({ type: 'boolean', default: false })
+    @Column({ name: 'is_active', type: 'boolean', default: false })
     @AutoMap()
     isActive: boolean;
 
-    @Column({ type: 'int' })
+    @Column({ name: 'version_id', type: 'int' })
     @AutoMap()
     versionId: number;
 
@@ -24,15 +24,15 @@ export class ConfigVersionEntity extends AbstractEntity {
     @AutoMap()
     config: Record<string, any>;
 
-    @Column({ type: 'varchar', length: 100 })
+    @Column({ name: 'change_type', type: 'varchar', length: 100 })
     @AutoMap()
     changeType: ConfigVersionType;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ name: 'change_description', type: 'text', nullable: true })
     @AutoMap()
     changeDescription?: string;
 
-    @Column({ type: 'uuid', nullable: true })
+    @Column({ name: 'created_by', type: 'uuid', nullable: true })
     @AutoMap()
     createdBy?: string;
 

@@ -61,6 +61,16 @@ export class DataProviderFeatureController {
         return await this.featureService.findById(id);
     }
 
+    @ApiOperation({ summary: 'Get all features by provider ID' })
+    @Version('1')
+    @Get('data-providers/:dataProviderId')
+    @BaseApiOkResponse(DataProviderFeatureDto, { isArray: true })
+    public async findByProvider(
+        @Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string,
+    ): Promise<DataProviderFeatureDto[]> {
+        return await this.featureService.getFeaturesByProviderId(dataProviderId);
+    }
+
     @ApiOperation({ summary: 'Get feature by provider ID and type' })
     @Version('1')
     @Get('data-providers/:dataProviderId/:type')
