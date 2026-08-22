@@ -3,13 +3,13 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import { ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { DiscoveredProductDto } from '../dtos/responses/search-products-response.dto';
+import { DiscoveredItemDto } from '../dtos/responses/search-items-response.dto';
 import { IRunFunctionSearchData } from '../interfaces/search-config.interface';
 import { IRunApiFunctionExtractData, IRunFunctionExtractData } from '../interfaces/target-config.interface';
 
 @Injectable()
 class ExtractDataHelper {
-    async runFunctionSearchData(dto: IRunFunctionSearchData): Promise<DiscoveredProductDto[]> {
+    async runFunctionSearchData(dto: IRunFunctionSearchData): Promise<DiscoveredItemDto[]> {
         const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
 
         try {

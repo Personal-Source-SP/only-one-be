@@ -1,14 +1,14 @@
 import {
-    DiscoveredProductDto,
+    DiscoveredItemDto,
     ExtractSearchResultsResponse,
-    SearchProductsResponseDto,
+    SearchItemsResponseDto,
     ValidateSearchConfigurationResponseDto,
-} from '../dtos/responses/search-products-response.dto';
+} from '../dtos/responses/search-items-response.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { IScraperRequest } from './scraper.interface';
 import { ISearchConfig, SearchOptions } from './search-config.interface';
 
-export interface ISearchProductsDto {
+export interface ISearchItemsDto {
     searchQuery: string;
     dataProvider: DataProviderEntity;
     options?: SearchOptions;
@@ -39,14 +39,14 @@ export interface IFilterSearchResultsDto {
     baseUrl: string;
     searchQuery: string;
     searchConfig: ISearchConfig;
-    discoveredProducts: DiscoveredProductDto[];
+    discoveredItems: DiscoveredItemDto[];
     options?: SearchOptions;
 }
 
 export interface IDataProviderSearchService {
-    searchProducts(dto: ISearchProductsDto): Promise<SearchProductsResponseDto>;
+    searchItems(dto: ISearchItemsDto): Promise<SearchItemsResponseDto>;
     validateSearchConfiguration(dto: IValidateSearchConfigurationDto): Promise<ValidateSearchConfigurationResponseDto>;
     getSearchResults(dto: IGetSearchResultsDto): Promise<ExtractSearchResultsResponse>;
     prepareRequestOptions(url: string, searchQuery: string, searchConfig: ISearchConfig): Promise<IPrepareRequestOptionsResponse>;
-    filterSearchResults(dto: IFilterSearchResultsDto): Promise<DiscoveredProductDto[]>;
+    filterSearchResults(dto: IFilterSearchResultsDto): Promise<DiscoveredItemDto[]>;
 }

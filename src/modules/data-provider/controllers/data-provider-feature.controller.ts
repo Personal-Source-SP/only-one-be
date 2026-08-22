@@ -65,9 +65,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Get('data-providers/:dataProviderId')
     @BaseApiOkResponse(DataProviderFeatureDto, { isArray: true })
-    public async findByProvider(
-        @Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string,
-    ): Promise<DataProviderFeatureDto[]> {
+    public async findByProvider(@Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return await this.featureService.getFeaturesByProviderId(dataProviderId);
     }
 

@@ -3,7 +3,7 @@ import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from 'c
 
 import { ISearchConfig, SearchOptions } from '../../interfaces/search-config.interface';
 
-export class SearchProductsRequestDto {
+export class SearchItemsRequestDto {
     @ApiProperty({ description: 'ID của Data Provider' })
     @IsUUID()
     @IsNotEmpty()

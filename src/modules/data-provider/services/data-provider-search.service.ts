@@ -3,13 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
-import { SearchProductsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-products-response.dto';
+import { SearchItemsResponseDto, ValidateSearchConfigurationResponseDto } from '../dtos/responses/search-items-response.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { IDataProviderSearchService, ISearchConfig, IValidateSearchConfigurationDto } from '../interfaces';
 import { SearchOptions } from '../interfaces/search-config.interface';
 
-export interface ISearchProductsParams {
+export interface ISearchItemsParams {
     dataProviderId: string;
     searchQuery: string;
     barcode?: string;
@@ -25,7 +25,7 @@ export class DataProviderSearchService {
         private readonly dataProviderSearchServiceMap: Record<string, IDataProviderSearchService>,
     ) {}
 
-    async searchProducts(params: ISearchProductsParams): Promise<SearchProductsResponseDto> {
+    async searchItems(params: ISearchItemsParams): Promise<SearchItemsResponseDto> {
         const { dataProviderId, searchQuery, barcode, options } = params;
         const feature = await this.dataProviderFeatureRepository.findOne({
             where: { dataProviderId, type: DataProviderFeatureType.SEARCH },
@@ -33,7 +33,7 @@ export class DataProviderSearchService {
         });
 
         if (!feature || !feature.dataProvider) {
-            const errRes = new SearchProductsResponseDto({
+            const errRes = new SearchItemsResponseDto({
                 searchQuery,
                 dataProviderId,
                 status: 'error',
@@ -43,7 +43,7 @@ export class DataProviderSearchService {
         }
 
         if (feature.status !== DataProviderFeatureStatus.READY) {
-            const errRes = new SearchProductsResponseDto({
+            const errRes = new SearchItemsResponseDto({
                 searchQuery,
                 dataProviderId,
                 status: 'error',
@@ -54,7 +54,7 @@ export class DataProviderSearchService {
 
         const searchService = this.dataProviderSearchServiceMap[feature.service];
         if (!searchService) {
-            const errRes = new SearchProductsResponseDto({
+            const errRes = new SearchItemsResponseDto({
                 searchQuery,
                 dataProviderId,
                 status: 'error',
@@ -66,7 +66,7 @@ export class DataProviderSearchService {
         const searchConfig = feature.config as ISearchConfig;
         const finalSearchQuery = searchConfig?.enableBarcodeSearch && barcode ? barcode : searchQuery;
 
-        const result = await searchService.searchProducts({
+        const result = await searchService.searchItems({
             options,
             searchQuery: finalSearchQuery,
             dataProvider: feature.dataProvider,

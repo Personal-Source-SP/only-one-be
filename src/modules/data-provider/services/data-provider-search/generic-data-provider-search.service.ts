@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
 import {
-    DiscoveredProductDto,
+    DiscoveredItemDto,
     ExtractSearchResultsResponse,
-    SearchProductsResponseDto,
+    SearchItemsResponseDto,
     ValidateSearchConfigurationResponseDto,
-} from '../../dtos/responses/search-products-response.dto';
+} from '../../dtos/responses/search-items-response.dto';
 import { DataProviderFeatureType } from '../../enums';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
 import {
@@ -14,7 +14,7 @@ import {
     IFilterSearchResultsDto,
     IGetSearchResultsDto,
     IPrepareRequestOptionsResponse,
-    ISearchProductsDto,
+    ISearchItemsDto,
     IValidateSearchConfigurationDto,
 } from '../../interfaces/data-provider-search-service.interface';
 import { IScraperRequest } from '../../interfaces/scraper.interface';
@@ -30,13 +30,13 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
         private readonly extractDataHelper: ExtractDataHelper,
     ) {}
 
-    async searchProducts(dto: ISearchProductsDto): Promise<SearchProductsResponseDto> {
+    async searchItems(dto: ISearchItemsDto): Promise<SearchItemsResponseDto> {
         const { dataProvider, searchQuery, options, barcode } = dto;
         const searchFeature = dataProvider?.features?.find((f) => f.type === DataProviderFeatureType.SEARCH);
         const searchConfig: ISearchConfig = searchFeature?.config as ISearchConfig;
 
         if (isEmpty(searchConfig)) {
-            const errRes = new SearchProductsResponseDto({
+            const errRes = new SearchItemsResponseDto({
                 searchQuery,
                 status: 'error',
                 dataProviderId: dataProvider.id,
@@ -46,7 +46,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
         }
 
         const finalSearchQuery = searchConfig?.enableBarcodeSearch && barcode ? barcode : searchQuery;
-        const defaultResponse = new SearchProductsResponseDto({
+        const defaultResponse = new SearchItemsResponseDto({
             searchQuery: finalSearchQuery,
             status: 'error',
             dataProviderId: dataProvider.id,
@@ -54,7 +54,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
 
         const requestOptions = await this.prepareRequestOptions(dataProvider.baseUrl, finalSearchQuery, searchConfig);
         if (requestOptions?.error) {
-            const errRes = new SearchProductsResponseDto({ ...defaultResponse, error: requestOptions.error });
+            const errRes = new SearchItemsResponseDto({ ...defaultResponse, error: requestOptions.error });
             return errRes;
         }
 
@@ -68,7 +68,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
             });
 
             if (searchResults?.error) {
-                const errRes = new SearchProductsResponseDto({
+                const errRes = new SearchItemsResponseDto({
                     ...defaultResponse,
                     error: searchResults.error,
                     request: requestOptions.data,
@@ -76,19 +76,19 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
                 return errRes;
             }
 
-            const successRes = new SearchProductsResponseDto({
+            const successRes = new SearchItemsResponseDto({
                 ...defaultResponse,
                 status: 'success',
                 html: searchResults.html,
                 request: requestOptions.data,
                 searchUrl: requestOptions.data?.url,
-                discoveredProducts: searchResults.discoveredProducts,
-                totalResults: searchResults.discoveredProducts?.length || 0,
+                discoveredItems: searchResults.discoveredItems,
+                totalResults: searchResults.discoveredItems?.length || 0,
             });
             return successRes;
         } catch (error) {
-            this.logger.error(`Error search products: ${error?.message}`);
-            const errRes = new SearchProductsResponseDto({ ...defaultResponse, error: error?.message || 'Unknown error' });
+            this.logger.error(`Error search items: ${error?.message}`);
+            const errRes = new SearchItemsResponseDto({ ...defaultResponse, error: error?.message || 'Unknown error' });
             return errRes;
         }
     }
@@ -116,8 +116,8 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
 
             const successRes = new ValidateSearchConfigurationResponseDto({
                 status: 'success',
-                resultCount: searchResults.discoveredProducts?.length || 0,
-                sampleResults: (searchResults.discoveredProducts || []).slice(0, 5),
+                resultCount: searchResults.discoveredItems?.length || 0,
+                sampleResults: (searchResults.discoveredItems || []).slice(0, 5),
             });
             return successRes;
         } catch (error) {
@@ -135,7 +135,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
             const htmlContent = await this.scraperService.getHtmlContent(requestOptions.url, searchConfig as any);
             if (htmlContent.status !== 'success') {
                 if (htmlContent?.error_code === '404' || htmlContent?.error_code === '400') {
-                    const emptyRes = new ExtractSearchResultsResponse({ html: '', discoveredProducts: [] });
+                    const emptyRes = new ExtractSearchResultsResponse({ html: '', discoveredItems: [] });
                     return emptyRes;
                 }
                 const errRes = new ExtractSearchResultsResponse({ error: htmlContent.error_message || `Failed to get search results` });
@@ -145,14 +145,14 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
         }
 
         try {
-            const discoveredProducts = await this.extractDataHelper.runFunctionSearchData({
+            const discoveredItems = await this.extractDataHelper.runFunctionSearchData({
                 htmlContent: html,
                 functionGenerator: searchConfig.functionGenerator,
                 isGetParentElement: searchConfig.isGetParentElement,
                 mainContentSelector: searchConfig.mainContentSelector,
             });
 
-            const filteredResults = await this.filterSearchResults({ ...dto, baseUrl, discoveredProducts: discoveredProducts || [] });
+            const filteredResults = await this.filterSearchResults({ ...dto, baseUrl, discoveredItems: discoveredItems || [] });
 
             for (const item of filteredResults) {
                 if (item?.imageUrl && !(item.imageUrl.startsWith('http://') || item.imageUrl.startsWith('https://'))) {
@@ -163,7 +163,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
                 }
             }
 
-            const res = new ExtractSearchResultsResponse({ html, discoveredProducts: filteredResults });
+            const res = new ExtractSearchResultsResponse({ html, discoveredItems: filteredResults });
             return res;
         } catch (error) {
             this.logger.error(`Error get search results: ${error?.message}`);
@@ -182,10 +182,10 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
         return res;
     }
 
-    async filterSearchResults(dto: IFilterSearchResultsDto): Promise<DiscoveredProductDto[]> {
-        const { discoveredProducts } = dto;
+    async filterSearchResults(dto: IFilterSearchResultsDto): Promise<DiscoveredItemDto[]> {
+        const { discoveredItems } = dto;
         const maxResults = dto.options?.maxResults || dto.searchConfig?.maxResults || 20;
-        const res = discoveredProducts.slice(0, maxResults);
+        const res = discoveredItems.slice(0, maxResults);
         return res;
     }
 
