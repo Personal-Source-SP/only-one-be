@@ -9,6 +9,7 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { CreateConfigVersionRequestDto } from '../dtos/requests';
 import { ConfigVersionEntity } from '../entities/config-version.entity';
+import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { ConfigVersionType } from '../enums';
 
 @Injectable()
@@ -65,9 +66,16 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
                 'dataProviderConfigVersions.id',
                 'dataProviderConfigVersions.versionId',
                 'dataProviderConfigVersions.changeType',
+                'dataProviderConfigVersions.changeDescription',
+                'dataProviderConfigVersions.createdBy',
                 'dataProviderConfigVersions.isActive',
                 'dataProviderConfigVersions.config',
                 'dataProviderConfigVersions.createdAt',
+                'user.id',
+                'user.firstName',
+                'user.lastName',
+                'user.email',
+                'user.userName',
             ])
             .getMany();
 
@@ -99,8 +107,43 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
             changeDescription: `Rollback to version id: ${versionId}`,
         });
 
-        const configVersion = await this.create(requestCreate, user);
-        return !!configVersion;
+        try {
+            await this.dataSource.transaction(async (manager) => {
+                const configVersionRepo = manager.getRepository(ConfigVersionEntity);
+                const featureRepo = manager.getRepository(DataProviderFeatureEntity);
+
+                // 1. Deactivate current active versions
+                await configVersionRepo.update(
+                    { featureId, isActive: true },
+                    { isActive: false },
+                );
+
+                // 2. Insert new rollback snapshot
+                const latestVersion = await configVersionRepo
+                    .createQueryBuilder('v')
+                    .where('v.featureId = :featureId', { featureId })
+                    .orderBy('v.versionId', 'DESC')
+                    .select(['v.versionId'])
+                    .getOne();
+
+                const newVersionEntity = this.mapper.map(requestCreate, CreateConfigVersionRequestDto, ConfigVersionEntity);
+                newVersionEntity.createdBy = user?.id;
+                newVersionEntity.versionId = (latestVersion?.versionId ?? 0) + 1;
+                await configVersionRepo.save(newVersionEntity);
+
+                // 3. Synchronize feature entity config
+                await featureRepo.update(featureId, {
+                    config: dataProviderConfigVersion.config,
+                    consecutiveFailures: 0,
+                    lastErrorMessage: null,
+                    lastErrorType: null,
+                });
+            });
+
+            return true;
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 
     async deleteConfigVersionByFeature(featureId: string, versionId: number): Promise<boolean> {
