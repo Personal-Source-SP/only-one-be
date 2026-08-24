@@ -13,6 +13,7 @@ Implemented the Draft Item feature enabling batch search staging and atomic item
 - [`DraftItemEntity`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/draft-item.entity.ts): TypeORM entity for table `draft_items`, storing discovered items linked directly to [`DataProviderFeatureEntity`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-feature.entity.ts) (`dataProviderFeatureId`), item matching references (`suggestedItemId`, `mappedItemId`, `mappedDataProviderItemId`), and raw payload in `metadata` (JSONB).
 - [`DataProviderFeatureEntity`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-feature.entity.ts): Added `@OneToMany(() => DraftItemEntity)` relation.
 - [`ItemEntity`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/item.entity.ts): Added relations `suggestedDraftItems` and `mappedDraftItems`.
+- **Database Migration**: Created [`1765400000000-CreateDraftItemsTable.ts`](file:///d:/Sources/Personal/only-one-be/src/migrations/1765400000000-CreateDraftItemsTable.ts) creating table `draft_items`, foreign key constraints, and performance indexes on `(data_provider_feature_id, url)`, `status`, and `code`.
 
 ### 1.3 DTOs & Serialization
 - [`DraftItemDto`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/dtos/draft-item.dto.ts): Response DTO with AutoMapper annotations.
