@@ -17,10 +17,11 @@ import { ScheduleProfile } from './schedule.profile';
 import { RedisLockService } from './services/redis-lock.service';
 import { ScheduleService } from './services/schedule.service';
 import { DataProviderScheduleService } from './services/schedule-execution/data-provider-schedule.service';
+import { SearchScheduleService } from './services/schedule-execution/search-schedule.service';
 import { ScheduleJobService } from './services/schedule-job.service';
 import { ScheduleJobEventService } from './services/schedule-job-event.service';
 
-const executionServices = [DataProviderScheduleService];
+const executionServices = [DataProviderScheduleService, SearchScheduleService];
 const entities = [ScheduleEntity, ScheduleJobEntity, ScheduleJobEventEntity];
 const controllers = [ScheduleController, ScheduleJobEventController, ScheduleJobController];
 const services = [ScheduleService, ScheduleJobService, ScheduleJobEventService, RedisLockService];
@@ -45,10 +46,14 @@ const services = [ScheduleService, ScheduleJobService, ScheduleJobEventService, 
         },
         {
             provide: SCHEDULE_EXECUTION_SERVICE_MAP,
-            useFactory: (dataProviderScheduleService: DataProviderScheduleService): Record<string, IScheduleExecutionInterface> => ({
+            useFactory: (
+                dataProviderScheduleService: DataProviderScheduleService,
+                searchScheduleService: SearchScheduleService,
+            ): Record<string, IScheduleExecutionInterface> => ({
                 [ExecutionServiceEnum.DATA_PROVIDER]: dataProviderScheduleService,
+                [ExecutionServiceEnum.SEARCH]: searchScheduleService,
             }),
-            inject: [DataProviderScheduleService],
+            inject: [DataProviderScheduleService, SearchScheduleService],
         },
     ],
     exports: [...services, ...executionServices, ScheduleProfile],

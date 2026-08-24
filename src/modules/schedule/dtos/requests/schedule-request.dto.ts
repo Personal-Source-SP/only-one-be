@@ -16,6 +16,18 @@ export class PayloadScheduleDto {
     @IsArray()
     @AutoMap()
     itemIds?: string[];
+
+    @ApiPropertyOptional({ description: 'Search queries to pass to the schedule' })
+    @IsOptional()
+    @IsArray()
+    @AutoMap()
+    searchQueries?: string[];
+
+    @ApiPropertyOptional({ description: 'Barcodes to pass to the schedule' })
+    @IsOptional()
+    @IsArray()
+    @AutoMap()
+    barcodes?: string[];
 }
 
 export class CreateScheduleRequestDto {

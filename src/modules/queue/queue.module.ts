@@ -10,9 +10,14 @@ import { QueueService } from './services/queue.service';
 @Module({
     imports: [
         forwardRef(() => SharedModule),
-        BullModule.registerQueue({
-            name: QUEUE_NAME.SCRAPING_JOB,
-        }),
+        BullModule.registerQueue(
+            {
+                name: QUEUE_NAME.SCRAPING_JOB,
+            },
+            {
+                name: QUEUE_NAME.SEARCH_JOB,
+            },
+        ),
     ],
     controllers: [QueueController],
     providers: [QueueService],
