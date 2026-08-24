@@ -24,6 +24,9 @@ export class DiscoveredItemDto {
     @ApiPropertyOptional({ description: 'URL tương đối' })
     relativeUrl?: string;
 
+    @ApiPropertyOptional({ description: 'Mã / Barcode sản phẩm' })
+    code?: string;
+
     constructor(data?: Partial<DiscoveredItemDto>) {
         if (data) Object.assign(this, data);
     }

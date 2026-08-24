@@ -4,6 +4,8 @@ export * from './data-provider-feature-status.enum';
 export * from './data-provider-feature-type.enum';
 export * from './data-provider-search-status.enum';
 export * from './data-provider-status.enum';
+export * from './draft-item-status.enum';
 export * from './excel-file-types.enum';
+export * from './map-draft-item-action.enum';
 export * from './product-mapping-status.enum';
 export * from './scraper-service.enum';

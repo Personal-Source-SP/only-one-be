@@ -8,6 +8,7 @@ import { DataProviderController } from './controllers/data-provider.controller';
 import { DataProviderFeatureController } from './controllers/data-provider-feature.controller';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DataProviderSearchController } from './controllers/data-provider-search.controller';
+import { DraftItemController } from './controllers/draft-item.controller';
 import { ItemController } from './controllers/item.controller';
 import { ScrapingDataController } from './controllers/scraping-data.controller';
 import { DataProviderProfile } from './data-provider.profile';
@@ -15,6 +16,7 @@ import { ConfigVersionEntity } from './entities/config-version.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
 import { DataProviderFeatureEntity } from './entities/data-provider-feature.entity';
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
+import { DraftItemEntity } from './entities/draft-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { ScraperServiceEnum } from './enums';
@@ -35,6 +37,7 @@ import { GenericDataProviderScraperService } from './services/data-provider-scra
 import { LocalDataProviderScraperService } from './services/data-provider-scraper/local-data-provider-scraper.service';
 import { DataProviderSearchService } from './services/data-provider-search.service';
 import { GenericDataProviderSearchService } from './services/data-provider-search/generic-data-provider-search.service';
+import { DraftItemService } from './services/draft-item.service';
 import { ItemService } from './services/item.service';
 import { ScraperService } from './services/scraper.service';
 import { ScrapingDataService } from './services/scraping-data.service';
@@ -45,6 +48,7 @@ const entities = [
     DataProviderEntity,
     DataProviderFeatureEntity,
     DataProviderItemEntity,
+    DraftItemEntity,
     ScrapingDataEntity,
     ItemEntity,
     ConfigVersionEntity,
@@ -56,10 +60,12 @@ const controllers = [
     DataProviderFeatureController,
     DataProviderItemController,
     DataProviderSearchController,
+    DraftItemController,
 ];
 const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry];
 const services = [
     ItemService,
+    DraftItemService,
     ScraperService,
     ScrapingDataService,
     ConfigVersionService,

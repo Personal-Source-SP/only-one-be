@@ -5,6 +5,7 @@ import { AbstractEntity } from '../../../common/entities';
 import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { ConfigVersionEntity } from './config-version.entity';
 import { DataProviderEntity } from './data-provider.entity';
+import { DraftItemEntity } from './draft-item.entity';
 
 @Entity({ name: 'data_provider_features', synchronize: false })
 @Unique(['dataProviderId', 'type'])
@@ -57,4 +58,8 @@ export class DataProviderFeatureEntity extends AbstractEntity {
     @OneToMany(() => ConfigVersionEntity, (configVersion) => configVersion.feature)
     @AutoMap(() => [ConfigVersionEntity])
     versions?: Relation<ConfigVersionEntity>[];
+
+    @OneToMany(() => DraftItemEntity, (draftItem) => draftItem.dataProviderFeature)
+    @AutoMap(() => [DraftItemEntity])
+    draftItems?: Relation<DraftItemEntity>[];
 }

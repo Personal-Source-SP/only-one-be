@@ -45,7 +45,7 @@
 ### Option 1 (Recommended): Dedicated `DraftItemService` with Staging Entity & Two-Phase Promotion
 
 - **Solution Overview & Mechanics**:
-  1. **Staging Persistence (`DraftItemEntity`)**: Stores discovered products from search runs with fields: `id`, `dataProviderId`, `title`, `url`, `imageUrl`, `price`, `currency`, `code` (parsed barcode/SKU), `status` (`NEW` | `MATCHED` | `SIMILAR` | `MAPPED`), `suggestedItemId`, `metadata` (JSON), and `searchQuery`.
+  1. **Staging Persistence (`DraftItemEntity`)**: Stores discovered products from search runs with fields: `id`, `dataProviderFeatureId`, `title`, `url`, `code` (parsed barcode/SKU), `status` (`NEW` | `MATCHED` | `SIMILAR` | `MAPPED`), `suggestedItemId`, `metadata` (JSON: storing raw provider payload like price, currency, imageUrl, etc.), and `searchQuery`.
   2. **Processing Pipeline (`DraftItemService.processSearchData`)**:
      - Queries providers having `DataProviderFeatureType.SEARCH` with `DataProviderFeatureStatus.READY`.
      - Invokes `DataProviderSearchService` using configured search parameters or batch request queries.
@@ -152,7 +152,7 @@ flowchart TD
 
 - **Exception & Timeout Handling**:
   - **External Provider Outages / HTTP Timeouts**: Handled via try-catch blocks in `processSearchDataProvider`; records errors in [`DataProviderFeatureEntity`](file:///Users/kiem/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-feature.entity.ts) via `DataProviderFeatureService.recordFeatureFailure(featureId, error, FATAL | TRANSIENT)`.
-  - **Duplicate Discovered URLs**: Unique constraint / duplicate check on `(data_provider_id, url)` in `draft_items` table or upsert logic to refresh prices/metadata without creating duplicate drafts.
+  - **Duplicate Discovered URLs**: Unique constraint / duplicate check on `(data_provider_feature_id, url)` in `draft_items` table or upsert logic to refresh prices/metadata without creating duplicate drafts.
 - **Authorization Boundary**:
   - Search execution and mapping endpoints are restricted to authenticated admin/system operators.
 

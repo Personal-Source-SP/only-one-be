@@ -1,3 +1,4 @@
+export * from './process-search-data-response.dto';
 export * from './scrape-item-data-response.dto';
 export * from './scraping-data-response.dto';
 export * from './search-items-response.dto';

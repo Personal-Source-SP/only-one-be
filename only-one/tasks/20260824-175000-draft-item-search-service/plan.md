@@ -1,10 +1,10 @@
 ---
-status: planned
+status: done
 slug: draft-item-search-service
 started_at: 2026-08-24
-completed_at: ~
+completed_at: 2026-08-24
 pr_url: ~
-branch: ~
+branch: main
 ---
 
 # Implementation Plan: Draft Item Search Processing & Mapping Architecture
@@ -84,14 +84,14 @@ When search results (`DiscoveredProductDto[]`) arrive:
 4. **New Item (`NEW`)**:
    - If no matching code or similar name exists in the database, classify as `DraftItemStatus.NEW`.
 5. **Deduplication against Drafts**:
-   - Prevent duplicate draft entries for the same provider and URL `(dataProviderId, url)` by updating metadata/price or skipping existing unprocessed drafts.
+   - Prevent duplicate draft entries for the same provider feature and URL `(dataProviderFeatureId, url)` by updating metadata or skipping existing unprocessed drafts.
 
 ### 2.3 Catalog Promotion Flow (`mapDraftItem`)
 1. **Input Payload**: `MapDraftItemRequestDto` with `action`: `CREATE_NEW` | `LINK_EXISTING`, and optional override fields (`name`, `code`, `itemId`, `isSavedToCloudData`).
 2. **Database Transaction (Atomic)**:
    - Case A (`CREATE_NEW`): Insert new [`ItemEntity`](file:///Users/kiem/Sources/Personal/only-one-be/src/modules/data-provider/entities/item.entity.ts) with `name`, `code`, and `ProductMappingStatus.MAPPED`.
    - Case B (`LINK_EXISTING`): Verify specified `itemId` exists in `ItemEntity`.
-   - Insert [`DataProviderItemEntity`](file:///Users/kiem/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-item.entity.ts) with `dataProviderId = draft.dataProviderId`, `itemId`, `itemUrl = draft.url`, `isActive = true`.
+   - Insert [`DataProviderItemEntity`](file:///Users/kiem/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-item.entity.ts) with `dataProviderId = draft.dataProviderFeature.dataProviderId`, `itemId`, `itemUrl = draft.url`, `isActive = true`.
    - Update [`DraftItemEntity`](file:///Users/kiem/Sources/Personal/only-one-be/src/modules/data-provider/entities/draft-item.entity.ts): `status = DraftItemStatus.MAPPED`, `mappedItemId = targetItemId`, `mappedDataProviderItemId = createdDpItemId`.
 
 ### 2.4 Adversarial Red-Team Checks (`doubt-driven-development`)
@@ -100,7 +100,7 @@ When search results (`DiscoveredProductDto[]`) arrive:
   - `RECONCILE`: In `mapDraftItem`, check if a `DataProviderItemEntity` with `(dataProviderId, itemUrl)` already exists. If it exists, link to the existing `DataProviderItemEntity` and mark the draft as mapped rather than failing or violating unique constraints.
 - `CLAIM`: Concurrent batch search executions for the same search query might insert duplicate drafts.
   - `DOUBT`: Race conditions on draft insertion.
-  - `RECONCILE`: Implement find-or-create / upsert logic using `(dataProviderId, url)` composite key check in `DraftItemService.saveDiscoveredDrafts()`.
+  - `RECONCILE`: Implement find-or-create / upsert logic using `(dataProviderFeatureId, url)` composite key check in `DraftItemService.saveDiscoveredDrafts()`.
 
 ---
 
@@ -147,7 +147,7 @@ src/modules/data-provider/
 | `[NEW]` | `src/modules/data-provider/enums/draft-item-status.enum.ts` | Enum for draft item lifecycle status (`NEW`, `MATCHED`, `SIMILAR`, `MAPPED`, `IGNORED`). |
 | `[MODIFY]` | `src/modules/data-provider/enums/index.ts` | Export `DraftItemStatus`. |
 | `[NEW]` | `src/modules/data-provider/entities/draft-item.entity.ts` | TypeORM entity for `draft_items` table. |
-| `[MODIFY]` | `src/modules/data-provider/entities/data-provider.entity.ts` | Add 1-to-N relation to `DraftItemEntity`. |
+| `[MODIFY]` | `src/modules/data-provider/entities/data-provider-feature.entity.ts` | Add 1-to-N relation to `DraftItemEntity`. |
 | `[MODIFY]` | `src/modules/data-provider/entities/item.entity.ts` | Add 1-to-N relation to `DraftItemEntity` for suggested / mapped items. |
 | `[NEW]` | `src/modules/data-provider/dtos/draft-item.dto.ts` | DTO for `DraftItemEntity` responses and AutoMapper. |
 | `[NEW]` | `src/modules/data-provider/dtos/requests/draft-item-request.dto.ts` | Request DTOs: `CreateDraftItemRequestDto`, `MapDraftItemRequestDto`, `FilterDraftItemPaginationDto`. |
@@ -243,14 +243,14 @@ import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
 import { DraftItemStatus } from '../enums/draft-item-status.enum';
-import { DataProviderEntity } from './data-provider.entity';
+import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 import { ItemEntity } from './item.entity';
 
 @Entity({ name: 'draft_items', synchronize: false })
 export class DraftItemEntity extends AbstractEntity {
-    @Column({ name: 'data_provider_id', type: 'uuid' })
+    @Column({ name: 'data_provider_feature_id', type: 'uuid' })
     @AutoMap()
-    dataProviderId: string;
+    dataProviderFeatureId: string;
 
     @Column({ type: 'text' })
     @AutoMap()
@@ -259,18 +259,6 @@ export class DraftItemEntity extends AbstractEntity {
     @Column({ type: 'text' })
     @AutoMap()
     url: string;
-
-    @Column({ type: 'text', nullable: true })
-    @AutoMap()
-    imageUrl?: string;
-
-    @Column({ type: 'varchar', length: 50, nullable: true })
-    @AutoMap()
-    price?: string;
-
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    @AutoMap()
-    currency?: string;
 
     @Column({ type: 'varchar', length: 100, nullable: true })
     @AutoMap()
@@ -304,10 +292,10 @@ export class DraftItemEntity extends AbstractEntity {
     @AutoMap()
     metadata?: Record<string, any>;
 
-    @ManyToOne(() => DataProviderEntity, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'data_provider_id' })
-    @AutoMap(() => DataProviderEntity)
-    dataProvider: Relation<DataProviderEntity>;
+    @ManyToOne(() => DataProviderFeatureEntity, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'data_provider_feature_id' })
+    @AutoMap(() => DataProviderFeatureEntity)
+    dataProviderFeature: Relation<DataProviderFeatureEntity>;
 
     @ManyToOne(() => ItemEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ name: 'suggested_item_id' })
@@ -323,8 +311,8 @@ export class DraftItemEntity extends AbstractEntity {
 
 ---
 
-### 4.4 `[MODIFY] src/modules/data-provider/entities/data-provider.entity.ts`
-- **Responsibility**: Add `@OneToMany(() => DraftItemEntity)` relation to `DataProviderEntity`.
+### 4.4 `[MODIFY] src/modules/data-provider/entities/data-provider-feature.entity.ts`
+- **Responsibility**: Add `@OneToMany(() => DraftItemEntity, (draftItem) => draftItem.dataProviderFeature)` relation to `DataProviderFeatureEntity`.
 
 ---
 
@@ -342,13 +330,13 @@ import { ApiResponseProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { DraftItemStatus } from '../enums/draft-item-status.enum';
-import { DataProviderDto } from './data-provider.dto';
+import { DataProviderFeatureDto } from './data-provider-feature.dto';
 import { ItemDto } from './item.dto';
 
 export class DraftItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
-    dataProviderId: string;
+    dataProviderFeatureId: string;
 
     @ApiResponseProperty()
     @AutoMap()
@@ -357,18 +345,6 @@ export class DraftItemDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     url: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    imageUrl?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    price?: string;
-
-    @ApiResponseProperty()
-    @AutoMap()
-    currency?: string;
 
     @ApiResponseProperty()
     @AutoMap()
@@ -402,9 +378,9 @@ export class DraftItemDto extends AbstractDto {
     @AutoMap()
     metadata?: Record<string, any>;
 
-    @ApiResponseProperty({ type: () => DataProviderDto })
-    @AutoMap(() => DataProviderDto)
-    dataProvider?: DataProviderDto;
+    @ApiResponseProperty({ type: () => DataProviderFeatureDto })
+    @AutoMap(() => DataProviderFeatureDto)
+    dataProviderFeature?: DataProviderFeatureDto;
 
     @ApiResponseProperty({ type: () => ItemDto })
     @AutoMap(() => ItemDto)
@@ -459,7 +435,7 @@ export class FilterDraftItemPaginationDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsUUID()
-    dataProviderId?: string;
+    dataProviderFeatureId?: string;
 
     @ApiPropertyOptional({ enum: DraftItemStatus })
     @IsOptional()
@@ -544,18 +520,18 @@ import { DraftItemEntity } from '../entities/draft-item.entity';
 const draftItemColumns = getColumnNames(DraftItemEntity);
 
 export const DRAFT_ITEM_PAGINATION_CONFIG = createPaginationConfig<DraftItemEntity>({
-    sortableColumns: ['createdAt', 'updatedAt', 'title', 'price', 'status', 'confidence'],
+    sortableColumns: ['createdAt', 'updatedAt', 'title', 'status', 'confidence'],
     searchableColumns: ['title', 'url', 'code', 'searchQuery', 'status'],
     filterableColumns: {
-        dataProviderId: [FilterOperator.EQ],
+        dataProviderFeatureId: [FilterOperator.EQ],
         status: [FilterOperator.EQ, FilterOperator.IN],
         code: [FilterOperator.EQ, FilterOperator.ILIKE],
         suggestedItemId: [FilterOperator.EQ],
         mappedItemId: [FilterOperator.EQ],
     },
     defaultSortBy: [['createdAt', 'DESC']],
-    relations: ['dataProvider', 'suggestedItem', 'mappedItem'],
-    select: [...draftItemColumns, 'dataProvider.name', 'dataProvider.baseUrl'],
+    relations: ['dataProviderFeature', 'dataProviderFeature.dataProvider', 'suggestedItem', 'mappedItem'],
+    select: [...draftItemColumns, 'dataProviderFeature.id', 'dataProviderFeature.dataProviderId', 'dataProviderFeature.type'],
     maxLimit: 100,
     defaultLimit: 20,
 });
@@ -635,13 +611,11 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
                         searchQuery: query,
                     });
 
-                    if (searchRes.status === 'success' && searchRes.discoveredProducts?.length) {
-                        const count = await this.saveDiscoveredProducts(dataProvider, query, searchRes.discoveredProducts);
+                    if (searchRes.status === 'success' && searchRes.discoveredProducts?.length && searchFeature) {
+                        const count = await this.saveDiscoveredProducts(searchFeature, query, searchRes.discoveredProducts);
                         response.totalDraftsCreated += count;
                         response.success++;
-                        if (searchFeature) {
-                            await this.dataProviderFeatureService.recordFeatureSuccess(searchFeature.id);
-                        }
+                        await this.dataProviderFeatureService.recordFeatureSuccess(searchFeature.id);
                     } else if (searchRes.error) {
                         response.error++;
                         response.errors.push({
@@ -674,7 +648,7 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
     async mapDraftItem(draftItemId: string, dto: MapDraftItemRequestDto): Promise<DraftItemDto> {
         const draft = await this.repository.findOne({
             where: { id: draftItemId },
-            relations: { dataProvider: true },
+            relations: { dataProviderFeature: { dataProvider: true } },
         });
 
         if (!draft) {
@@ -683,6 +657,11 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
 
         if (draft.status === DraftItemStatus.MAPPED) {
             throw new BadRequestException(`Draft item is already mapped`);
+        }
+
+        const dataProviderId = draft.dataProviderFeature?.dataProviderId;
+        if (!dataProviderId) {
+            throw new BadRequestException('Draft item does not have associated data provider');
         }
 
         const queryRunner = this.dataSource.createQueryRunner();
@@ -713,12 +692,12 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
 
             // Find or create DataProviderItem
             let dpItem = await queryRunner.manager.findOne(DataProviderItemEntity, {
-                where: { dataProviderId: draft.dataProviderId, itemUrl: draft.url },
+                where: { dataProviderId, itemUrl: draft.url },
             });
 
             if (!dpItem) {
                 dpItem = queryRunner.manager.create(DataProviderItemEntity, {
-                    dataProviderId: draft.dataProviderId,
+                    dataProviderId,
                     itemId: targetItemId,
                     itemUrl: draft.url,
                     isActive: true,
@@ -758,7 +737,7 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
     }
 
     private async saveDiscoveredProducts(
-        dataProvider: DataProviderEntity,
+        feature: DataProviderFeatureEntity,
         searchQuery: string,
         discovered: any[],
     ): Promise<number> {
@@ -767,7 +746,7 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
             if (!item.url || !item.title) continue;
 
             const existingDraft = await this.repository.findOne({
-                where: { dataProviderId: dataProvider.id, url: item.url },
+                where: { dataProviderFeatureId: feature.id, url: item.url },
             });
 
             if (existingDraft && existingDraft.status === DraftItemStatus.MAPPED) {
@@ -796,21 +775,19 @@ export class DraftItemService extends BaseService<DraftItemEntity, DraftItemDto>
 
             if (existingDraft) {
                 existingDraft.title = item.title;
-                existingDraft.price = item.price;
-                existingDraft.currency = item.currency;
-                existingDraft.imageUrl = item.imageUrl;
                 existingDraft.status = status;
                 existingDraft.suggestedItemId = suggestedItemId;
                 existingDraft.confidence = item.confidence || 0;
+                existingDraft.metadata = {
+                    ...existingDraft.metadata,
+                    ...item,
+                };
                 await this.repository.save(existingDraft);
             } else {
                 const newDraft = this.repository.create({
-                    dataProviderId: dataProvider.id,
+                    dataProviderFeatureId: feature.id,
                     title: item.title,
                     url: item.url,
-                    imageUrl: item.imageUrl,
-                    price: item.price,
-                    currency: item.currency,
                     code: item.code,
                     searchQuery,
                     confidence: item.confidence || 0,

@@ -4,6 +4,7 @@ import { Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { ProductMappingStatus } from '../enums';
 import { DataProviderItemEntity } from './data-provider-item.entity';
+import { DraftItemEntity } from './draft-item.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
 
 @Entity({ name: 'items', synchronize: false })
@@ -32,4 +33,12 @@ export class ItemEntity extends AbstractEntity {
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.item)
     @AutoMap(() => [ScrapingDataEntity])
     scrapingData?: Relation<ScrapingDataEntity>[];
+
+    @OneToMany(() => DraftItemEntity, (entity) => entity.suggestedItem)
+    @AutoMap(() => [DraftItemEntity])
+    suggestedDraftItems?: Relation<DraftItemEntity>[];
+
+    @OneToMany(() => DraftItemEntity, (entity) => entity.mappedItem)
+    @AutoMap(() => [DraftItemEntity])
+    mappedDraftItems?: Relation<DraftItemEntity>[];
 }
