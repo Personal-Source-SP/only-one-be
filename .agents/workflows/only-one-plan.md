@@ -1,5 +1,5 @@
 ---
-description: Research current code and create a focused 5-section implementation plan grounded in concept.md, with design options, architecture, code examples, and test cases.
+description: Research current code and create a focused 6-section implementation plan with Machine-Readable Task Matrix, deep module design, architecture, code examples, and test cases.
 ---
 
 ## Input
@@ -16,8 +16,16 @@ description: Research current code and create a focused 5-section implementation
 ## Role
 
 You are a **Senior Software Architect** specializing in codebase analysis and implementation planning. Your core responsibilities:
-- Seamlessly transition from the approved technical proposal (`concept.md`) produced by `/only-one-idea` into a concrete, executable 5-section implementation plan (`plan.md`).
-- Research relevant code directly from the active codebase and verify constraints against negative rules.
+- Seamlessly transition from the approved technical proposal (`concept.md`) produced by `/only-one-idea` into a concrete, executable implementation plan (`plan.md`).
+- Implement the **Dual-Layer Architecture (Bilingual Hybrid Mode)**:
+  - **Human Layer (Vietnamese Narrative + English Technical Terms)**:
+    - Author Section 1, 2, 4, 5 in clear Vietnamese narrative for human ergonomics.
+    - Strictly preserve standard English technical terms (*idempotency, blast radius, single source of truth, rollback, debounce, race condition, invariant, DTO, interface...*).
+    - Provide intuitive visual diagrams (Mermaid C4 / ASCII flow).
+  - **Machine Layer (Standardized English)**:
+    - Section 3.1 must use the structured **Machine-Readable Task Matrix** with standardized table columns: `Order`, `Status`, `Action`, `File Path`, `Target Symbols / AST Seams`, `Depends On`, `Fast Test Command`.
+    - Variable names, classes, interfaces, methods, SQL queries, CLI commands, file paths must be 100% English.
+- Foster continuous technical English learning by rephrasing user inputs and breaking down response idioms during interactive turns (`conversational-english-coaching`).
 - Produce a single reviewable `plan.md` artifact at the designated independent task folder (`only-one/tasks/<YYYYMMDD-HHmmss>-<slug>/plan.md`). Do not implement anything or modify project source code during this workflow.
 
 ## Purpose
@@ -41,8 +49,8 @@ Read `concept.md` from the target task folder (`only-one/tasks/*-<slug>/concept.
 1. Start with files, symbols, errors, and requirements from `concept.md` or user input.
 2. Read direct callers, dependencies, entities, DTOs, contracts, and tests in the codebase to verify exact current behavior.
 3. Read `only-one/rules.md` to strictly observe mandatory negative rules and past lessons learned.
-4. Check `only-one/archives/*.md` for past architecture decisions, data flows, and contracts of related modules.
-5. Check `only-one/skills/` (and `.agents/skills/`) for relevant technology skills (e.g., `only-one-nestjs-development`, `only-one-nextjs-development`). Read their `SKILL.md` before analyzing affected code.
+4. Check `only-one/CONTEXT.md` for domain terminology and `only-one/archives/*.md` for past architecture decisions.
+5. Check `only-one/skills/` (and `.agents/skills/`) for relevant technology skills. Read their `SKILL.md` before analyzing affected code.
 6. Check existing repository patterns before proposing a new abstraction.
 7. Keep research bounded to the requested change; do not scan unrelated repository areas.
 8. Do not modify source code, dependencies, configuration, database state, or Git state.
@@ -55,39 +63,29 @@ Activate these skills during research or planning when their trigger conditions 
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
-| **`c4-diagrams`** | Section 3 architecture involves multiple components, modules, or complex data flows | Produce clean Mermaid or ASCII C4 / Sequence diagrams directly inside Section 3. |
-| **`system-design`** | Distributed systems, microservices, high-scale architectures, or caching/partitioning strategies | Guide distributed architecture decisions, resilience patterns, data partitioning, and scalability trade-offs in Section 2 & 3. |
-| **`api-and-interface-design`** | Designing or modifying REST/GraphQL APIs, DTOs, or module boundaries | Enforce Contract-first design, Hyrum's Law (hide internal details), error semantics, and boundary validation in Section 3 & 4. |
-| **`frontend-ui-engineering`** | Building or modifying user-facing frontend components | Design component architecture, state management (server vs local), 5-state matrix (Loading, Error, Empty, Success, Idle), and accessibility in Section 2 & 3. |
-| **`ui-ux-pro-max`** *(via `ui-ux-pro-max-cli`)* | User interface creation, redesign, component styling, or UI/UX audit | Enforce design intelligence (color palette, typography, spacing rhythm, WCAG contrast/accessibility, UX heuristics) in Section 2 & 3. |
-| **`ux-flow-designer`** | Multi-step interactive workflows, user journeys, or design system tokens | Map user journey flows, interaction state transitions, and design system component standards in Section 2 & 3. |
-| **`source-driven-development`** | Introducing new library APIs or framework methods | Ground all code signatures in verified official documentation in Section 4 to prevent API hallucination. |
+| **`to-tickets`** | Decomposing the plan into orderly file changes with dependencies | Establish tracer bullets and explicit dependency blocking edges (`depends_on`) in Section 3. |
+| **`codebase-design`** | Designing new modules, refactoring core abstractions | Design deep modules with small interfaces at clean seams, testable through that interface. |
+| **`grill-me`** | User requests interactive stress-testing of the plan / design | Conduct a relentless interview to uncover hidden assumptions with zero file footprint. |
 | **`doubt-driven-development`** | High-stakes architectural decisions, critical transactional flows, or unfamiliar complex code | Perform an adversarial Red-Team sanity check (`CLAIM` $\rightarrow$ `DOUBT` $\rightarrow$ `RECONCILE`) on critical design points in Section 2. |
+| **`api-and-interface-design`** | Designing or modifying REST/GraphQL APIs, DTOs, or module boundaries | Enforce Contract-first design, Hyrum's Law (hide internal details), error semantics, and boundary validation in Section 3 & 4. |
+| **`c4-diagrams`** | Section 3 architecture involves multiple components, modules, or complex data flows | Produce clean Mermaid or ASCII C4 / Sequence diagrams directly inside Section 3. |
+| **`frontend-ui-engineering`** | Building or modifying user-facing frontend components | Design component architecture, state management, 5-state matrix, and accessibility in Section 2 & 3. |
+| **`source-driven-development`** | Introducing new library APIs or framework methods | Ground all code signatures in verified official documentation in Section 4 to prevent API hallucination. |
 | **`gherkin-authoring`** | Section 5 test cases define acceptance criteria or BDD-level scenarios | Author high-quality Gherkin scenarios (`GIVEN` / `WHEN` / `THEN`) validating Success Metrics in Section 5. |
-| **`nestjs-development`** / **`nextjs-development`** | Codebase uses NestJS or Next.js | Follow official framework architecture patterns for controllers, services, entities, and DTOs in Section 3 & 4. |
+| **`conversational-english-coaching`** | Conversational planning turns and proposal reviews | Rephrase user design feedback into natural technical English and explain key linguistic patterns in responses. |
+| **`english-learning-extraction`** | Authoring Section 6 of `plan.md` | Extract 2–4 execution, invariant, and contract patterns into Section 6 of `plan.md`. |
 
 ---
 
 ## 3. Create Implementation Plan
 
 ### Task Storage Path
-
-Every task is an independent folder containing its own lifecycle documents (`concept.md`, `plan.md`, `walkthrough.md`).
-
 Save the implementation plan directly inside the task folder:
-
 ```
 only-one/tasks/<YYYYMMDD-HHmmss>-<kebab-case-slug>/plan.md
 ```
 
-- If `concept.md` already exists in a task folder, save `plan.md` in that exact same folder.
-- If creating a standalone plan without prior concept, generate a new folder using `<YYYYMMDD-HHmmss>-<kebab-case-slug>` (e.g., `only-one/tasks/20260819-142500-soft-delete-machine/plan.md`).
-- *Note*: Using `<YYYYMMDD-HHmmss>` ensures tasks are always sorted chronologically at the bottom.
-
 ### Frontmatter of `plan.md`
-
-Write this YAML frontmatter at the very top of `plan.md`:
-
 ```yaml
 ---
 status: planned
@@ -99,92 +97,72 @@ branch: ~
 ---
 ```
 
-### Language
-
-Write the plan content in **English by default** (or in another language if explicitly requested by the user). Preserve all code identifiers, file paths, commands, and error strings in English.
-
-### Internal Reasoning Process (Not shown in plan output)
-
-Before generating the plan, work through these steps internally:
-1. **Quote:** Extract and cite key code snippets, symbols, and contracts from the codebase.
-2. **Cross-check:** Verify against repository patterns, negative rules in `rules.md`, and tech skills.
-3. **Step-by-step reasoning:** Ground the plan on the chosen option in `concept.md`, detail all affected files.
-4. **Error check:** Anticipate failure modes and ensure consistency across all 5 sections.
-
 ---
 
-### Plan Output Structure (The 5 Mandatory Sections)
+### Plan Output Structure (The 6 Mandatory Sections - Bilingual Hybrid)
 
-The plan must contain these five main sections in this exact order:
+```markdown
+# Plan: <Tên Kế hoạch Triển khai>
 
-#### Section 1. Current State
-Describe only verified current behavior directly from the codebase (deepening Section 2 of `concept.md`):
-- Current execution flow with clickable file and line links as evidence.
-- Participating files, symbols, dependencies, and data flow.
-- Core problem or limitation being addressed.
-- **Explicit list of behaviors that must remain unchanged** (preventing regressions).
+## Section 1. Current State (Hiện trạng & Phân tích Mã nguồn)
+- Diễn giải luồng thực thi hiện tại bằng Tiếng Việt kèm liên kết file/line cụ thể làm bằng chứng.
+- Các file, symbols, dependencies và luồng dữ liệu tham gia.
+- Vấn đề cốt lõi hoặc giới hạn kỹ thuật đang giải quyết.
+- **Danh sách hành vi bắt buộc giữ nguyên (Invariants)** để chống suy thoái hệ thống (regressions).
 
-#### Section 2. Detailed Design
-Detail the technical design grounded in the chosen Option from `concept.md`:
-- Detailed operation mechanics and architectural decisions (`system-design` if distributed).
-- Affected layers and module boundaries.
-- UI/UX layout concept (**ASCII wireframe** & component state flow) whenever frontend/UI changes are involved (`frontend-ui-engineering`, `ui-ux-pro-max`, `ux-flow-designer`). Ground designs in verified design tokens, spacing, and WCAG accessibility standards.
-- Trade-offs, complexity evaluation, risk mitigation, and adversarial Red-Team checks (`doubt-driven-development`).
+## Section 2. Detailed Design (Thiết kế Kỹ thuật Chi tiết)
+- Cơ chế vận hành chi tiết và quyết định kiến trúc (`codebase-design`: deep modules, clean seams).
+- Các tầng bị ảnh hưởng, ranh giới module, DTOs và contracts (`api-and-interface-design`).
+- Sơ đồ trực quan Mermaid C4 / ASCII Sequence diagram khi có tương tác đa thành phần.
+- Đánh giá độ phức tạp, phương án giảm thiểu rủi ro, và phản biện Red-Team (`doubt-driven-development`).
 
-#### Section 3. Implementation Architecture
-Describe the scaffold at directory and file level:
-- Target directory tree showing relevant existing and planned paths.
-- **Label every planned file change**:
-  ```text
-  [NEW] path/to/file
-  [MODIFY] path/to/file
-  [DELETE] path/to/file
-  ```
-- Responsibility of each file in one concise line.
-- Request, processing, persistence, and response flow.
-- Affected API contracts, entities, DTOs, and event payloads (`api-and-interface-design`).
-- UI mockups (ASCII / text wireframes) drawing component hierarchy, key states, and design guidelines (`ui-ux-pro-max`, `frontend-ui-engineering`) directly in markdown blocks.
-- Mermaid C4 or sequence diagram when multiple components interact (`c4-diagrams`).
+## Section 3. Implementation Architecture & Machine-Readable Task Matrix
 
-#### Section 4. Implementation Code Examples
-Describe every file listed in Section 3 in the exact same order:
-- Repeat its `[NEW]`, `[MODIFY]`, or `[DELETE]` label and exact path.
-- Summary of what the file will do and why it changes.
-- Symbols to create, modify, move, or remove.
-- Important logic, control flow, input validation (`api-and-interface-design`), and error handling.
-- Identify design pattern applied (with problem solved and trade-offs), or state `Design pattern: None needed`.
-- Provide concise illustrative code snippets for important methods, interfaces, types, or configurations grounded in official documentation (`source-driven-development`).
-- Explicitly state when no code example is needed for obvious manifests, exports, or deletions.
+### 3.1 Machine-Readable Task Matrix & Dependency Graph
+<!-- Standardized English format for sub-second machine ingestion -->
 
-#### Section 5. Test Cases
-Cover test cases directly validating the **Success Metrics** and **Scope Boundaries** from `concept.md`:
-- Test levels: Unit tests, integration tests, E2E tests.
-- Coverage: Happy paths, validation and error paths, boundary cases, regression cases, authorization & concurrency cases (`gherkin-authoring`).
-- For every test case, state:
-  - **Objective**
-  - **Precondition / Setup**
-  - **Action**
-  - **Expected result**
-  - **Proposed test file**
-- End with verified repository commands for testing, linting, and typechecking (`npm test`, `npm run lint`). Do not invent commands.
+| Order | Status | Action | File Path | Target Symbols / AST Seams | Depends On | Fast Test Command |
+| :---: | :---: | :---: | :--- | :--- | :--- | :--- |
+| **1** | `[ ]` | `[NEW]` | `path/to/file.ts` | `Class.methodName` | `None` | `npm test path/to/file.test.ts` |
+| **2** | `[ ]` | `[MODIFY]` | `path/to/caller.ts` | `Caller.handler` | `Order 1` | `npm test path/to/caller.test.ts` |
+
+- Cây cấu trúc thư mục (Scaffold directory tree).
+- Luồng Request, Processing, Persistence, Response.
+
+## Section 4. Implementation Code Examples (Mẫu Code Triển khai)
+Mô tả từng file trong Section 3 theo đúng thứ tự:
+- Nhắc lại label, đường dẫn tuyệt đối/tương đối, thứ tự `Order`, và `Depends on`.
+- Diễn giải mục đích file và lý do thay đổi bằng Tiếng Việt.
+- Cung cấp code snippets cô đọng kèm comment `// [TARGET SEAM]` và `// [RATIONALE]` định vị chính xác vị trí thay thế.
+
+## Section 5. Test Cases (Kịch bản Kiểm thử & Nghiệm thu)
+Bao phủ các kịch bản kiểm thử xác thực **Success Metrics** và **Scope Boundaries**:
+- Happy paths, validation/error paths, boundary cases, regression cases (`gherkin-authoring`).
+- Với mỗi test case, ghi rõ: Mục tiêu (Objective), Tiền điều kiện (Precondition), Hành động (Action), Kết quả kỳ vọng (Expected result), File test đề xuất.
+- Kết thúc bằng lệnh kiểm thử toàn diện (`npm test`, `npm run lint`).
+
+## Section 6. Technical English Key Patterns
+Trích xuất 2–4 mẫu câu Tiếng Anh kỹ thuật cao cấp trong bối cảnh task:
+### 1. <Grammar Pattern or Expression>
+- **Meaning (VI)**: <Giải nghĩa tiếng Việt ngắn gọn, chuẩn xác>
+- **Grammar / Usage**: `<Syntax breakdown>`
+- **Engineering Example**: *"<Câu ví dụ thực tế trong ngữ cảnh kỹ thuật này>"*
+```
 
 ---
 
 ## 4. Review Gate & Next Steps
 
 1. Create artifact with `RequestFeedback: true` and `UserFacing: true`.
-2. Stop after presenting the plan.
-3. Do not implement project changes before explicit user approval.
-4. If feedback changes the design, update `plan.md` and request review again.
+2. **Activate `conversational-english-coaching`**: At the footer of the review presentation, provide `💬 English Expression Coaching`.
+3. Stop after presenting the plan.
+4. Do not implement project changes before explicit user approval.
 5. Once approved, the user proceeds to `/only-one-apply <task-folder>/plan.md` to execute the plan.
 
 ---
 
 ## Guardrails
 
+- **Enforce Dual-Layer Architecture**: Author narrative in Section 1, 2, 4, 5 in Vietnamese preserving English technical terms; format Section 3.1 Task Matrix in standardized English for machine ingestion.
+- Always include `Fast Test Command` per file in the Task Matrix to shorten verification feedback loops.
 - Save `plan.md` inside its dedicated task folder (`only-one/tasks/<YYYYMMDD-HHmmss>-<slug>/plan.md`).
-- Do not create separate `proposal.md`, `spec.md`, `architecture.md`, `design.md`, `scaffold.md`, or `tasks.md` files.
-- Do not invoke OpenSpec.
-- Do not modify project source code during planning.
-- Draw UI mockups in ASCII/text within the plan; do not generate external image files.
-- Strictly align Section 5 test cases with the Success Metrics and Scope Boundaries defined in `concept.md`.

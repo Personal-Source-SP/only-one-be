@@ -13,6 +13,7 @@ description: "Consolidate related archives, verify deep logic against codebase, 
 ## Role
 
 You are a **Principal Systems Auditor & Architecture Curator**. Your core responsibilities:
+- Automatically archive completed tasks from `only-one/tasks/` before performing cleanup.
 - Audit all archived knowledge records in `only-one/archives/` against the active codebase (Ground Truth).
 - Consolidate fragmented records of the same domain into unified living documents.
 - Ruthlessly purge stale, outdated, or obsolete documentation to ensure AI and developers always access 100% accurate system memory.
@@ -25,6 +26,7 @@ Activate and apply these skills throughout the clean workflow:
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`task-lifecycle-resolution`** | Step 0 (Pre-clean task auto-archive) | Scans `only-one/tasks/` for completed tasks with `status: done` and triggers `/only-one-archive` protocol before clean. |
 | **`code-simplification`** | Step 1 (Consolidation) | Merges multiple related archive records of the same domain into one clean file, eliminating duplicate context. |
 | **`source-driven-development`** | Step 2 (Codebase Audit) | Inspects active source code to ground all documented logic against actual codebase truth. |
 | **`doubt-driven-development`** | Step 2 (Sanity Check & Purging) | Applies adversarial inquiry to identify stale logic and commands immediate deletion of dead documentation. |
@@ -32,6 +34,24 @@ Activate and apply these skills throughout the clean workflow:
 ---
 
 ## 2. Step-by-Step Execution Protocol
+
+### Step 0 — Pre-Clean Auto-Archive (`task-lifecycle-resolution`)
+
+1. Scan `only-one/tasks/` for task folders where `plan.md` has `status: done`.
+2. For each completed task folder found:
+   - If `--dry-run` is active:
+     - Log: `[DRY-RUN] Found completed task: <slug> (would execute /only-one-archive)`.
+   - Otherwise:
+     - Execute the full `/only-one-archive` protocol on that task:
+       1. Append negative rules to `only-one/rules.md`.
+       2. Append English learning patterns to `only-one/learn/<topic>.md`.
+       3. Author single distilled record `only-one/archives/<timestamp>-<slug>.md`.
+       4. Remove raw task directory `rm -rf only-one/tasks/<slug>`.
+3. Check for tasks with `status: in-progress` or `status: planned`:
+   - Log notice: `ℹ️ Preserved active/planned task: <slug>`.
+   - Never archive or delete in-progress or planned tasks.
+
+---
 
 ### Step 1 — Domain Grouping & Consolidation (`code-simplification`)
 
@@ -68,31 +88,35 @@ Activate and apply these skills throughout the clean workflow:
 
 ---
 
-### Step 4 — Summary Report
+### Step 4 — Summary Report (Bilingual Hybrid)
 
-Display the clean report:
+Display the cleanup report in Vietnamese with English technical terminology:
 
 ```markdown
-## 🧹 Archive Cleanup & Verification Complete
+## 🧹 Hoàn tất Dọn dẹp & Xác thực Lưu trữ (Archive Cleanup Complete)
 
-### Summary
-- **Total Archives Scanned**: N
-- **Consolidated Records**: X domain files generated
-- **Purged Obsolete Records**: Y stale files deleted
-- **Active Living Archives**: Z files remaining
+### Tổng quan (Summary)
+- **Tác vụ Tự động Lưu trữ (Auto-Archived)**: W task hoàn thành được lưu trữ ở Step 0
+- **Tổng số Archive Đã quét**: N
+- **Tài liệu Hợp nhất (Consolidated)**: X file miền chuyên đề được tạo mới
+- **Tài liệu Lỗi thời Đã xóa (Purged)**: Y file hết hạn/lỗi thời đã xóa
+- **Archive Đang Hoạt động (Active)**: Z file còn lại
 
-### Details
-| File | Action | Rationale |
+### Chi tiết (Details)
+| File | Hành động (Action) | Lý do (Rationale) |
 | :--- | :--- | :--- |
-| `only-one/archives/20260819-...` | Consolidated $\rightarrow$ `...` | Merged into unified domain record |
-| `only-one/archives/20260810-...` | 🗑️ Deleted | Obsolete: module deleted from codebase |
-| `only-one/archives/20260820-...` | 🟢 Active & Synced | Ground-truth verified against codebase |
+| `only-one/archives/20260819-...` | Consolidated $\rightarrow$ `...` | Hợp nhất vào tài liệu miền chuyên đề |
+| `only-one/archives/20260810-...` | 🗑️ Deleted | Lỗi thời: module đã bị xóa khỏi codebase |
+| `only-one/archives/20260820-...` | 🟢 Active & Synced | Đã xác thực 100% khớp với source code hiện tại |
 ```
 
 ---
 
 ## Guardrails
 
+- **Enforce Bilingual Hybrid Report**: Author cleanup summary in Vietnamese; preserve file paths, timestamps, and status labels in English.
+- Always auto-archive tasks with `status: done` in `only-one/tasks/` as Step 0 before performing archive consolidation and cleanup.
+- Never modify, archive, or delete tasks with `status: in-progress` or `status: planned` during `/only-one-clean`.
 - Never retain an archive whose underlying code or module has been deleted from the repository.
 - Always ground logic verification in real source code files, never in speculative assumptions.
 - Maintain timestamps representing the clean execution moment for newly consolidated records.

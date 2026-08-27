@@ -1,5 +1,5 @@
 ---
-description: Perform comprehensive 5-axis code health, security, simplicity, and performance review on branch changes before opening a PR.
+description: Perform comprehensive 5-axis code health, security, simplicity, and performance review on branch changes before opening a PR using dual-perspective audit.
 ---
 
 ## Input
@@ -16,13 +16,11 @@ You are a **Principal Staff Engineer** conducting a rigorous 5-axis code review 
 
 ## Purpose
 
-Inspect all modified files on the current branch against production-grade quality, security, performance, and simplicity standards using the **Review — Quality gates before merge** disciplines.
+Inspect all modified files on the current branch against production-grade quality, security, performance, and simplicity standards using the **Review — Quality gates before merge** disciplines and parallel review perspectives (Spec Fidelity vs Code Quality).
 
 ---
 
 ## 1. Skills Catalog (Review — Quality gates before merge)
-
-Activate and apply these four core skills during the review process:
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
@@ -33,69 +31,55 @@ Activate and apply these four core skills during the review process:
 
 ---
 
-## 2. 5-Axis Code Review Protocol
+## 2. Parallel Review Protocol (Dual-Perspective Review)
 
-### Axis 1: Correctness & Logic Integrity (`code-review-and-quality`)
-- Does the branch diff fulfill the requirements and architecture defined in `plan.md`?
-- Are edge cases (null/empty states, network timeouts, concurrent requests) handled gracefully?
-- Are error semantics clean, with informative messages and proper HTTP status mapping?
-- Is change sizing appropriate, or should this large PR be split into smaller vertical slices?
+To prevent context bleed between checking business logic and analyzing code quality, conduct the inspection through two complementary lenses:
 
-### Axis 2: Security & Hardening (`security-and-hardening`)
-- **Injection & Sanitization**: Are database queries strictly parameterized? Any raw SQL or command injection risks?
-- **Access Control & IDOR**: Are authentication and authorization guards applied to all new/modified endpoints?
-- **Secrets & Data Exposure**: Does any response leak internal stack traces, private API keys, credentials, or sensitive PII?
-- **Boundary Validation**: Is incoming payload validated at the system boundary before reaching domain logic?
+### Lens A: Spec & Correctness Audit
+- **Spec Conformance**: Does the branch diff faithfully implement the requirements and architecture defined in `plan.md` and `concept.md`?
+- **Edge Cases & Error Semantics**: Are null/empty states, network timeouts, and concurrent requests handled gracefully?
+- **Behavioral Regressions**: Are invariants and existing caller expectations preserved?
 
-### Axis 3: Simplicity & Clean Code (`code-simplification`)
-- **Chesterton's Fence**: If existing code was removed or modified, was its original intent fully understood?
-- **YAGNI & Dead Code**: Are there speculative abstractions, unused imports, or dead helper functions?
-- **Rule of 500 & Cognitive Load**: Are files kept under 500 lines? Can deeply nested conditionals be flattened using early returns / guard clauses?
-- **Readability**: Are naming conventions intuitive and self-documenting?
-
-### Axis 4: Performance & Optimization (`performance-optimization`)
-- **Database & I/O**: Are there N+1 query patterns? Are foreign keys and query filters indexed properly?
-- **Frontend & Rendering**: Any unnecessary re-renders, un-memoized expensive calculations, or layout shifts (CLS)?
-- **Caching & Budgets**: Are expensive computations or third-party responses cached with appropriate TTLs?
-
-### Axis 5: Test Coverage & Verification (`code-review-and-quality`)
-- Do unit/integration tests cover both the happy paths and failure/edge cases?
-- Do all existing and new tests pass with 100% success (`npm test`)?
+### Lens B: Quality, Security & Performance Audit
+- **Security & Hardening**: Parameterized queries, auth guards, IDOR prevention, secrets hygiene, and boundary validation.
+- **Simplicity & Clean Code**: Chesterton's Fence, Rule of 500 (<500 lines), YAGNI, early returns, no speculative wrappers.
+- **Performance**: N+1 database queries, un-memoized heavy operations, excessive re-renders, caching with appropriate TTLs.
+- **Test Coverage**: Beyoncé Rule compliance, DAMP unit/integration tests passing 100%.
 
 ---
 
-## 3. Review Output Format
+## 3. Review Output Format (Bilingual Hybrid)
 
-Produce a structured markdown review report:
+Produce a structured markdown review report with Vietnamese explanations and English technical details:
 
 ```markdown
-# 5-Axis Pre-PR Review Report
+# Báo cáo Đánh giá Mã nguồn Pre-PR (5-Axis Review Report)
 
-## Summary
-- **Branch Inspected**: `<current-branch>` against `<base-branch>`
-- **Files Inspected**: `N` files changed (`+X / -Y` lines)
-- **Change Sizing**: `Optimal (<200 lines)` | `Oversized (Consider splitting)`
-- **Overall Verdict**: `READY TO MERGE` | `CHANGES REQUESTED` | `WARNINGS FOUND`
+## 1. Tổng quan (Summary)
+- **Branch Đánh giá**: `<current-branch>` so với `<base-branch>`
+- **Số lượng File**: `N` files (`+X / -Y` lines)
+- **Kích thước Thay đổi**: `Tối ưu (<200 lines)` | `Quá lớn (Cân nhắc tách nhỏ PR)`
+- **Kết luận Chung**: `READY TO MERGE` (Sẵn sàng) | `CHANGES REQUESTED` (Cần sửa đổi) | `WARNINGS FOUND` (Có cảnh báo)
 
-## Findings
+## 2. Ma trận Vấn đề Phát hiện (Findings Matrix)
 
-| Severity | Axis | File | Issue & Actionable Recommendation |
+| Mức độ (Severity) | Trục Đánh giá (Axis) | File | Vấn đề & Khuyến nghị Khắc phục cụ thể |
 | :--- | :--- | :--- | :--- |
-| 🔴 **BLOCKER** | Security (`security-and-hardening`) | `src/auth/guard.ts` | Missing authorization check for tenant ID (IDOR vulnerability). |
-| 🟡 **WARNING** | Performance (`performance-optimization`) | `src/users/users.service.ts` | Potential N+1 query when fetching user roles in loop. |
-| 🔵 **SUGGESTION** | Simplicity (`code-simplification`) | `src/common/utils.ts` | Simplify nested ternary operator with guard clauses. |
-| ⚪ **NIT** | Quality (`code-review-and-quality`) | `src/users/dto.ts` | Fix typo in property JSDoc comment. |
+| 🔴 **BLOCKER** | Security (`security-and-hardening`) | `src/auth/guard.ts` | Thiếu kiểm tra phân quyền tenant ID (lỗ hổng IDOR). |
+| 🟡 **WARNING** | Performance (`performance-optimization`) | `src/users/users.service.ts` | Nguy cơ truy vấn N+1 khi lặp qua danh sách roles. |
+| 🔵 **SUGGESTION** | Simplicity (`code-simplification`) | `src/common/utils.ts` | Làm phẳng toán tử 3 ngôi lồng nhau bằng guard clauses. |
+| ⚪ **NIT** | Quality (`code-review-and-quality`) | `src/users/dto.ts` | Sửa lỗi chính tả trong JSDoc comment. |
 
-## Next Steps
-- Address any 🔴 **BLOCKER** issues before opening PR.
-- Consider addressing 🟡 **WARNING** and 🔵 **SUGGESTION** items.
-- Run `/only-one-pr-git` to create the GitHub Pull Request once verified.
+## 3. Các bước tiếp theo (Next Steps)
+- Xử lý dứt điểm các mục 🔴 **BLOCKER** trước khi mở PR.
+- Chạy `/only-one-pr-git` để tạo GitHub Pull Request sau khi hoàn tất kiểm tra.
 ```
 
 ---
 
 ## Guardrails
 
-- Focus exclusively on the code diff between `base-branch` and the current branch (`git diff <base-branch>...HEAD`).
-- Categorize issues strictly by severity: `BLOCKER` (must fix before merge), `WARNING` (potential risk), `SUGGESTION` (cleanliness/maintainability), `NIT` (minor style detail).
+- **Enforce Bilingual Hybrid Report**: Author review narrative and recommendations in Vietnamese; preserve code symbols, file paths, severity labels, and snippet diffs in English.
+- Focus on the code diff between `base-branch` and the current branch (`git diff <base-branch>...HEAD`), while verifying working tree state (`git status`) to ensure no uncommitted or untracked changes are overlooked.
+- Categorize issues strictly by severity: `BLOCKER`, `WARNING`, `SUGGESTION`, `NIT`.
 - Do not perform source code modifications during the review workflow.
