@@ -9,9 +9,9 @@ import { DraftItemDto } from '../dtos/draft-item.dto';
 import { MapDraftItemRequestDto, ProcessSearchDataRequestDto } from '../dtos/requests';
 import { ProcessSearchDataResponse } from '../dtos/responses';
 import { DiscoveredItemDto } from '../dtos/responses/search-items-response.dto';
+import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
-import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DraftItemEntity } from '../entities/draft-item.entity';
 import { ItemEntity } from '../entities/item.entity';
 import {

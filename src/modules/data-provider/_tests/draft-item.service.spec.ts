@@ -8,13 +8,7 @@ import { DataProviderFeatureEntity } from '../entities/data-provider-feature.ent
 import { DataProviderItemEntity } from '../entities/data-provider-item.entity';
 import { DraftItemEntity } from '../entities/draft-item.entity';
 import { ItemEntity } from '../entities/item.entity';
-import {
-    DataProviderFeatureStatus,
-    DataProviderFeatureType,
-    DraftItemStatus,
-    MapDraftItemAction,
-    ProductMappingStatus,
-} from '../enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType, DraftItemStatus, MapDraftItemAction, ProductMappingStatus } from '../enums';
 import { DataProviderFeatureService } from '../services/data-provider-feature.service';
 import { DataProviderSearchService } from '../services/data-provider-search.service';
 import { DraftItemService } from '../services/draft-item.service';

@@ -5,7 +5,7 @@ import { Job, JobOptions, Queue } from 'bull';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
-import { ISearchJobQueueInterface, IScrapingJobQueueInterface } from '../interfaces';
+import { IScrapingJobQueueInterface, ISearchJobQueueInterface } from '../interfaces';
 
 @Injectable()
 export class QueueService implements OnModuleInit {

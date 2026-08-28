@@ -8,6 +8,8 @@ import { DataProviderController } from './controllers/data-provider.controller';
 import { DataProviderFeatureController } from './controllers/data-provider-feature.controller';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DataProviderSearchController } from './controllers/data-provider-search.controller';
+import { DiscoverySessionController } from './controllers/discovery-session.controller';
+import { DiscoveryUrlController } from './controllers/discovery-url.controller';
 import { DraftItemController } from './controllers/draft-item.controller';
 import { ItemController } from './controllers/item.controller';
 import { ScrapingDataController } from './controllers/scraping-data.controller';
@@ -16,11 +18,16 @@ import { ConfigVersionEntity } from './entities/config-version.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
 import { DataProviderFeatureEntity } from './entities/data-provider-feature.entity';
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
+import { DiscoverySessionEntity } from './entities/discovery-session.entity';
+import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
+import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
+import { DiscoveryValidationLogEntity } from './entities/discovery-validation-log.entity';
 import { DraftItemEntity } from './entities/draft-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { ScraperServiceEnum } from './enums';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
+import { PriceDetectorHelper } from './helpers/price-detector.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
 import { IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
@@ -37,12 +44,16 @@ import { GenericDataProviderScraperService } from './services/data-provider-scra
 import { LocalDataProviderScraperService } from './services/data-provider-scraper/local-data-provider-scraper.service';
 import { DataProviderSearchService } from './services/data-provider-search.service';
 import { GenericDataProviderSearchService } from './services/data-provider-search/generic-data-provider-search.service';
+import { DiscoveryRunnerService } from './services/discovery-runner.service';
+import { DiscoverySessionService } from './services/discovery-session.service';
+import { DiscoveryUrlService } from './services/discovery-url.service';
+import { DiscoveryValidationService } from './services/discovery-validation.service';
 import { DraftItemService } from './services/draft-item.service';
 import { ItemService } from './services/item.service';
 import { ScraperService } from './services/scraper.service';
 import { ScrapingDataService } from './services/scraping-data.service';
 
-const helpers = [ExtractDataHelper, UrlResolverHelper];
+const helpers = [ExtractDataHelper, UrlResolverHelper, PriceDetectorHelper];
 const listeners = [ScrapingDataListener];
 const entities = [
     DataProviderEntity,
@@ -52,6 +63,10 @@ const entities = [
     ScrapingDataEntity,
     ItemEntity,
     ConfigVersionEntity,
+    DiscoverySessionEntity,
+    DiscoveryUrlEntity,
+    DiscoveryValidationBatchEntity,
+    DiscoveryValidationLogEntity,
 ];
 const controllers = [
     ItemController,
@@ -61,6 +76,8 @@ const controllers = [
     DataProviderItemController,
     DataProviderSearchController,
     DraftItemController,
+    DiscoverySessionController,
+    DiscoveryUrlController,
 ];
 const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry];
 const services = [
@@ -78,6 +95,10 @@ const services = [
     GenericDataProviderScraperService,
     DataProviderSearchService,
     GenericDataProviderSearchService,
+    DiscoveryRunnerService,
+    DiscoverySessionService,
+    DiscoveryValidationService,
+    DiscoveryUrlService,
     ...runners,
 ];
 

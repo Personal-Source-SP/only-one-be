@@ -4,6 +4,8 @@ import { Check, Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 import { DataProviderItemEntity } from './data-provider-item.entity';
+import { DiscoverySessionEntity } from './discovery-session.entity';
+import { DiscoveryUrlEntity } from './discovery-url.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
 
 @Entity({ name: 'data_providers', synchronize: false })
@@ -34,4 +36,12 @@ export class DataProviderEntity extends AbstractEntity {
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.dataProvider)
     @AutoMap(() => [ScrapingDataEntity])
     scrapingData?: Relation<ScrapingDataEntity>[];
+
+    @OneToMany(() => DiscoverySessionEntity, (entity) => entity.dataProvider)
+    @AutoMap(() => [DiscoverySessionEntity])
+    discoverySessions?: Relation<DiscoverySessionEntity>[];
+
+    @OneToMany(() => DiscoveryUrlEntity, (entity) => entity.dataProvider)
+    @AutoMap(() => [DiscoveryUrlEntity])
+    discoveryUrls?: Relation<DiscoveryUrlEntity>[];
 }

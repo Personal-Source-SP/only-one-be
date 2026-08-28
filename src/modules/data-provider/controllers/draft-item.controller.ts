@@ -31,10 +31,7 @@ export class DraftItemController extends BaseController<DraftItemEntity, DraftIt
     @Version('1')
     @Post(':id/map')
     @BaseApiOkResponse(DraftItemDto)
-    public async mapDraftItem(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() dto: MapDraftItemRequestDto,
-    ): Promise<DraftItemDto> {
+    public async mapDraftItem(@Param('id', ParseUUIDPipe) id: string, @Body() dto: MapDraftItemRequestDto): Promise<DraftItemDto> {
         return await this.draftItemService.mapDraftItem(id, dto);
     }
 }

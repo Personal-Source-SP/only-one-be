@@ -6,6 +6,9 @@ import { ConfigVersionDto } from './dtos/config-version.dto';
 import { DataProviderDto } from './dtos/data-provider.dto';
 import { DataProviderFeatureDto } from './dtos/data-provider-feature.dto';
 import { DataProviderItemDto } from './dtos/data-provider-item.dto';
+import { DiscoverySessionDto } from './dtos/discovery-session.dto';
+import { DiscoveryUrlDto } from './dtos/discovery-url.dto';
+import { DiscoveryValidationBatchDto } from './dtos/discovery-validation-batch.dto';
 import { DraftItemDto } from './dtos/draft-item.dto';
 import { ItemDto } from './dtos/item.dto';
 import {
@@ -13,6 +16,7 @@ import {
     CreateDataProviderFeatureRequestDto,
     CreateDataProviderItemRequestDto,
     CreateDataProviderRequestDto,
+    CreateDiscoverySessionRequestDto,
     CreateItemRequestDto,
     CreateScrapingDataRequestDto,
     UpdateDataProviderItemRequestDto,
@@ -24,6 +28,9 @@ import { ConfigVersionEntity } from './entities/config-version.entity';
 import { DataProviderEntity } from './entities/data-provider.entity';
 import { DataProviderFeatureEntity } from './entities/data-provider-feature.entity';
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
+import { DiscoverySessionEntity } from './entities/discovery-session.entity';
+import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
+import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
 import { DraftItemEntity } from './entities/draft-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
@@ -93,6 +100,13 @@ export class DataProviderProfile extends AutomapperProfile {
                 ),
             );
             createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
+
+            createMap(mapper, DiscoverySessionEntity, DiscoverySessionDto);
+            createMap(mapper, CreateDiscoverySessionRequestDto, DiscoverySessionEntity);
+
+            createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
+
+            createMap(mapper, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
         };
     }
 }

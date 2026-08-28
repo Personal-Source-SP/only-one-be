@@ -113,10 +113,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
                 const featureRepo = manager.getRepository(DataProviderFeatureEntity);
 
                 // 1. Deactivate current active versions
-                await configVersionRepo.update(
-                    { featureId, isActive: true },
-                    { isActive: false },
-                );
+                await configVersionRepo.update({ featureId, isActive: true }, { isActive: false });
 
                 // 2. Insert new rollback snapshot
                 const latestVersion = await configVersionRepo
