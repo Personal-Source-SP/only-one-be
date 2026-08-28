@@ -22,3 +22,9 @@
   - **Progress Tracking**: `totalUrls`, `processedUrls`, `matchedUrls`, `noMatchUrls`.
 - **DiscoveryValidationLog**: An audit log recording the evaluation criteria, score breakdown, reasons, and execution duration per URL validation.
 - **Batch Enqueue**: The transition action where validated/approved URLs are converted into `queued` status and dispatched as active `ScrapingData` jobs for downstream scraping runners.
+
+### Deprecated / Decommissioned Concepts
+- **DraftItem (Deprecated/Removed)**: Legacy intermediate buffer for scraping candidates; completely superseded by `DiscoverySession` and `DiscoveryUrl`.
+- **Legacy Search Pipeline (Deprecated/Removed)**: `DataProviderSearchService`, `SearchWorkerProcessor`, `SearchScheduleService`, and `SEARCH_JOB` queue; completely consolidated into the Discovery Engine (`DiscoverySession`, `DiscoveryRunnerService`), while `DataProviderFeatureType.SEARCH` is preserved to back Discovery capabilities.
+
+

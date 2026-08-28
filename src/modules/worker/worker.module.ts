@@ -6,9 +6,8 @@ import { DataProviderModule } from '../data-provider/data-provider.module';
 import { QueueModule } from '../queue/queue.module';
 import { ScheduleExecutorModule } from '../schedule/schedule.module';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
-import { SearchWorkerProcessor } from './processors/search-worker.processor';
 
-const processors = [ScrapingWorkerProcessor, SearchWorkerProcessor];
+const processors = [ScrapingWorkerProcessor];
 
 @Module({})
 export class WorkerModule {

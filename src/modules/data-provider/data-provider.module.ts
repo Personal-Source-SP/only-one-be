@@ -3,14 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserModule } from '../user/user.module';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from './constants/data-provider-scraper-service-map';
-import { DATA_PROVIDER_SEARCH_SERVICE_MAP, DATA_PROVIDER_SEARCH_SERVICE_MAP_KEY } from './constants/data-provider-search-service-map';
 import { DataProviderController } from './controllers/data-provider.controller';
 import { DataProviderFeatureController } from './controllers/data-provider-feature.controller';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
-import { DataProviderSearchController } from './controllers/data-provider-search.controller';
 import { DiscoverySessionController } from './controllers/discovery-session.controller';
 import { DiscoveryUrlController } from './controllers/discovery-url.controller';
-import { DraftItemController } from './controllers/draft-item.controller';
 import { ItemController } from './controllers/item.controller';
 import { ScrapingDataController } from './controllers/scraping-data.controller';
 import { DataProviderProfile } from './data-provider.profile';
@@ -22,18 +19,16 @@ import { DiscoverySessionEntity } from './entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
 import { DiscoveryValidationLogEntity } from './entities/discovery-validation-log.entity';
-import { DraftItemEntity } from './entities/draft-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { ScraperServiceEnum } from './enums';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { PriceDetectorHelper } from './helpers/price-detector.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
-import { IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
+import { IDataProviderScraperService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
 import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
 import { ScrapingFeatureRunner } from './runners/scraping-feature.runner';
-import { SearchFeatureRunner } from './runners/search-feature.runner';
 import { ConfigVersionService } from './services/config-version.service';
 import { DataProviderService } from './services/data-provider.service';
 import { DataProviderFeatureService } from './services/data-provider-feature.service';
@@ -42,13 +37,10 @@ import { DataProviderScraperService } from './services/data-provider-scraper.ser
 import { ApiDataProviderScraperService } from './services/data-provider-scraper/api-data-provider-scraper.service';
 import { GenericDataProviderScraperService } from './services/data-provider-scraper/generic-data-provider-scraper.service';
 import { LocalDataProviderScraperService } from './services/data-provider-scraper/local-data-provider-scraper.service';
-import { DataProviderSearchService } from './services/data-provider-search.service';
-import { GenericDataProviderSearchService } from './services/data-provider-search/generic-data-provider-search.service';
 import { DiscoveryRunnerService } from './services/discovery-runner.service';
 import { DiscoverySessionService } from './services/discovery-session.service';
 import { DiscoveryUrlService } from './services/discovery-url.service';
 import { DiscoveryValidationService } from './services/discovery-validation.service';
-import { DraftItemService } from './services/draft-item.service';
 import { ItemService } from './services/item.service';
 import { ScraperService } from './services/scraper.service';
 import { ScrapingDataService } from './services/scraping-data.service';
@@ -59,7 +51,6 @@ const entities = [
     DataProviderEntity,
     DataProviderFeatureEntity,
     DataProviderItemEntity,
-    DraftItemEntity,
     ScrapingDataEntity,
     ItemEntity,
     ConfigVersionEntity,
@@ -74,15 +65,12 @@ const controllers = [
     DataProviderController,
     DataProviderFeatureController,
     DataProviderItemController,
-    DataProviderSearchController,
-    DraftItemController,
     DiscoverySessionController,
     DiscoveryUrlController,
 ];
-const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry];
+const runners = [ScrapingFeatureRunner, FeatureRunnerRegistry];
 const services = [
     ItemService,
-    DraftItemService,
     ScraperService,
     ScrapingDataService,
     ConfigVersionService,
@@ -93,8 +81,6 @@ const services = [
     ApiDataProviderScraperService,
     LocalDataProviderScraperService,
     GenericDataProviderScraperService,
-    DataProviderSearchService,
-    GenericDataProviderSearchService,
     DiscoveryRunnerService,
     DiscoverySessionService,
     DiscoveryValidationService,
@@ -122,15 +108,6 @@ const services = [
                 [ScraperServiceEnum.GENERIC]: genericDataProviderScraperService,
             }),
             inject: [ApiDataProviderScraperService, LocalDataProviderScraperService, GenericDataProviderScraperService],
-        },
-        {
-            provide: DATA_PROVIDER_SEARCH_SERVICE_MAP,
-            useFactory: (
-                genericDataProviderSearchService: GenericDataProviderSearchService,
-            ): Record<string, IDataProviderSearchService> => ({
-                [DATA_PROVIDER_SEARCH_SERVICE_MAP_KEY.GENERIC]: genericDataProviderSearchService,
-            }),
-            inject: [GenericDataProviderSearchService],
         },
     ],
     exports: [...helpers, ...services, ...listeners, DataProviderProfile],

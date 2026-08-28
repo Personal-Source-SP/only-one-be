@@ -9,7 +9,6 @@ import { DataProviderItemDto } from './dtos/data-provider-item.dto';
 import { DiscoverySessionDto } from './dtos/discovery-session.dto';
 import { DiscoveryUrlDto } from './dtos/discovery-url.dto';
 import { DiscoveryValidationBatchDto } from './dtos/discovery-validation-batch.dto';
-import { DraftItemDto } from './dtos/draft-item.dto';
 import { ItemDto } from './dtos/item.dto';
 import {
     CreateConfigVersionRequestDto,
@@ -31,7 +30,6 @@ import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DiscoverySessionEntity } from './entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
-import { DraftItemEntity } from './entities/draft-item.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
@@ -86,9 +84,6 @@ export class DataProviderProfile extends AutomapperProfile {
             createMap(mapper, ItemDto, ItemEntity);
             createMap(mapper, CreateItemRequestDto, ItemEntity);
             createMap(mapper, UpdateItemRequestDto, ItemEntity);
-
-            createMap(mapper, DraftItemEntity, DraftItemDto);
-            createMap(mapper, DraftItemDto, DraftItemEntity);
 
             createMap(
                 mapper,

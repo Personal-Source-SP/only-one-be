@@ -3,39 +3,10 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import { ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { DiscoveredItemDto } from '../dtos/responses/search-items-response.dto';
-import { IRunFunctionSearchData } from '../interfaces/search-config.interface';
 import { IRunApiFunctionExtractData, IRunFunctionExtractData } from '../interfaces/target-config.interface';
 
 @Injectable()
 class ExtractDataHelper {
-    async runFunctionSearchData(dto: IRunFunctionSearchData): Promise<DiscoveredItemDto[]> {
-        const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
-
-        try {
-            const searchData = new Function(
-                'cheerio',
-                `return (html) => {
-                    ${this.transformFunction(functionGenerator)}
-                    return searchData(html);
-                }`,
-            )(cheerio);
-
-            const htmlContentTransformed = this.transformHtmlContent(htmlContent);
-            const mainContent = this.getMainContent({
-                html: htmlContentTransformed,
-                options: { mainContentSelector, isChildren: isGetParentElement },
-            });
-            if (!mainContent) throw new Error('Main content not found');
-
-            const result = searchData(mainContent);
-            return result || [];
-        } catch (error) {
-            console.error('Error run function search data:', error?.message);
-            throw new Error(`Error run function search data: ${error?.message}`);
-        }
-    }
-
     async runFunctionExtractData(dto: IRunFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
         const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
 
