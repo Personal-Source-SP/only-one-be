@@ -1,31 +1,32 @@
 # Helper Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Helper chứa các hàm pure-function độc lập với Dependency Injection, phục vụ các thao tác kỹ thuật thuần túy (format, parse, sanitize, normalize).
+Helpers contain stateless, pure utility functions decoupled from Dependency Injection, handling deterministic data transformations (formatting, parsing, sanitizing, and normalizing).
 
-- **Vị trí**: `src/modules/<feature>/helpers/`
+- **Location**: `src/modules/<feature>/helpers/`
 
-## Code mẫu
+## Code Example
 
 ```ts
 export const normalizeCode = (value?: string): string | undefined => {
   const normalized = value?.trim().toUpperCase();
-  return normalized || undefined;
+  const result = normalized || undefined;
+  return result;
 };
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Pure Functions & Utility Scoped**:
-  - Input/Output rõ ràng, không có side-effect.
-  - Chỉ xử lý các tác vụ kỹ thuật thuần túy: format string, parse data, sanitize HTML, validation độc lập.
-  - Xử lý ngày tháng dùng `dayjs` (dùng `dayjs.isBefore`, `dayjs.isAfter`, `dayjs.diff`, không dùng `new Date()` với các toán tử so sánh). Khi thao tác với múi giờ cụ thể hoặc UTC, phải kiểm tra việc mở rộng plugins Timezone (`dayjs.extend(utc)`, `dayjs.extend(timezone)`).
-  - Ưu tiên sử dụng các utility functions có sẵn của **`lodash`** (như `isEmpty`, `get`, `set`, `uniq`, `groupBy`, `keyBy`, `cloneDeep`, `omit`, `pick`,...) thay vì tự viết lại code thủ công.
-  - Rẽ nhánh theo Enum/Union type dùng `switch/case`.
-  - BẮT BUỘC lưu kết quả tính toán/biến đổi vào biến rõ nghĩa trước khi `return` (ví dụ: `const result = ...; return result;`), không `return` trực tiếp biểu thức lồng phức tạp để dễ dàng debug.
-  - Phải có unit test tương ứng trong `helpers/_tests/`.
-- ❌ **Không chứa Business Rule hay DI**:
-  - Không inject Repository, Controller, EntityManager hay Request Context vào Helper.
-  - Không chứa business rules (tính giá, phân quyền, kiểm tra trạng thái workflow) — những logic này phải nằm ở Service.
-  - Không tạo Helper cho các hàm private quá ngắn chỉ sử dụng ở một vị trí duy nhất trong Service.
+- ✅ **Pure Functions & Utility Scope**:
+  - Deterministic input/output with zero external side effects.
+  - Dedicated strictly to low-level transformations: string formatting, data parsing, payload sanitization, or standalone format validation.
+  - For date/time arithmetic and comparison, use **`dayjs`** (`dayjs.isBefore`, `dayjs.isAfter`, `dayjs.diff` rather than native `Date` operator comparisons). When handling specific timezones or UTC conversions, ensure timezone plugins (`dayjs.extend(utc)`, `dayjs.extend(timezone)`) are configured.
+  - Leverage standard **`lodash`** utility functions (`isEmpty`, `get`, `set`, `uniq`, `groupBy`, `keyBy`, `cloneDeep`, `omit`, `pick`) instead of re-implementing manual iterations or transformations.
+  - Use structured `switch/case` statements when branching on Enum or union discriminator types.
+  - **Return-by-Variable Convention**: ALWAYS assign computation results to descriptive variables before returning (`const result = ...; return result;`); avoid complex nested inline return expressions to facilitate breakpoint debugging.
+  - Every helper must be accompanied by comprehensive unit tests in `helpers/_tests/`.
+- ❌ **No Business Logic or Dependency Injection**:
+  - Never inject Repositories, `EntityManager`, Controllers, or Request Context into helper functions.
+  - Do not place domain business logic (pricing calculation, permissions, workflow transitions) in helpers — domain logic strictly belongs in Services.
+  - Avoid creating separate helper files for trivial private functions used in only a single place within a service.

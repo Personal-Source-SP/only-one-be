@@ -1,8 +1,8 @@
-# Kiến trúc NestJS tổng quan
+# NestJS Overall Architecture
 
-## Mục tiêu & Cấu trúc Feature Module
+## Objectives & Feature Module Directory Layout
 
-Mỗi feature module gom gọn HTTP API, contract, business rule, persistence, mapping và unit test của một bounded context.
+Each feature module encapsulates HTTP APIs, data contracts, business rules, persistence logic, mapping profiles, and automated tests for a single bounded context.
 
 ```text
 src/modules/<feature>/
@@ -28,7 +28,7 @@ src/modules/<feature>/
     └── index.ts
 ```
 
-## Luồng xử lý Request
+## Request Processing Flow
 
 ```mermaid
 flowchart LR
@@ -44,25 +44,25 @@ flowchart LR
   Controller --> ResponseDto
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Project evidence & ORM**: Xác định ORM và persistence convention hiện hữu trước khi áp dụng mẫu. Chỉ đọc/áp dụng `mikro-orm.md` và `mikro-orm-migration.md` khi project dùng MikroORM; với TypeORM hoặc stack khác, ưu tiên pattern đã có trong project.
-- ✅ **Barrel Export (`index.ts`)**: Mỗi thư mục hỗ trợ (`entities`, `enums`, `helpers`, `types`/`interfaces`, `dtos/requests`, `dtos/responses`,...) BẮT BUỘC phải có file `index.ts` để re-export toàn bộ thành phần bên trong. Khi import từ các module/file khác, bắt buộc import từ folder thay vì import trực tiếp file lẻ (ví dụ: `import { FeatureEntity } from '../entities'`).
-- ✅ **Phân tách trách nhiệm**: Controller chỉ xử lý HTTP/Auth/Swagger; Service chứa toàn bộ business rule; Entity phụ trách ORM mapping & constraints.
-- ✅ **Thứ tự dựng feature**:
-  1. Xác định aggregate, relation, permission và route design.
-  2. Tạo Entity, DB constraints và indexes.
-  3. Định nghĩa Enum/Helper nếu có.
-  4. Tạo Request DTO và Response DTO.
-  5. Tạo AutoMapper Profile.
-  6. Viết Service logic và error handling.
-  7. Tạo Controller, gắn Auth/Permission và Swagger annotations.
-  8. Khai báo Module wiring và import vào parent module / AppModule.
-  9. Viết unit test và kiểm tra lint/typecheck.
-- ❌ **Anti-patterns cần tránh**:
-  - Không gọi trực tiếp Repository/EntityManager từ Controller.
-  - Không trả thô Entity qua HTTP response (bắt buộc map sang Response DTO).
-  - Không tạo mapper tham chiếu vòng giữa DTOs.
-  - Không hard delete mặc định (dùng soft delete nếu được cấu hình).
-  - Không dùng `undefined` để ghi đè dữ liệu khi PATCH request.
-  - Không truyền trực tiếp sort query parameter từ client vào ORM mà không qua allowlist.
+- ✅ **Project Evidence & ORM Adaptation**: Identify existing ORM and persistence patterns before applying conventions. Only inspect `mikro-orm.md` and `mikro-orm-migration.md` when the project utilizes MikroORM; for TypeORM or alternative stacks, adhere to established project patterns.
+- ✅ **Barrel Exports (`index.ts`)**: Every supporting subdirectory (`entities`, `enums`, `helpers`, `types`, `dtos/requests`, `dtos/responses`) MUST provide an `index.ts` re-exporting internal symbols. Cross-module imports must target directory barrels rather than deep individual files (e.g., `import { FeatureEntity } from '../entities'`).
+- ✅ **Clean Separation of Concerns**: Controllers manage HTTP transport, routing, auth guards, and OpenAPI docs; Services encapsulate all business workflows; Entities enforce persistence schemas and database constraints.
+- ✅ **Feature Implementation Order**:
+  1. Define domain aggregate, entity relations, required permissions, and REST routes.
+  2. Implement Entity definitions, database constraints, and indexes.
+  3. Declare Enums and pure Helper functions if needed.
+  4. Implement Request DTOs and Response DTOs.
+  5. Implement AutoMapper Profiles.
+  6. Implement Service business logic, error handling, and transaction boundaries.
+  7. Implement Controllers with Auth/Permission decorators and Swagger metadata.
+  8. Register module components and import into parent modules or `AppModule`.
+  9. Author unit tests and verify linting, typechecking, and formatting.
+- ❌ **Anti-Patterns to Avoid**:
+  - Never access Repositories or `EntityManager` directly from Controllers.
+  - Never return raw database Entities over HTTP responses (always map to Response DTOs).
+  - Never create circular mapping references between DTOs.
+  - Avoid hard deletion by default unless explicitly designed (prefer soft delete filters).
+  - Never overwrite existing values with `undefined` during PATCH operations.
+  - Never pass unsanitized sort query parameters directly into ORM queries without an allowlist.

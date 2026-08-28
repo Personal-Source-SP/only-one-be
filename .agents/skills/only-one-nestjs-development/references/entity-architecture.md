@@ -1,19 +1,20 @@
 # Entity Architecture (MikroORM)
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Entity map domain persistence sang ORM table, columns, indexes và relations.
+Entities map domain persistence models to database tables, columns, indexes, and relations.
 
 > [!NOTE]
-> Quy chuẩn Entity trong file này tập trung dành riêng cho **MikroORM** (sử dụng decorators và types từ `@mikro-orm/core` như `@Entity`, `@Property`, `@ManyToOne`, `@OneToMany`, `Collection`,...).
+> Entity guidelines in this document focus specifically on **MikroORM** (using decorators and types from `@mikro-orm/core` such as `@Entity`, `@Property`, `@ManyToOne`, `@OneToMany`, `Collection`, etc.).
 
-- **Vị trí**: `src/modules/<feature>/entities/<noun>.entity.ts`
+- **Location**: `src/modules/<feature>/entities/<noun>.entity.ts`
 
-## Code mẫu
+## Code Example
 
 ```ts
 import { AutoMap } from '@automapper/classes';
 import { Collection, Entity, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core';
+import { AbstractEntity } from '@/common/abstract.entity';
 
 @Entity({ tableName: 'features' })
 @Unique({ properties: ['code'], options: { cond: { deletedAt: null } } })
@@ -26,7 +27,7 @@ export class FeatureEntity extends AbstractEntity {
   @AutoMap()
   enabled = true;
 
-  // ManyToOne (Owning Side): Giữ FK category_id trong bảng features
+  // ManyToOne (Owning Side): Stores FK category_id in the features table
   @ManyToOne(() => CategoryEntity, { nullable: true, deleteRule: 'set null' })
   category?: CategoryEntity;
 
@@ -35,7 +36,7 @@ export class FeatureEntity extends AbstractEntity {
     return this.category?.id;
   }
 
-  // OneToMany (Inverse Side): Tập hợp danh sách items thuộc feature này
+  // OneToMany (Inverse Side): Collection of items belonging to this feature
   @OneToMany(() => FeatureItemEntity, (item) => item.feature, {
     orphanRemoval: true,
   })
@@ -43,29 +44,29 @@ export class FeatureEntity extends AbstractEntity {
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Kế thừa & Đặt tên**:
-  - Kế thừa `AbstractEntity` (UUID, audit fields, soft-delete filter).
-  - Tên Class dùng `PascalCase` (`FeatureEntity`); tên property dùng `camelCase`; tên bảng/cột map sang `snake_case`.
-  - Tên Entity phải phản ánh Ubiquitous Language của Domain context, tránh các từ generic như `DataEntity`, `ItemEntity`.
-- ✅ **Thứ tự sắp xếp Property**: Required scalar fields -> Nullable scalar fields -> Relations.
+- ✅ **Inheritance & Naming Conventions**:
+  - Extend `AbstractEntity` (providing UUID primary key, audit timestamps, and soft-delete filters).
+  - Use `PascalCase` for entity class names (`FeatureEntity`), `camelCase` for property names, and `snake_case` for database table/column names.
+  - Entity names must reflect the Ubiquitous Language of the domain context; avoid generic names like `DataEntity` or `ItemEntity`.
+- ✅ **Property Ordering**: Required scalar fields -> Nullable scalar fields -> Relations.
 - ✅ **Data Types & Constraints**:
-  - Mọi `string` field phải khai báo `length` cụ thể (VD: code `length: 100`, name `length: 255`). Dùng `type: 'text'` cho nội dung không giới hạn.
-  - Thêm DB unique constraints / partial indexes phù hợp cho các dữ liệu nhạy cảm race-condition.
+  - Explicitly declare `length` for every `string` column (e.g., code `length: 100`, name `length: 255`). Use `type: 'text'` for unbounded string content.
+  - Define database-level unique constraints and partial indexes for race-condition-sensitive columns.
 - ✅ **AutoMapper Decorators**:
-  - Thêm `@AutoMap()` cho scalar fields cần map sang DTO.
-  - Relation mặc định **không** gắn `@AutoMap()`.
-  - Với `ManyToOne`: Mỗi relation phải cung cấp getter ID có `@AutoMap()` (ví dụ: `@AutoMap() get categoryId(): string { return this.category?.id; }`).
-  - Với `OneToMany`: Chỉ gắn `@AutoMap(() => [ChildDto])` khi DTO contract bắt buộc trả về danh sách nested items.
-- ✅ **Quy định quan hệ (Relations)**:
-  - **`ManyToOne` (Owning Side)**: Bảng hiện tại giữ Foreign Key (`FK`). Khai báo `deleteRule` phù hợp (`cascade`, `set null`, hoặc `restrict`).
+  - Annotate `@AutoMap()` on scalar properties that map to DTOs.
+  - By default, do **not** annotate relations with `@AutoMap()`.
+  - For `ManyToOne` relations: Provide a getter for the foreign key ID decorated with `@AutoMap()` (e.g., `@AutoMap() get categoryId(): string | undefined { return this.category?.id; }`).
+  - For `OneToMany` collections: Annotate `@AutoMap(() => [ChildDto])` only when the API contract explicitly mandates serialized nested items.
+- ✅ **Relation Invariants**:
+  - **`ManyToOne` (Owning Side)**: Current table stores the foreign key column. Specify appropriate `deleteRule` (`cascade`, `set null`, or `restrict`).
   - **`OneToMany` (Inverse Side)**:
-    - Luôn khởi tạo với `new Collection<ChildEntity>(this)`.
-    - Trỏ tới field `ManyToOne` tương ứng ở Child Entity: `@OneToMany(() => ChildEntity, (child) => child.parent)`.
-    - Dùng `orphanRemoval: true` khi Child Entity không có lifecycle độc lập và tự động bị xóa khi gỡ khỏi Collection.
-    - Trong Service / AutoMapper Profile: Luôn kiểm tra `collection.isInitialized()` trước khi gọi `.getItems()` để tránh lỗi Lazy Loading hoặc N+1 query.
-  - **`ManyToMany`**: Chỉ dùng khi bảng trung gian không chứa thuộc tính business. Nếu bảng trung gian có thuộc tính như `createdAt`, `status`, `position`, phải tách thành Entity trung gian riêng với 2 quan hệ `ManyToOne`.
-  - **`OneToOne`**: Chỉ dùng khi domain quy định tuyệt đối tối đa 1 record. Owning side khai báo `owner: true` giữ FK unique.
-- ❌ **Không trộn lẫn trách nhiệm**: Không dùng Entity làm Request/Response DTO, không đưa logic Controller/Service/HTTP vào Entity.
-- ❌ **Không bỏ qua DB Constraints**: Không được bỏ qua Unique/Index ở DB chỉ vì Service đã thực hiện validation.
+    - Always initialize collections with `new Collection<ChildEntity>(this)`.
+    - Explicitly map to the reciprocal `ManyToOne` property: `@OneToMany(() => ChildEntity, (child) => child.parent)`.
+    - Set `orphanRemoval: true` when child entities have no independent lifecycle and must be deleted when removed from the collection.
+    - In Services / Mapping Profiles: Always verify `collection.isInitialized()` prior to calling `.getItems()` to avoid uninitialized lazy-loading pitfalls or N+1 query loops.
+  - **`ManyToMany`**: Use only when the junction table contains no business attributes. If the join table requires attributes (e.g., `createdAt`, `status`, `sortOrder`), model it as a dedicated join entity with two `ManyToOne` relations.
+  - **`OneToOne`**: Use only when the domain strictly enforces a single associated record. The owning side must declare `owner: true` to maintain a unique foreign key constraint.
+- ❌ **No Responsibility Bleed**: Never expose entities as request/response DTOs, and never place controller/service HTTP logic inside entities.
+- ❌ **Do Not Omit Database Constraints**: Never bypass DB-level Unique/Index constraints under the assumption that service layer validation is sufficient.

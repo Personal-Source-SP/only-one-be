@@ -1,12 +1,12 @@
 # Enum Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Enum đại diện cho tập giá trị domain hữu hạn, cố định, tái sử dụng giữa Entity, DTO và Service.
+Enums represent finite, immutable domain states and sets of values reused across Entities, DTOs, and Services.
 
-- **Vị trí**: `src/modules/<feature>/enums/<domain>.enum.ts`
+- **Location**: `src/modules/<feature>/enums/<domain>.enum.ts`
 
-## Code mẫu
+## Code Example
 
 ```ts
 export enum FeatureStatus {
@@ -15,12 +15,12 @@ export enum FeatureStatus {
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Sử dụng Type-Safe Enum**:
-  - Dùng String Enum với giá trị rõ ràng, ổn định.
-  - Sử dụng Enum type trong Entity và Service thay cho magic string.
-  - Trong DTO, sử dụng `@EnumField()` hoặc `@EnumFieldOptional()`.
-- ❌ **Không chứa Logic hay Dynamic Data**:
-  - Không đặt I/O, DB query hay logic xử lý bên trong Enum.
-  - Không dùng Enum cho dữ liệu động mà Admin/User có thể thêm/bớt qua DB (những dữ liệu đó phải là Lookup Table / Entity).
+- ✅ **Type-Safe Enums**:
+  - Declare string enums with explicit, stable string values.
+  - Reference enum types directly across entities and services to eliminate magic strings.
+  - In DTOs, validate enums using `@EnumField(() => FeatureStatus)` or `@EnumFieldOptional(() => FeatureStatus)`.
+- ❌ **No Business Logic or Dynamic Data**:
+  - Never embed I/O, database queries, or transformation logic inside enums.
+  - Do not use enums for dynamic datasets managed at runtime by users or administrators (model dynamic datasets as lookup tables / database entities instead).

@@ -5,14 +5,31 @@ description: MUST use when creating, modifying, reviewing, or refactoring NestJS
 
 # NestJS Development Skill
 
+## 0. Mandatory Reuse-First Invariant (Anti-Reinvention Rules)
+
+> [!IMPORTANT]
+> **MANDATORY AUDIT BEFORE WRITING NEW CODE**:
+> 1. **Pre-Implementation Codebase Audit**:
+>    - Before creating any Helper, Utility, Custom Decorator, DTO, Mapper, Exception Class, or Service Method, the Agent MUST audit (`grep_search` or `list_dir`) the following directories:
+>      - `src/common/`, `src/shared/`, `src/utils/`, `src/helpers/`, `src/decorators/`
+>      - Sibling feature modules sharing similar domain concerns.
+> 2. **Strict Anti-Reinvention**:
+>    - NEVER re-implement string manipulation, date formatting, password hashing, currency formatting, object mapping, or query parsing if equivalent utilities already exist.
+>    - NEVER write ad-hoc inline logic in Service/Controller when a Base Service, Shared Helper, or ORM Repository method already serves that purpose.
+> 3. **Open/Closed Extension**:
+>    - If an existing function/helper lacks a minor option, extend it (e.g., add an optional parameter) rather than creating a duplicate utility.
+
+---
+
 ## Directives for Context Efficiency (Lazy Loading Rules)
 
-⚠️ **QUAN TRỌNG VỀ TIẾT KIỆM TOKEN**: Agent KHÔNG ĐỌC TOÀN BỘ CÁC FILE REFERENCE CÙNG LÚC.
-Chỉ dùng `view_file` để đọc **đúng file reference** tương ứng với component đang làm việc dựa theo bảng điều hướng bên dưới.
+> [!WARNING]
+> **TOKEN EFFICIENCY DIRECTIVE**: The Agent MUST NOT read all reference files simultaneously.
+> Use `view_file` to read **ONLY the single relevant reference file** corresponding to the active task based on the routing matrix below.
 
-### Bảng Điều Hướng Reference (Selective Reference Matrix)
+### Selective Reference Routing Matrix
 
-| Nhiệm vụ / Component đang làm | File Reference duy nhất cần đọc (`view_file`) |
+| Task / Component in Progress | Dedicated Reference File to Read (`view_file`) |
 | :--- | :--- |
 | **Controller / HTTP API / Route / Swagger / Auth** | [references/controller-architecture.md](references/controller-architecture.md) |
 | **Service / Business Rules / Use Case / Exception** | [references/service-architecture.md](references/service-architecture.md) |
@@ -20,31 +37,33 @@ Chỉ dùng `view_file` để đọc **đúng file reference** tương ứng v�
 | **Request Input DTO / Validation** | [references/request-dto-architecture.md](references/request-dto-architecture.md) |
 | **Response DTO / API Serialization** | [references/response-dto-architecture.md](references/response-dto-architecture.md) |
 | **AutoMapper Profile / Relation Mapping** | [references/mapping-profile-architecture.md](references/mapping-profile-architecture.md) |
-| **Enum** | [references/enum-architecture.md](references/enum-architecture.md) |
+| **Enum Definition** | [references/enum-architecture.md](references/enum-architecture.md) |
 | **Helper Function / Utility** | [references/helper-architecture.md](references/helper-architecture.md) |
 | **Unit Test (`_tests/`)** | [references/test-architecture.md](references/test-architecture.md) |
 | **DB Migration / Schema Change (MikroORM)** | [references/mikro-orm-migration.md](references/mikro-orm-migration.md) |
-| **Tạo mới toàn bộ Feature Module** | [references/nestjs-architecture.md](references/nestjs-architecture.md) |
+| **Entire Feature Module Creation** | [references/nestjs-architecture.md](references/nestjs-architecture.md) |
+| **Shared Composition / Cross-Module Reuse** | [references/composition-shared-architecture.md](references/composition-shared-architecture.md) |
 
 ---
 
-## Quick Workflow, Sáng Tạo & Phản Biện (Conflict Resolution)
+## Quick Workflow, Innovation & Conflict Resolution
 
-💡 **Triết lý Bộ Skill**: Bộ Skill này là **quy chiếu tham chiếu ban đầu (baseline reference)**, KHÔNG PHẢI là quy chuẩn cứng nhắc áp đặt ở đầu ra. Agent được **khuyến khích chủ động đề xuất giải pháp mới, tối ưu hơn** dựa trên ngữ cảnh thực tế của bài toán.
+> [!NOTE]
+> **Skill Philosophy**: This skill suite serves as a **baseline reference**, not a rigid constraint. The Agent is **encouraged to propose innovative and optimized solutions** tailored to real-world domain requirements.
 
-1. **Tra cứu Quy chuẩn Ban đầu**:
-   - Trước tiên đọc `package.json`, bootstrap, module layout, test setup và xác định ORM, validation, logger, auth, transaction convention của project.
-   - Existing project conventions thắng khi không làm yếu correctness, security hoặc yêu cầu rõ ràng.
-   - Agent tra bảng điều hướng và mở file reference tương ứng với component đang làm việc (ví dụ: làm Controller -> chỉ mở `references/controller-architecture.md`).
+1. **Inspect Baseline Conventions**:
+   - First inspect `package.json`, bootstrap entry point, module layout, and test setup to detect the project's ORM, validation library, logger, auth, and transaction conventions.
+   - Existing project conventions take precedence when they do not compromise correctness, security, or explicit requirements.
+   - Look up the routing matrix above and open ONLY the reference file corresponding to the component in progress (e.g., working on Controller -> open only `references/controller-architecture.md`).
 
-2. **Khuyến Khích Sáng Tạo, Phản Biện & Trao Đổi (Agent Reflection)**:
-   - Sau khi đọc file reference, nếu Agent:
-     - **Nghĩ ra giải pháp mới tối ưu hơn**: Kiến trúc gọn gàng hơn, hiệu năng tốt hơn hoặc sạch hơn so với quy chuẩn ban đầu.
-     - **Phát hiện mâu thuẫn**: Quy chuẩn trong Skill bị chênh lệch với thực tế codebase hoặc yêu cầu của người dùng.
-   - Agent **ĐƯỢC KHUYẾN KHÍCH PHẢN BIỆN**, chủ động trao đổi với người dùng theo quy trình của Skill [grill-me](../grill-me/SKILL.md) để thảo luận:
-     - **Đề xuất giải pháp mới & Cập nhật Skill con**: Áp dụng giải pháp cải tiến mới và cập nhật lại nội dung quy chuẩn trong file `references/*.md` tương ứng.
-     - **Điều chỉnh cách thực hiện**: Sửa lại thiết kế code cho khớp với quy chuẩn hiện tại nếu người dùng muốn giữ nguyên kiến trúc ban đầu.
-     - **Dừng lại**: Hủy hoặc dừng thực hiện task nếu không đạt được thống nhất.
+2. **Proactive Reflection & Constructive Challenge**:
+   - After inspecting the reference file, if the Agent:
+     - **Discovers a superior approach**: A cleaner architecture, higher performance, or more maintainable structure than the baseline standard.
+     - **Identifies discrepancies**: Conflicts between skill guidelines and the active codebase or user specifications.
+   - The Agent is **ENCOURAGED TO CHALLENGE ASSUMPTIONS** and interact with the user via [grill-me](../grill-me/SKILL.md) to align:
+     - **Adopt Improved Solution & Update Skill Docs**: Apply the enhanced architecture and update the relevant `references/*.md` file.
+     - **Align with Existing Standards**: Adjust the code implementation to follow the established architecture if the user prefers maintaining consistency.
+     - **Halt Execution**: Abort or pause the task if consensus cannot be reached.
 
-3. **Thực thi**:
-   - Chỉ tiến hành viết/sửa code sau khi đã giải quyết mâu thuẫn hoặc chốt được giải pháp mới với người dùng.
+3. **Execution**:
+   - Write and modify code only after resolving architectural ambiguities or confirming the proposed approach with the user.

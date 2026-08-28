@@ -1,12 +1,12 @@
 # Test Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Unit test tập trung bảo vệ **Business Logic**, quy tắc nghiệp vụ domain, security behavior và phòng ngừa lỗi đứt gãy (regression). Test chạy nhanh, độc lập và cô lập với DB/Network.
+Unit tests protect **Business Logic**, domain rules, authorization behaviors, and safeguard against regressions. Tests must execute fast, deterministically, and isolated from live databases or network I/O.
 
-- **Vị trí**: `src/modules/<feature>/<layer>/_tests/<source>.spec.ts`
+- **Location**: `src/modules/<feature>/<layer>/_tests/<source>.spec.ts`
 
-## Code mẫu
+## Code Example
 
 ```ts
 describe('FeatureService', () => {
@@ -22,15 +22,15 @@ describe('FeatureService', () => {
 });
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Tập trung vào Business Logic & Domain Invariants**:
-  - Viết test cho các luồng nghiệp vụ cốt lõi: tính toán logic, kiểm tra điều kiện chuyển trạng thái (state transition), kiểm tra ràng buộc quyền hạn, và xử lý ranh giới dữ liệu (`undefined`, `null`, mảng rỗng).
-  - Kiểm tra kết quả trả về (output value) và thay đổi trạng thái hệ thống mong muốn thay vì kiểm tra câu chữ hay cú pháp implementation.
-- ✅ **Vị trí & Đặt tên**: Luôn đặt file test trong thư mục `_tests/` nằm cùng cấp với file code cần test (ví dụ: `services/_tests/feature.service.spec.ts`).
+- ✅ **Focus on Domain Invariants & Business Logic**:
+  - Test critical business paths: complex calculations, state transition validations, authorization checks, and boundary handling (`undefined`, `null`, empty arrays).
+  - Assert observable outputs and intended state mutations rather than internal variable naming or implementation mechanics.
+- ✅ **Location & Naming Conventions**: Place test files inside a `_tests/` folder adjacent to the target component (e.g., `services/_tests/feature.service.spec.ts`, `helpers/_tests/format.helper.spec.ts`).
 - ✅ **Mocking & Isolation**:
-  - Mock đúng thứ tự DI constructor và dependencies (Repository, External Service, Transaction).
-  - Không kết nối DB thật hoặc Network thật trong Unit Test.
-- ❌ **Tránh Syntax & Trivial Tests**:
-  - **Không** viết test chỉ để kiểm tra cú pháp ngôn ngữ hay boilerplate code (như test getter/setter đơn thuần, test constructor của DTO, test việc gọi method mà không assert kết quả nghiệp vụ).
-  - **Không** lạm dụng assertion soi quá sâu vào private implementation detail, tránh việc test bị đứt gãy khi refactor code dù logic nghiệp vụ không đổi.
+  - Mock dependencies (Repositories, External Services, Logger, EntityManager transactions) via Dependency Injection test modules.
+  - Never establish real database connections or perform external network calls inside unit tests.
+- ❌ **Avoid Boilerplate & Trivial Tests**:
+  - Do not write tests that merely verify language syntax or boilerplate (e.g., testing pure getters/setters, DTO constructors, or method invocation without asserting business outcomes).
+  - Do not couple assertions to private implementation details; tests should survive internal refactorings as long as public domain behavior remains invariant.

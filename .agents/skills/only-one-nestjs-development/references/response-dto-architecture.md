@@ -1,14 +1,19 @@
 # Response DTO Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Response DTO định nghĩa cấu trúc dữ liệu đầu ra công khai của API, phục vụ serialization và OpenAPI/Swagger documentation.
+Response DTOs define the public output contract for API responses, handling serialization formatting and OpenAPI/Swagger documentation schemas.
 
-- **Vị trí**: `src/modules/<feature>/dtos/responses/` (hoặc `dtos/<noun>.dto.ts`)
+- **Location**: `src/modules/<feature>/dtos/responses/` (or `dtos/<noun>.dto.ts`)
 
-## Code mẫu
+## Code Example
 
 ```ts
+import { AutoMap } from '@automapper/classes';
+import { AbstractDto } from '@/common/abstract.dto';
+import { ClassField, StringField } from '@/common/decorators';
+import { FeatureItemDto } from './feature-item.dto';
+
 export class FeatureDto extends AbstractDto {
   @StringField({ minLength: 1, maxLength: 255 })
   @AutoMap()
@@ -25,12 +30,12 @@ export class FeatureDto extends AbstractDto {
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Kế thừa & Constructor**:
-  - Extend `AbstractDto` cho các DTO đại diện cho Entity có ID/audit metadata.
-  - Phải có constructor dạng: `constructor(partial?: Partial<FeatureDto>) { super(); Object.assign(this, partial); }`. Giữ `partial` là optional để AutoMapper khởi tạo được DTO không tham số.
-- ✅ **Nested DTOs**: Dùng `@ClassField()` hoặc `@ClassFieldOptional()` cho các property dạng nested DTO.
-- ❌ **Không trả Entity thô**: Tuyệt đối không trả Entity trực tiếp ra HTTP Response.
-- ❌ **Không lộ thông tin nhạy cảm**: Không bao giờ expose thông tin secret, internal audit fields nếu contract không yêu cầu.
-- ❌ **Tránh Mapper tham chiếu vòng**: Không tạo quan hệ tham chiếu vòng giữa các DTOs (ví dụ: `ParentDto -> ChildDto -> ParentDto`) gây tràn bộ nhớ (stack overflow) hoặc response vô hạn.
+- ✅ **Inheritance & Constructors**:
+  - Extend `AbstractDto` for response DTOs modeling domain entities with UUIDs and timestamp metadata.
+  - Provide a standard constructor pattern: `constructor(partial?: Partial<FeatureDto>) { super(); Object.assign(this, partial); }`. Keep `partial` optional so AutoMapper can instantiate the DTO without constructor arguments.
+- ✅ **Nested DTO Declarations**: Use `@ClassField()` or `@ClassFieldOptional()` when declaring properties representing nested DTOs.
+- ❌ **No Raw Entity Leaks**: Never expose raw database entities directly in HTTP responses.
+- ❌ **No Sensitive Field Leaks**: Never expose secrets, hashes, credentials, or internal audit properties unless explicitly mandated by the public contract.
+- ❌ **Avoid Circular References**: Never design circular references between DTOs (e.g., `ParentDto -> ChildDto -> ParentDto`) which cause serialization stack overflows and infinite payloads.

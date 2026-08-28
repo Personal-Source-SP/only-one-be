@@ -45,15 +45,18 @@ Read `concept.md` from the target task folder (`only-one/tasks/*-<slug>/concept.
 5. **Key Failure Modes & Security Boundaries**: Edge cases and authorization boundaries.
 6. **Affected Modules / Services**: Modules, packages, or services to be modified.
 
-### 1b. Research Current Code
+### 1b. Research Current Code & Reuse-First Audit
 1. Start with files, symbols, errors, and requirements from `concept.md` or user input.
 2. Read direct callers, dependencies, entities, DTOs, contracts, and tests in the codebase to verify exact current behavior.
-3. Read `only-one/rules.md` to strictly observe mandatory negative rules and past lessons learned.
-4. Check `only-one/CONTEXT.md` for domain terminology and `only-one/archives/*.md` for past architecture decisions.
-5. Check `only-one/skills/` (and `.agents/skills/`) for relevant technology skills. Read their `SKILL.md` before analyzing affected code.
-6. Check existing repository patterns before proposing a new abstraction.
-7. Keep research bounded to the requested change; do not scan unrelated repository areas.
-8. Do not modify source code, dependencies, configuration, database state, or Git state.
+3. **Mandatory Reuse-First Audit**:
+   - Actively search (`grep_search` / `list_dir`) in `src/utils/`, `src/helpers/`, `src/hooks/`, `src/common/`, `src/components/`, `src/shared/` to identify existing utilities, helper functions, base classes, and custom hooks before designing new logic.
+   - ❌ **Strict Anti-Reinvention**: Do not propose new utility functions or duplicate components if existing ones can be reused or extended.
+4. Read `only-one/rules.md` to strictly observe mandatory negative rules and past lessons learned.
+5. Check `only-one/CONTEXT.md` for domain terminology and `only-one/archives/*.md` for past architecture decisions.
+6. Check `only-one/skills/` (and `.agents/skills/`) for relevant technology skills. Read their `SKILL.md` before analyzing affected code.
+7. Check existing repository patterns before proposing a new abstraction.
+8. Keep research bounded to the requested change; do not scan unrelated repository areas.
+9. Do not modify source code, dependencies, configuration, database state, or Git state.
 
 ---
 
@@ -121,10 +124,10 @@ branch: ~
 ### 3.1 Machine-Readable Task Matrix & Dependency Graph
 <!-- Standardized English format for sub-second machine ingestion -->
 
-| Order | Status | Action | File Path | Target Symbols / AST Seams | Depends On | Fast Test Command |
-| :---: | :---: | :---: | :--- | :--- | :--- | :--- |
-| **1** | `[ ]` | `[NEW]` | `path/to/file.ts` | `Class.methodName` | `None` | `npm test path/to/file.test.ts` |
-| **2** | `[ ]` | `[MODIFY]` | `path/to/caller.ts` | `Caller.handler` | `Order 1` | `npm test path/to/caller.test.ts` |
+| Order | Status | Action | File Path | Target Symbols / AST Seams | Reused Existing Utilities / Helpers | Depends On | Fast Test Command |
+| :---: | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
+| **1** | `[ ]` | `[NEW]` | `path/to/file.ts` | `Class.methodName` | `src/utils/date.ts (formatUtc)` | `None` | `npm test path/to/file.test.ts` |
+| **2** | `[ ]` | `[MODIFY]` | `path/to/caller.ts` | `Caller.handler` | `src/hooks/useCustomTable.ts` | `Order 1` | `npm test path/to/caller.test.ts` |
 
 - Cây cấu trúc thư mục (Scaffold directory tree).
 - Luồng Request, Processing, Persistence, Response.
@@ -132,6 +135,7 @@ branch: ~
 ## Section 4. Implementation Code Examples (Mẫu Code Triển khai)
 Mô tả từng file trong Section 3 theo đúng thứ tự:
 - Nhắc lại label, đường dẫn tuyệt đối/tương đối, thứ tự `Order`, và `Depends on`.
+- **Reused Abstractions**: Liệt kê rõ các helper/hook/service có sẵn được import và tái sử dụng.
 - Diễn giải mục đích file và lý do thay đổi bằng Tiếng Việt.
 - Cung cấp code snippets cô đọng kèm comment `// [TARGET SEAM]` và `// [RATIONALE]` định vị chính xác vị trí thay thế.
 
@@ -164,5 +168,6 @@ Trích xuất 2–4 mẫu câu Tiếng Anh kỹ thuật cao cấp trong bối c�
 ## Guardrails
 
 - **Enforce Dual-Layer Architecture**: Author narrative in Section 1, 2, 4, 5 in Vietnamese preserving English technical terms; format Section 3.1 Task Matrix in standardized English for machine ingestion.
+- **Enforce Reuse-First Invariant**: Always identify and declare reused existing utilities/helpers in Section 3.1 & 4; never propose reinventing existing functions.
 - Always include `Fast Test Command` per file in the Task Matrix to shorten verification feedback loops.
 - Save `plan.md` inside its dedicated task folder (`only-one/tasks/<YYYYMMDD-HHmmss>-<slug>/plan.md`).

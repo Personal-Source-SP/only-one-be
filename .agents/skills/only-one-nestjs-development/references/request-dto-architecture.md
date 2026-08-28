@@ -1,15 +1,16 @@
 # Request DTO Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Request DTO định nghĩa input contract và validation rules tại HTTP boundary.
+Request DTOs define input data contracts and validation rules at the HTTP boundary.
 
-- **Vị trí**: `src/modules/<feature>/dtos/requests/`
+- **Location**: `src/modules/<feature>/dtos/requests/`
 
-## Code mẫu
+## Code Example
 
 ```ts
 import { AutoMap } from '@automapper/classes';
+import { BooleanFieldOptional, StringField, StringFieldOptional, Trim } from '@/common/decorators';
 
 export class CreateFeatureRequest {
   @AutoMap()
@@ -30,16 +31,16 @@ export class UpdateFeatureRequest {
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Phân tách Contracts**: Tách biệt rõ ràng các DTO cho `Create`, `Update`, và `Query/List`.
-- ✅ **Custom Validation Decorators**:
-  - Sử dụng bộ decorator wrapper của hệ thống: `@StringField`, `@StringFieldOptional`, `@NumberFieldOptional`, `@BooleanFieldOptional`, `@EnumFieldOptional`, `@DateFieldOptional`, `@Trim`.
-  - Mọi string field phải dùng `@Trim()` và giới hạn `minLength`/`maxLength` rõ ràng.
-  - Chỉ dùng `class-validator` trực tiếp cho các trường hợp wrapper chưa hỗ trợ (ví dụ: `@ArrayMinSize`, `@ArrayUnique`).
-- ✅ **Thứ tự Property**: Sắp xếp **Required fields** trước -> **Optional fields** sau. Không chèn optional field vào giữa nhóm required fields.
-- ✅ **AutoMapper Binding**: Các field trong `Create`/`Update` DTO cần map sang Entity phải gắn `@AutoMap()`. Query/List DTO không map sang Entity nên không cần `@AutoMap()`.
-- ❌ **Không phụ thuộc Domain/DB State**:
-  - Không import Entity/Repository/Service vào DTO.
-  - Không đặt các validation phụ thuộc DB state hiện tại vào DTO (việc kiểm tra DB state phải thực hiện ở Service).
-  - Không dùng Entity làm Request DTO.
+- ✅ **Segregated Contracts**: Separate DTOs cleanly for `Create`, `Update`, and `Query/List` operations.
+- ✅ **Validation Decorators**:
+  - Prioritize project-standard decorator wrappers: `@StringField`, `@StringFieldOptional`, `@NumberFieldOptional`, `@BooleanFieldOptional`, `@EnumFieldOptional`, `@DateFieldOptional`, `@Trim`.
+  - Ensure string inputs include `@Trim()` and explicit `minLength`/`maxLength` bounds.
+  - Use raw `class-validator` decorators only for advanced constraints not covered by project wrappers (e.g., `@ArrayMinSize`, `@ArrayUnique`).
+- ✅ **Property Ordering**: Group all **Required fields** first -> followed by **Optional fields**. Do not interleave optional fields among required fields.
+- ✅ **AutoMapper Binding**: Annotate `@AutoMap()` on fields in `Create`/`Update` DTOs destined to map onto entities. Query/List filter DTOs do not map directly to entities and should omit `@AutoMap()`.
+- ❌ **No Domain/Database Coupling**:
+  - Never import Entities, Repositories, or Services into DTO definitions.
+  - Never place database-state-dependent validations inside DTOs (dynamic DB validations belong in Services).
+  - Never accept raw database entities as HTTP request payloads.

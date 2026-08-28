@@ -1,14 +1,19 @@
 # Mapping Profile Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-AutoMapper Profile đăng ký chuyển đổi dữ liệu tập trung giữa Request DTO, Entity và Response DTO. Profile quyết định **shape dữ liệu**, Service quyết định **populate relation nào**.
+AutoMapper Profiles register centralized mapping configurations between Request DTOs, Entities, and Response DTOs. The Profile defines **data shaping**, while the Service dictates **which relations to populate**.
 
-- **Vị trí**: `src/modules/<feature>/profiles/<feature>.profile.ts`
+- **Location**: `src/modules/<feature>/profiles/<feature>.profile.ts`
 
-## Code mẫu
+## Code Example
 
 ```ts
+import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
+import { createMap, forMember, mapFrom, mapWith, Mapper, MappingProfile } from '@automapper/core';
+import { wrap } from '@mikro-orm/core';
+import { Injectable } from '@nestjs/common';
+
 @Injectable()
 export class FeatureProfile extends AutomapperProfile {
   constructor(@InjectMapper() mapper: Mapper) {
@@ -42,14 +47,14 @@ export class FeatureProfile extends AutomapperProfile {
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Khai báo Module**: Profile phải có `@Injectable()`, extends `AutomapperProfile` và được khai báo trong `providers` của Feature Module.
-- ✅ **Xử lý Relations an toàn cho MikroORM (Uninitialized Guards)**:
-  - Khi làm việc với **MikroORM**, các quan hệ (relations) chưa được `populate` sẽ ở trạng thái uninitialized. Cần kiểm tra kỹ trước khi map để tránh N+1 Query hoặc Serialization crash:
-    - **Relation đơn**: Dùng `mapWith()`, kiểm tra `wrap(relation).isInitialized()`. Chưa populate trả về `null`.
-    - **Collection relation**: Kiểm tra `collection.isInitialized()`. Chưa populate trả về `[]`.
-- ✅ **Computed Fields**: Dùng `forMember` + `mapFrom`. Chỉ tính toán dựa trên dữ liệu đã load sẵn trong memory, không query DB trong profile.
-- ✅ **Thứ tự đăng ký Map**: Đăng ký nested mapping trước khi đăng ký parent mapping nếu parent DTO phụ thuộc nested DTO.
-- ❌ **Không chứa Business Rule hay Query DB**: Không query DB, gọi API bên ngoài hoặc thực hiện validation trong mapping profile.
-- ❌ **Không gây Lazy Loading ngoài ý muốn**: Không truy cập relation chưa initialize khiến ORM tự kích hoạt N+1 query hoặc bắn lỗi serialization.
+- ✅ **Module Registration**: Profiles must be decorated with `@Injectable()`, extend `AutomapperProfile`, and be registered in the `providers` array of the feature module.
+- ✅ **Safe Relation Mapping (Uninitialized Guards for MikroORM)**:
+  - Relations not explicitly loaded via `populate` remain uninitialized in MikroORM. Guard all relation mappings to prevent serialization crashes or accidental N+1 queries:
+    - **Single Relation**: Use `mapWith()`, verifying `wrap(relation).isInitialized()`. Return `null` if uninitialized.
+    - **Collection Relation**: Verify `collection.isInitialized()`. Return `[]` if uninitialized.
+- ✅ **Computed Fields**: Use `forMember` paired with `mapFrom`. Compute values strictly from in-memory properties already present on the source object.
+- ✅ **Registration Order**: Register nested model mappings before parent mappings if the parent mapping references child DTOs.
+- ❌ **No Business Logic or Database Queries**: Never perform database queries, external HTTP requests, or validation inside a mapping profile.
+- ❌ **No Accidental Lazy Loading**: Never access uninitialized relation properties directly without guard checks, preventing unintended N+1 queries or runtime ORM exceptions.

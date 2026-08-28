@@ -88,10 +88,16 @@ Check the frontmatter `status` field:
 For each pending row in the Task Matrix:
 1. Verify that all prerequisite files (`Depends On`) have been successfully applied and verified (`[x]`).
 2. Mark the row's `Status` as `[/]` (in-progress) in `plan.md`.
-3. Locate the corresponding section in **Section 4. Implementation Code Examples** and apply the code modification at the exact `// [TARGET SEAM]`.
-4. Run the row's **`Fast Test Command`** immediately:
-   - If test passes: mark row `Status` as `[x]` (done) in `plan.md` and proceed to next row.
-   - If test fails: activate `diagnosing-bugs` (Red Feedback Loop $\rightarrow$ Instrument $\rightarrow$ Fix).
+3. **Step 4a — Pre-apply Context & Existing Imports Inspection**:
+   - Read the target file (`view_file`) to inspect its current imports, shared utilities, and surrounding code patterns.
+   - Verify that all existing helpers/hooks specified in the `Reused Existing Utilities / Helpers` column are properly imported and utilized.
+   - ❌ **Strict Anti-Reinvention Check**: Do NOT write inline helper logic or duplicate functions if a shared project utility already exists.
+4. **Step 4b — Apply Code Modification**:
+   - Locate the corresponding section in **Section 4. Implementation Code Examples** and apply the code modification at the exact `// [TARGET SEAM]`.
+5. **Step 4c — Run Fast Test Command**:
+   - Run the row's **`Fast Test Command`** immediately:
+     - If test passes: mark row `Status` as `[x]` (done) in `plan.md` and proceed to next row.
+     - If test fails: activate `diagnosing-bugs` (Red Feedback Loop $\rightarrow$ Instrument $\rightarrow$ Fix).
 
 ---
 
@@ -117,6 +123,7 @@ For each pending row in the Task Matrix:
 ## Guardrails
 
 - **Enforce Bilingual Hybrid Walkthrough**: Write narrative in Vietnamese while preserving English technical terms.
+- **Enforce Reuse-First Verification**: Always inspect target file imports and utilize project shared utilities; never duplicate existing code.
 - Prioritize parsing Section 3.1 Task Matrix for sub-second ingestion.
 - Execute `Fast Test Command` per file before proceeding to the next.
 - Maintain Beyoncé Rule at all times.

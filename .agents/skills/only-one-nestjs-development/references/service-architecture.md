@@ -1,14 +1,25 @@
 # Service Architecture
 
-## Trách nhiệm & Vị trí
+## Responsibilities & Location
 
-Service sở hữu use case, business rules, persistence orchestration, error mapping và logging.
+Services encapsulate use cases, business domain rules, persistence orchestration, error translation, and diagnostic logging.
 
-- **Vị trí**: `src/modules/<feature>/services/<feature>.service.ts`
+- **Location**: `src/modules/<feature>/services/<feature>.service.ts`
 
-## Code mẫu
+## Code Example
 
 ```ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
+import { InjectMapper } from '@automapper/nestjs';
+import { Mapper } from '@automapper/core';
+import { BaseService } from '@/common/base.service';
+import { LoggerService } from '@/common/logger/logger.service';
+import { AppError } from '@/common/constants/app-error';
+import { FeatureEntity } from '../entities';
+import { FeatureDto } from '../dtos';
+
 @Injectable()
 export class FeatureService extends BaseService<FeatureEntity> {
   constructor(
@@ -23,46 +34,50 @@ export class FeatureService extends BaseService<FeatureEntity> {
 
   async getOne(id: string): Promise<FeatureDto> {
     const result = await this.findById({ id, map: (item) => this.mapDto(item) });
-    if (!result) throw new NotFoundException(AppError.FeatureNotFound);
+    if (!result) {
+      throw new NotFoundException(AppError.FeatureNotFound);
+    }
     return result;
   }
 
   private mapDto(entity: FeatureEntity): FeatureDto {
-    return this._mapper.map(entity, FeatureEntity, FeatureDto);
+    const mapped = this._mapper.map(entity, FeatureEntity, FeatureDto);
+    return mapped;
   }
 
   private mapDtoArray(entities: FeatureEntity[]): FeatureDto[] {
-    return this._mapper.mapArray(entities, FeatureEntity, FeatureDto);
+    const mappedArray = this._mapper.mapArray(entities, FeatureEntity, FeatureDto);
+    return mappedArray;
   }
 }
 ```
 
-## Quy chuẩn thực thi (Guidelines & Rules)
+## Guidelines & Rules
 
-- ✅ **Cấu trúc & Kế thừa**: Kế thừa `BaseService` cho persistence chuẩn. Sắp xếp thứ tự method: public synchronous -> public asynchronous -> private synchronous -> private asynchronous.
-- ✅ **Return bằng biến cụ thể (Debug-friendly Return)**:
-  - BẮT BUỘC lưu kết quả xử lý hoặc kết quả `await` vào một biến cụ thể trước khi `return` (ví dụ: `const result = await this.findById(...); return result;`).
-  - ❌ **Không** `return await ...` trực tiếp hoặc `return this.someFunction(...)` trực tiếp trên cùng một dòng.
-  - *Lý do*: Việc gán vào biến trung gian giúp dễ dàng đặt breakpoint, inspect giá trị trả về trong debugger và thêm log điểm cuối khi bảo trì.
-- ✅ **Gom nhóm & Tái sử dụng Code (Refactoring / DRY)**:
-  - Khi viết hoặc sửa code, nếu phát hiện các đoạn logic bị lặp lại (ngay cả khi không giống nhau 100% nhưng có chung mô hình/mục đích), BẮT BUỘC chủ động tách và gom lại thành các **`private` method** trong Service để tối ưu code, tăng tính đọc hiểu và giảm trùng lặp.
-- ✅ **Sử dụng CRUD mặc định**: Dùng các helper method có sẵn của `BaseService` (`findById`, `createEntity`, `updatePartial`, `deleteEntity`, `findAll`, `findOneByFilter`, `exists`, `count`, `paginate`). Không tự gọi `_em.findOne`/`_em.create`/`_em.flush` trực tiếp ngoại trừ custom persistence đặc biệt.
-- ✅ **Mapping**: Tách biệt `mapDto` và `mapDtoArray` bằng AutoMapper.
-- ✅ **Xử lý Update (PATCH)**: Dùng `pickDefined` để phân biệt giữa không gửi (`undefined`), gửi `null`, hoặc mảng rỗng `[]`.
-- ✅ **Error & i18n**:
-  - Mọi error key được throw phải đăng ký trong danh sách `AppError` chuẩn và có bản dịch `i18n` (vi/en).
-  - Không throw hardcoded string chưa qua `AppError`.
-  - Kiểm tra not-found / conflict / relation guard trước khi thực hiện write/delete.
-- ✅ **Parameters & Types**:
-  - Parameter dạng object nếu có **từ 3 properties trở lên** bắt buộc phải khai báo `interface` riêng nằm trong folder `types/`, không dùng inline object shape hoặc `Record<string, unknown>`.
-  - Không khai báo `interface`/`type` trực tiếp trong file service.
-- ✅ **Sử dụng Thư viện Utility (Lodash & Dayjs)**:
-  - Xử lý ngày tháng dùng `dayjs`, không dùng `new Date()` với các toán tử so sánh (`<`, `>`, `>=`). Dùng `dayjs.isBefore`, `dayjs.isAfter`, `dayjs.isSame`.
-  - **Kiểm tra Timezone chính xác**: Khi xử lý ngày giờ liên quan đến múi giờ địa phương hoặc so sánh UTC (như lịch trình, báo cáo, đếm ngược), BẮT BUỘC kiểm tra sự cần thiết của việc sử dụng các plugin Timezone của Dayjs (`dayjs.extend(utc)`, `dayjs.extend(timezone)`) để đảm bảo tính toán ngày tháng và chuyển đổi múi giờ tuyệt đối chính xác.
-  - Khuyến khích ưu tiên sử dụng các method có sẵn từ **`lodash`** (như `isEmpty`, `get`, `set`, `uniq`, `groupBy`, `keyBy`, `cloneDeep`, `omit`, `pick`,...) cho các thao tác biến đổi mảng, object, gom nhóm hay kiểm tra dữ liệu thay vì tự viết lại logic thủ công.
-  - Rẽ nhánh enum/union type dùng `switch/case` để compiler kiểm tra đầy đủ các case, không dùng `if/else` lồng nhau.
-- ✅ **Transaction & Logging**:
-  - Multi-write đòi hỏi tính nguyên tố phải dùng Transaction.
-  - Sử dụng Logger của hệ thống dạng `[ServiceName] message`. Không bao giờ log credentials, token, password hoặc sensitive body.
-- ❌ **Không dính dáng HTTP**: Không dùng HTTP decorators (`@Body`, `@Query`), Swagger annotations hoặc `ResponseDto` trong Service.
-- ❌ **Không nuốt lỗi**: Không wrap `try/catch` toàn bộ service một cách vô căn cứ. Chỉ catch lỗi khi cần translate, recover hoặc log context an toàn.
+- ✅ **Structure & Inheritance**: Extend `BaseService` for standard persistence capabilities. Order methods: public synchronous -> public asynchronous -> private synchronous -> private asynchronous.
+- ✅ **Debug-Friendly Return-by-Variable Convention**:
+  - ALWAYS assign processing or `await` results to an explicit, descriptive variable before returning (`const result = await this.findById(...); return result;`).
+  - ❌ **NEVER** return `await ...` directly or inline function calls on the return line without assignment.
+  - *Rationale*: Intermediate variable bindings streamline debugger breakpoints, inspection of resolved return values, and downstream logging instrumentation.
+- ✅ **Proactive Refactoring & DRY**:
+  - When authoring or modifying code, extract repeated logic patterns into **`private` helper methods** within the Service to boost readability, maintainability, and reusability.
+- ✅ **Default CRUD Operations**: Leverage `BaseService` built-in methods (`findById`, `createEntity`, `updatePartial`, `deleteEntity`, `findAll`, `findOneByFilter`, `exists`, `count`, `paginate`). Avoid ad-hoc `_em.findOne`/`_em.create`/`_em.flush` calls unless executing custom low-level workflows.
+- ✅ **Mapping Patterns**: Keep `mapDto` and `mapDtoArray` as isolated private helper methods utilizing AutoMapper.
+- ✅ **PATCH/Update Field Sanitization**: Use `pickDefined` to differentiate between omitted properties (`undefined`), explicit clearing (`null`), or empty arrays (`[]`).
+- ✅ **Error Handling & i18n**:
+  - All thrown exception keys must be declared in standard `AppError` constants with corresponding i18n translations.
+  - Never throw hardcoded string messages bypassing `AppError`.
+  - Perform not-found, conflict, and foreign-key relation guard checks prior to executing destructive writes.
+- ✅ **Parameters & Type Contracts**:
+  - Complex object parameters containing **3 or more properties** MUST be modeled as dedicated interfaces inside the `types/` folder, avoiding inline object types or ambiguous `Record<string, unknown>`.
+  - Do not define `interface` or `type` declarations directly inside the service file.
+- ✅ **Utility Libraries (Lodash & Dayjs)**:
+  - For date operations, use **`dayjs`** instead of native `Date` comparison operators (`<`, `>`, `>=`). Use `dayjs.isBefore`, `dayjs.isAfter`, `dayjs.isSame`.
+  - **Timezone Accuracy**: When handling timezone-dependent dates (schedules, reporting intervals, countdowns), ensure dayjs timezone plugins (`dayjs.extend(utc)`, `dayjs.extend(timezone)`) are active.
+  - Prioritize **`lodash`** functions (`isEmpty`, `get`, `set`, `uniq`, `groupBy`, `keyBy`, `cloneDeep`, `omit`, `pick`) for array/object manipulations.
+  - Use `switch/case` over enum or union discriminator types to ensure exhaustive compiler checks.
+- ✅ **Transactions & Diagnostic Logging**:
+  - Multi-write operations requiring atomic guarantees must run within database transactions.
+  - Log via standard system logger formatted as `[ServiceName] message`. Never log credentials, secrets, passwords, or full raw payloads.
+- ❌ **No HTTP Transport Leaks**: Never use HTTP decorators (`@Body`, `@Query`), Swagger annotations, or wrap responses in `ResponseDto` inside service layers.
+- ❌ **Do Not Swallow Exceptions**: Avoid indiscriminate, blanket `try/catch` blocks. Only catch exceptions when translating, recovering, or attaching targeted diagnostic context.
