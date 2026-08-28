@@ -24,7 +24,10 @@ export class DiscoverySessionDto extends AbstractDto {
     depth: number;
 
     @AutoMap()
-    maxUrls: number;
+    maxUrls?: number | null;
+
+    @AutoMap()
+    autoValidate: boolean;
 
     @AutoMap()
     totalDiscovered: number;

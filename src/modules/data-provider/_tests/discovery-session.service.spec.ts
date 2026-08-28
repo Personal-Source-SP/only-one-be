@@ -55,8 +55,46 @@ describe('DiscoverySessionService', () => {
                 targetUrl: 'https://amazon.com/deals',
                 depth: 2,
                 maxUrls: 50,
+                autoValidate: true,
             }),
         );
         expect(runnerService.runDiscovery).toHaveBeenCalled();
+    });
+
+    it('should create session with null maxUrls (unbounded) and default autoValidate true when omitted', async () => {
+        const result = await service.createSession({
+            dataProviderId: 'dp-1',
+            targetUrl: 'https://amazon.com/deals',
+        });
+
+        expect(result).toBeDefined();
+        expect(sessionRepo.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dataProviderId: 'dp-1',
+                targetUrl: 'https://amazon.com/deals',
+                depth: 1,
+                maxUrls: null,
+                autoValidate: true,
+            }),
+        );
+    });
+
+    it('should respect explicit autoValidate false setting', async () => {
+        const result = await service.createSession({
+            dataProviderId: 'dp-1',
+            targetUrl: 'https://amazon.com/deals',
+            autoValidate: false,
+            maxUrls: 20,
+        });
+
+        expect(result).toBeDefined();
+        expect(sessionRepo.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dataProviderId: 'dp-1',
+                targetUrl: 'https://amazon.com/deals',
+                maxUrls: 20,
+                autoValidate: false,
+            }),
+        );
     });
 });

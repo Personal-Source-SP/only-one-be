@@ -30,9 +30,13 @@ export class DiscoverySessionEntity extends AbstractEntity {
     @AutoMap()
     depth: number;
 
-    @Column({ type: 'integer', default: 100 })
+    @Column({ type: 'integer', nullable: true, default: null })
     @AutoMap()
-    maxUrls: number;
+    maxUrls?: number | null;
+
+    @Column({ type: 'boolean', default: true })
+    @AutoMap()
+    autoValidate: boolean;
 
     @Column({ type: 'integer', default: 0 })
     @AutoMap()

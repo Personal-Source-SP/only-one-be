@@ -8,9 +8,9 @@
 - **ScrapingData**: A raw data unit/job record targeted for detailed scraping pipeline execution.
 
 ### Scraping Discovery & Validation Engine
-- **DiscoverySession**: A dedicated, trackable job session aimed at discovering URLs from a given `targetUrl` up to a configured `depth` and `maxUrls`.
+- **DiscoverySession**: A dedicated, trackable job session aimed at discovering URLs from a given `targetUrl` up to a configured `depth` and optional `maxUrls` (nullable for unbounded discovery), with optional post-completion `autoValidate` (defaults to `true`).
   - **Status Lifecycle**: `pending` -> `in_progress` -> `completed` | `failed`.
-  - **Key Metrics**: `totalDiscovered`, `totalQueued`, `totalValidated`, `durationSeconds`, `errorMessage`.
+  - **Key Metrics & Configs**: `autoValidate`, `maxUrls`, `depth`, `totalDiscovered`, `totalQueued`, `totalValidated`, `durationSeconds`, `errorMessage`.
 - **DiscoveryUrl**: An individual hyperlink/endpoint discovered during a Discovery Session.
   - **Status Lifecycle**: `discovered` -> `queued` -> `scraped` | `failed`.
   - **Validation Lifecycle**: `pending` -> `processing` -> `completed` | `failed` | `skipped`.

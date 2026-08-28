@@ -8,6 +8,7 @@ import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoverySessionStatus, DiscoveryUrlStatus, DiscoveryValidationStatus } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
+import { DiscoveryValidationService } from './discovery-validation.service';
 
 @Injectable()
 export class DiscoveryRunnerService {
@@ -18,6 +19,7 @@ export class DiscoveryRunnerService {
         private readonly sessionRepo: Repository<DiscoverySessionEntity>,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly urlRepo: Repository<DiscoveryUrlEntity>,
+        private readonly validationService: DiscoveryValidationService,
     ) {}
 
     async runDiscovery(sessionId: string, targetKeyword?: string): Promise<void> {
@@ -38,7 +40,7 @@ export class DiscoveryRunnerService {
             const parsedBase = new URL(session.targetUrl);
             const targetHostname = parsedBase.hostname;
 
-            while (queue.length > 0 && discoveredRecords.length < session.maxUrls) {
+            while (queue.length > 0 && (session.maxUrls == null || discoveredRecords.length < session.maxUrls)) {
                 const current = queue.shift()!;
                 if (visited.has(current.url) || current.depth > session.depth) continue;
                 visited.add(current.url);
@@ -85,7 +87,7 @@ export class DiscoveryRunnerService {
                         discoveredRecords.push(urlEntity);
                     }
 
-                    if (current.depth < session.depth && discoveredRecords.length < session.maxUrls) {
+                    if (current.depth < session.depth && (session.maxUrls == null || discoveredRecords.length < session.maxUrls)) {
                         $('a[href]').each((_, el) => {
                             const href = $(el).attr('href');
                             if (!href) return;
@@ -120,6 +122,13 @@ export class DiscoveryRunnerService {
                 totalValidated: discoveredRecords.length,
                 durationSeconds,
             });
+
+            // Trigger auto-validation batch if autoValidate is enabled and URLs were discovered
+            if (session.autoValidate && discoveredRecords.length > 0) {
+                this.validationService
+                    .startBatchValidation(sessionId, targetKeyword)
+                    .catch((err) => this.logger.error(`Auto-validation failed for session ${sessionId}: ${err.message}`));
+            }
         } catch (error: any) {
             const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
             await this.sessionRepo.update(sessionId, {

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Max, Min } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Max, Min } from 'class-validator';
 
 export class CreateDiscoverySessionRequestDto {
     @ApiProperty({ description: 'Data Provider ID' })
@@ -19,12 +19,17 @@ export class CreateDiscoverySessionRequestDto {
     @IsOptional()
     depth?: number;
 
-    @ApiPropertyOptional({ description: 'Maximum URLs to discover', default: 100 })
+    @ApiPropertyOptional({ description: 'Maximum URLs to discover (omit for unbounded discovery)', default: null })
     @IsNumber()
     @Min(1)
-    @Max(1000)
+    @Max(10000)
     @IsOptional()
     maxUrls?: number;
+
+    @ApiPropertyOptional({ description: 'Automatically run validation batch upon completion', default: true })
+    @IsBoolean()
+    @IsOptional()
+    autoValidate?: boolean;
 
     @ApiPropertyOptional({ description: 'Target keyword for fuzzy matching' })
     @IsString()
