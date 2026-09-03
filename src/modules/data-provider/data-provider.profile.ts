@@ -32,6 +32,7 @@ import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
+import { DiscoverySessionStatus } from './enums';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
 
 @Injectable()
@@ -97,7 +98,39 @@ export class DataProviderProfile extends AutomapperProfile {
             createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
 
             createMap(mapper, DiscoverySessionEntity, DiscoverySessionDto);
-            createMap(mapper, CreateDiscoverySessionRequestDto, DiscoverySessionEntity);
+            createMap(
+                mapper,
+                CreateDiscoverySessionRequestDto,
+                DiscoverySessionEntity,
+                forMember(
+                    (d) => d.status,
+                    mapFrom(() => DiscoverySessionStatus.PENDING),
+                ),
+                forMember(
+                    (d) => d.depth,
+                    mapFrom((s) => s.depth || 1),
+                ),
+                forMember(
+                    (d) => d.maxUrls,
+                    mapFrom((s) => (s.maxUrls !== undefined ? s.maxUrls : null)),
+                ),
+                forMember(
+                    (d) => d.autoValidate,
+                    mapFrom((s) => (s.autoValidate !== undefined ? s.autoValidate : true)),
+                ),
+                forMember(
+                    (d) => d.totalDiscovered,
+                    mapFrom(() => 0),
+                ),
+                forMember(
+                    (d) => d.totalQueued,
+                    mapFrom(() => 0),
+                ),
+                forMember(
+                    (d) => d.totalValidated,
+                    mapFrom(() => 0),
+                ),
+            );
 
             createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
 

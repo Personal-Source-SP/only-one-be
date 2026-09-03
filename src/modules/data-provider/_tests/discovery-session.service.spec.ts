@@ -1,3 +1,5 @@
+import { CreateDiscoverySessionRequestDto } from '../dtos/requests/create-discovery-session-request.dto';
+import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoverySessionService } from '../services/discovery-session.service';
 
 describe('DiscoverySessionService', () => {
@@ -11,7 +13,7 @@ describe('DiscoverySessionService', () => {
     beforeEach(() => {
         sessionRepo = {
             create: jest.fn().mockImplementation((dto) => ({ id: 'session-1', ...dto })),
-            save: jest.fn().mockImplementation((s) => Promise.resolve(s)),
+            save: jest.fn().mockImplementation((s) => Promise.resolve({ id: 'session-1', ...s })),
             findOne: jest.fn(),
         };
 
@@ -49,52 +51,58 @@ describe('DiscoverySessionService', () => {
 
         expect(result).toBeDefined();
         expect(result.sessionCode).toMatch(/^DISC-AMAZ-\d{3}$/);
-        expect(sessionRepo.create).toHaveBeenCalledWith(
+        expect(mapper.map).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dataProviderId: 'dp-1',
+                targetUrl: 'https://amazon.com/deals',
+            }),
+            CreateDiscoverySessionRequestDto,
+            DiscoverySessionEntity,
+        );
+        expect(sessionRepo.save).toHaveBeenCalledWith(
             expect.objectContaining({
                 dataProviderId: 'dp-1',
                 targetUrl: 'https://amazon.com/deals',
                 depth: 2,
                 maxUrls: 50,
-                autoValidate: true,
+                sessionCode: expect.stringMatching(/^DISC-AMAZ-\d{3}$/),
             }),
         );
         expect(runnerService.runDiscovery).toHaveBeenCalled();
     });
 
-    it('should create session with null maxUrls (unbounded) and default autoValidate true when omitted', async () => {
+    it('should map request to DiscoverySessionEntity and save session', async () => {
         const result = await service.createSession({
             dataProviderId: 'dp-1',
             targetUrl: 'https://amazon.com/deals',
         });
 
         expect(result).toBeDefined();
-        expect(sessionRepo.create).toHaveBeenCalledWith(
+        expect(mapper.map).toHaveBeenCalledWith(
             expect.objectContaining({
                 dataProviderId: 'dp-1',
                 targetUrl: 'https://amazon.com/deals',
-                depth: 1,
-                maxUrls: null,
-                autoValidate: true,
             }),
+            CreateDiscoverySessionRequestDto,
+            DiscoverySessionEntity,
         );
+        expect(sessionRepo.save).toHaveBeenCalled();
     });
 
-    it('should respect explicit autoValidate false setting', async () => {
-        const result = await service.createSession({
-            dataProviderId: 'dp-1',
-            targetUrl: 'https://amazon.com/deals',
-            autoValidate: false,
-            maxUrls: 20,
+    it('should return session summary with metrics', async () => {
+        sessionRepo.findOne.mockResolvedValue({
+            id: 'session-1',
+            totalDiscovered: 10,
+            totalQueued: 3,
         });
 
-        expect(result).toBeDefined();
-        expect(sessionRepo.create).toHaveBeenCalledWith(
-            expect.objectContaining({
-                dataProviderId: 'dp-1',
-                targetUrl: 'https://amazon.com/deals',
-                maxUrls: 20,
-                autoValidate: false,
-            }),
-        );
+        const summary = await service.getSessionSummary('session-1');
+
+        expect(summary).toBeDefined();
+        expect(summary.totalDiscovered).toBe(10);
+        expect(summary.totalQueued).toBe(3);
+        expect(summary.exactMatches).toBe(5);
+        expect(summary.partialMatches).toBe(5);
+        expect(summary.noMatches).toBe(5);
     });
 });

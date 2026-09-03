@@ -15,6 +15,7 @@ import {
     SubmitBulkUserActionRequestDto,
     TriggerValidationRequestDto,
 } from '../dtos/requests';
+import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoverySessionService } from '../services/discovery-session.service';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
@@ -52,7 +53,8 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Get(':id/summary')
-    public async getSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<any> {
+    @BaseApiOkResponse(DiscoverySessionSummaryResponseDto)
+    public async getSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoverySessionSummaryResponseDto> {
         return await this.sessionService.getSessionSummary(id);
     }
 
