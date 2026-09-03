@@ -1,5 +1,5 @@
-import { ValidationMatchResult } from '../enums';
-import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
+import { ValidationMatchResult } from '../../enums';
+import { DiscoveryValidationHelper } from '../../helpers/discovery-validation.helper';
 
 describe('DiscoveryValidationHelper', () => {
     it('should classify product page with keyword match as EXACT_MATCH', () => {

@@ -1,6 +1,6 @@
-import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
-import { DiscoveryUrlStatus } from '../enums';
-import { DiscoveryUrlService } from '../services/discovery-url.service';
+import { QUEUE_NAME } from '../../../queue/enums/queue-name.enum';
+import { DiscoveryUrlStatus } from '../../enums';
+import { DiscoveryUrlService } from '../discovery-url.service';
 
 describe('DiscoveryUrlService', () => {
     let service: DiscoveryUrlService;

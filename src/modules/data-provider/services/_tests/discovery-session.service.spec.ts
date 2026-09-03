@@ -1,6 +1,6 @@
-import { CreateDiscoverySessionRequestDto } from '../dtos/requests/create-discovery-session-request.dto';
-import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
-import { DiscoverySessionService } from '../services/discovery-session.service';
+import { CreateDiscoverySessionRequestDto } from '../../dtos/requests/create-discovery-session-request.dto';
+import { DiscoverySessionEntity } from '../../entities/discovery-session.entity';
+import { DiscoverySessionService } from '../discovery-session.service';
 
 describe('DiscoverySessionService', () => {
     let service: DiscoverySessionService;

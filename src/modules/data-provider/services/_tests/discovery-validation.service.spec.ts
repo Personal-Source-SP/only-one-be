@@ -1,5 +1,5 @@
-import { FinalValidationStatus, ValidationUserAction } from '../enums';
-import { DiscoveryValidationService } from '../services/discovery-validation.service';
+import { FinalValidationStatus, ValidationUserAction } from '../../enums';
+import { DiscoveryValidationService } from '../discovery-validation.service';
 
 describe('DiscoveryValidationService', () => {
     let service: DiscoveryValidationService;
