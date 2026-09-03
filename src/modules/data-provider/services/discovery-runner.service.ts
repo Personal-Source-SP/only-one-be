@@ -15,7 +15,7 @@ import {
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
-import { IDiscoveryFetchHtmlResult, ITargetConfig } from '../interfaces';
+import { IDiscoveryCrawlQueueItem, IDiscoveryExtractedItem, IDiscoveryFetchHtmlResult, ITargetConfig } from '../interfaces';
 import { DiscoveryValidationService } from './discovery-validation.service';
 import { ScraperService } from './scraper.service';
 
@@ -65,10 +65,10 @@ export class DiscoveryRunnerService {
 
             const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
             await this.sessionRepo.update(sessionId, {
-                status: DiscoverySessionStatus.COMPLETED,
-                totalDiscovered: discoveredRecords.length,
-                totalValidated: discoveredRecords.length,
                 durationSeconds,
+                status: DiscoverySessionStatus.COMPLETED,
+                totalValidated: discoveredRecords.length,
+                totalDiscovered: discoveredRecords.length,
             });
 
             // Trigger auto-validation batch if autoValidate is enabled and URLs were discovered
@@ -80,9 +80,9 @@ export class DiscoveryRunnerService {
         } catch (error: any) {
             const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
             await this.sessionRepo.update(sessionId, {
-                status: DiscoverySessionStatus.FAILED,
                 durationSeconds,
                 errorMessage: error.message,
+                status: DiscoverySessionStatus.FAILED,
             });
         }
     }
@@ -101,6 +101,10 @@ export class DiscoveryRunnerService {
         targetKeyword: string | undefined,
         discoveredRecords: DiscoveryUrlEntity[],
     ): Promise<void> {
+        if (!targetConfig?.functionGenerator) {
+            throw new Error(`Data provider feature is missing 'functionGenerator' configuration for session ${session.id}`);
+        }
+
         const response = await this.baseHttpService.get<any>(session.targetUrl, {
             timeout: targetConfig?.timeout || 10000,
             headers: {
@@ -112,67 +116,21 @@ export class DiscoveryRunnerService {
         });
 
         const rawData = response.data;
-        let extractedItems: Array<{ url: string; title?: string; description?: string; price?: number; currency?: string }> = [];
+        const result = await this.extractDataHelper.runApiFunctionExtractData({
+            data: rawData,
+            functionGenerator: targetConfig.functionGenerator,
+        });
 
-        if (targetConfig?.functionGenerator) {
-            try {
-                const result = await this.extractDataHelper.runApiFunctionExtractData({
-                    data: rawData,
-                    functionGenerator: targetConfig.functionGenerator,
-                });
-                if (Array.isArray(result)) {
-                    extractedItems = result.map((item: any) => ({
-                        url: item.url || item.link || item.productUrl || item.itemUrl || session.targetUrl,
-                        title: item.title || item.name || item.productName,
-                        description: item.description,
-                        price:
-                            typeof item.price === 'number'
-                                ? item.price
-                                : typeof item.price === 'string'
-                                  ? parseFloat(item.price.replace(/[^0-9.]/g, ''))
-                                  : undefined,
-                        currency: item.currency || item.detectedCurrency,
-                    }));
-                }
-            } catch (err: any) {
-                this.logger.warn(`API functionGenerator failed: ${err.message}`);
-            }
+        if (!Array.isArray(result) || result.length === 0) {
+            this.logger.warn(`API functionGenerator returned 0 items for session ${session.id}`);
+            return;
         }
 
-        if (extractedItems.length === 0 && rawData) {
-            const rawList = Array.isArray(rawData)
-                ? rawData
-                : Array.isArray(rawData.data)
-                  ? rawData.data
-                  : Array.isArray(rawData.items)
-                    ? rawData.items
-                    : Array.isArray(rawData.products)
-                      ? rawData.products
-                      : Array.isArray(rawData.results)
-                        ? rawData.results
-                        : [];
-
-            extractedItems = rawList
-                .filter((item: any) => item && (item.url || item.link || item.productUrl || item.itemUrl || item.id))
-                .map((item: any) => {
-                    let itemUrl = item.url || item.link || item.productUrl || item.itemUrl;
-                    if (!itemUrl && item.id && session.dataProvider?.baseUrl) {
-                        itemUrl = `${session.dataProvider.baseUrl.replace(/\/$/, '')}/products/${item.id}`;
-                    }
-                    return {
-                        url: itemUrl || session.targetUrl,
-                        title: item.title || item.name || item.productName || item.sku,
-                        description: item.description,
-                        price:
-                            typeof item.price === 'number'
-                                ? item.price
-                                : typeof item.price === 'string'
-                                  ? parseFloat(item.price.replace(/[^0-9.]/g, ''))
-                                  : undefined,
-                        currency: item.currency,
-                    };
-                });
-        }
+        const extractedItems: IDiscoveryExtractedItem[] = result.map((item: any) => ({
+            description: item.description,
+            title: item.title || item.name || item.productName,
+            url: item.url || item.link || item.productUrl || item.itemUrl || session.targetUrl,
+        }));
 
         const fallbackDomain = this.safeGetHostname(session.targetUrl) || 'api';
 
@@ -181,10 +139,10 @@ export class DiscoveryRunnerService {
 
             const domain = this.safeGetHostname(item.url) || fallbackDomain;
             const evalResult = DiscoveryValidationHelper.evaluateUrl({
+                domain,
+                targetKeyword,
                 url: item.url,
                 title: item.title,
-                targetKeyword,
-                domain,
             });
 
             const urlEntity = this.urlRepo.create({
@@ -211,7 +169,7 @@ export class DiscoveryRunnerService {
         discoveredRecords: DiscoveryUrlEntity[],
     ): Promise<void> {
         const visited = new Set<string>();
-        const queue: Array<{ url: string; depth: number }> = [{ url: session.targetUrl, depth: 0 }];
+        const queue: IDiscoveryCrawlQueueItem[] = [{ url: session.targetUrl, depth: 0 }];
 
         const parsedBase = new URL(session.targetUrl);
         const targetHostname = parsedBase.hostname;
