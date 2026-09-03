@@ -7,20 +7,16 @@ import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
-import { RevalidateUrlRequestDto, SubmitUserActionRequestDto } from '../dtos/requests';
+import { IngestDiscoveryUrlResponseDto } from '../dtos/responses';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
-import { DiscoveryValidationService } from '../services/discovery-validation.service';
 
 @ApiTags('Discovery URLs')
 @Controller('discovery-urls')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, DiscoveryUrlDto> {
-    constructor(
-        private readonly discoveryUrlService: DiscoveryUrlService,
-        private readonly validationService: DiscoveryValidationService,
-    ) {
+    constructor(private readonly discoveryUrlService: DiscoveryUrlService) {
         super(discoveryUrlService, DISCOVERY_URL_PAGINATION_CONFIG, {
             enableGetAll: true,
             enableGetById: true,
@@ -30,28 +26,16 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
         });
     }
 
-    @ApiOperation({ summary: 'Submit user review action for a single discovered URL' })
+    @ApiOperation({ summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post(':id/user-action')
-    @BaseApiOkResponse(Boolean)
-    public async submitUserAction(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request: SubmitUserActionRequestDto,
-    ): Promise<boolean> {
-        return await this.validationService.submitUserAction(id, request.action, request.reason);
-    }
-
-    @ApiOperation({ summary: 'Revalidate a single discovered URL' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':id/re-validate')
-    @BaseApiOkResponse(DiscoveryUrlDto)
-    public async revalidate(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request?: RevalidateUrlRequestDto,
-    ): Promise<DiscoveryUrlDto> {
-        return await this.validationService.revalidateDiscoveredUrl(id, request?.targetKeyword);
+    @Post('sessions/:sessionId/batch-ingest')
+    @BaseApiOkResponse(IngestDiscoveryUrlResponseDto)
+    public async batchIngestUrls(
+        @Param('sessionId', new ParseUUIDPipe()) sessionId: string,
+        @Body() request?: { urlIds?: string[] },
+    ): Promise<IngestDiscoveryUrlResponseDto> {
+        return await this.discoveryUrlService.batchIngest(sessionId, request?.urlIds);
     }
 
     @ApiOperation({ summary: 'Get validation audit logs for a discovered URL' })

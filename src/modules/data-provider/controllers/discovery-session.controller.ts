@@ -8,24 +8,17 @@ import { User } from '../../../decorators/user.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DISCOVERY_SESSION_PAGINATION_CONFIG } from '../constants/discovery-session-pagination.config';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
-import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
-import { CreateDiscoverySessionRequestDto, SubmitBulkUserActionRequestDto, TriggerValidationRequestDto } from '../dtos/requests';
-import { DiscoverySessionSummaryResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
+import { CreateDiscoverySessionRequestDto } from '../dtos/requests';
+import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoverySessionService } from '../services/discovery-session.service';
-import { DiscoveryUrlService } from '../services/discovery-url.service';
-import { DiscoveryValidationService } from '../services/discovery-validation.service';
 
 @ApiTags('Discovery Sessions')
 @Controller('discovery-sessions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class DiscoverySessionController extends BaseController<DiscoverySessionEntity, DiscoverySessionDto> {
-    constructor(
-        private readonly sessionService: DiscoverySessionService,
-        private readonly validationService: DiscoveryValidationService,
-        private readonly discoveryUrlService: DiscoveryUrlService,
-    ) {
+    constructor(private readonly sessionService: DiscoverySessionService) {
         super(sessionService, DISCOVERY_SESSION_PAGINATION_CONFIG, {
             enableGetAll: true,
             enableGetById: true,
@@ -51,50 +44,5 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
     @BaseApiOkResponse(DiscoverySessionSummaryResponseDto)
     public async getSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoverySessionSummaryResponseDto> {
         return await this.sessionService.getSessionSummary(id);
-    }
-
-    @ApiOperation({ summary: 'Trigger batch validation on discovery session URLs' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':id/validate')
-    @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async triggerValidation(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request?: TriggerValidationRequestDto,
-    ): Promise<DiscoveryValidationBatchDto> {
-        return await this.validationService.startBatchValidation(id, request?.targetKeyword);
-    }
-
-    @ApiOperation({ summary: 'Get latest validation batch progress' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':id/validation-latest-batch')
-    @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async getLatestBatch(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoveryValidationBatchDto> {
-        return await this.validationService.getLatestValidationBatch(id);
-    }
-
-    @ApiOperation({ summary: 'Submit bulk user actions for URLs in session' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':id/bulk-user-actions')
-    @BaseApiOkResponse(Boolean)
-    public async submitBulkUserActions(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request: SubmitBulkUserActionRequestDto,
-    ): Promise<boolean> {
-        return await this.validationService.submitBulkUserActions(request.urlIds, request.action, request.reason);
-    }
-
-    @ApiOperation({ summary: 'Batch ingest approved URLs into Item and DataProviderItem catalog' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':id/ingest-urls')
-    @BaseApiOkResponse(IngestDiscoveryUrlResponseDto)
-    public async batchIngestUrls(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request?: { urlIds?: string[] },
-    ): Promise<IngestDiscoveryUrlResponseDto> {
-        return await this.discoveryUrlService.batchIngest(id, request?.urlIds);
     }
 }

@@ -8,6 +8,7 @@ import { DataProviderFeatureController } from './controllers/data-provider-featu
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DiscoverySessionController } from './controllers/discovery-session.controller';
 import { DiscoveryUrlController } from './controllers/discovery-url.controller';
+import { DiscoveryValidationController } from './controllers/discovery-validation.controller';
 import { ItemController } from './controllers/item.controller';
 import { ScrapingDataController } from './controllers/scraping-data.controller';
 import { DataProviderProfile } from './data-provider.profile';
@@ -66,6 +67,7 @@ const controllers = [
     DataProviderItemController,
     DiscoverySessionController,
     DiscoveryUrlController,
+    DiscoveryValidationController,
 ];
 const runners = [ScrapingFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
 const services = [
