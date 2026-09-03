@@ -146,18 +146,19 @@ export class DiscoveryRunnerService {
             });
 
             const urlEntity = this.urlRepo.create({
+                domain,
+                foundAtDepth: 1,
                 sessionId: session.id,
                 dataProviderId: session.dataProviderId,
                 url: item.url,
-                domain,
                 title: item.title,
                 description: item.description,
                 status: DiscoveryUrlStatus.DISCOVERED,
-                foundAtDepth: 1,
+                matchResult: evalResult.matchResult,
                 confidenceScore: evalResult.confidenceScore,
                 validationStatus: DiscoveryValidationStatus.COMPLETED,
-                matchResult: evalResult.matchResult,
             });
+
             discoveredRecords.push(urlEntity);
         }
     }
@@ -197,17 +198,17 @@ export class DiscoveryRunnerService {
                     });
 
                     const urlEntity = this.urlRepo.create({
+                        title,
+                        description,
+                        domain: parsedDomain,
                         sessionId: session.id,
                         dataProviderId: session.dataProviderId,
                         url: current.url,
-                        domain: parsedDomain,
-                        title,
-                        description,
-                        status: DiscoveryUrlStatus.DISCOVERED,
                         foundAtDepth: current.depth,
-                        confidenceScore: evalResult.confidenceScore,
-                        validationStatus: DiscoveryValidationStatus.COMPLETED,
                         matchResult: evalResult.matchResult,
+                        confidenceScore: evalResult.confidenceScore,
+                        status: DiscoveryUrlStatus.DISCOVERED,
+                        validationStatus: DiscoveryValidationStatus.COMPLETED,
                     });
                     discoveredRecords.push(urlEntity);
                 }
