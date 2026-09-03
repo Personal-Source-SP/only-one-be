@@ -1,11 +1,8 @@
 import { OnQueueCompleted, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
-import { Repository } from 'typeorm';
 
 import { LoggerService } from '../../../shared/services/logger.service';
-import { DiscoveryUrlEntity } from '../../data-provider/entities/discovery-url.entity';
 import { DiscoveryValidationService } from '../../data-provider/services/discovery-validation.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IDiscoveryValidationJob } from '../../queue/interfaces';
@@ -17,11 +14,7 @@ export type DiscoveryValidationJobType = Job<IDiscoveryValidationJob>;
 export class DiscoveryValidationWorkerProcessor {
     private readonly loggerService: LoggerService = new LoggerService(DiscoveryValidationWorkerProcessor.name);
 
-    constructor(
-        private readonly discoveryValidationService: DiscoveryValidationService,
-        @InjectRepository(DiscoveryUrlEntity)
-        private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
-    ) {
+    constructor(private readonly discoveryValidationService: DiscoveryValidationService) {
         this.loggerService.log('Initialized');
     }
 
@@ -31,12 +24,6 @@ export class DiscoveryValidationWorkerProcessor {
         this.loggerService.log(
             `Processing validation job ${job.id} for URL ${urlId} (Batch: ${batchId}, Session: ${sessionId})`,
         );
-
-        const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
-        if (!urlEntity) {
-            this.loggerService.warn(`Skipping job ${job.id}: Discovery URL ${urlId} not found`);
-            return;
-        }
 
         try {
             await this.discoveryValidationService.validateUrlForBatch(job.data);
