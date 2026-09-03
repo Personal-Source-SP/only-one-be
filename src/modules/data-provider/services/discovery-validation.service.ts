@@ -51,9 +51,9 @@ export class DiscoveryValidationService {
         const batch = this.batchRepo.create({
             sessionId,
             batchNumber,
-            status: ValidationBatchStatus.PROCESSING,
-            totalUrls: urls.length,
             startedAt: new Date(),
+            totalUrls: urls.length,
+            status: ValidationBatchStatus.PROCESSING,
         });
         await this.batchRepo.save(batch);
 
@@ -67,14 +67,14 @@ export class DiscoveryValidationService {
         for (const urlEntity of urls) {
             const startTime = Date.now();
             const evalResult = DiscoveryValidationHelper.evaluateUrl({
+                targetKeyword,
                 url: urlEntity.url,
                 title: urlEntity.title,
-                targetKeyword,
                 domain: urlEntity.domain,
             });
 
-            urlEntity.confidenceScore = evalResult.confidenceScore;
             urlEntity.matchResult = evalResult.matchResult;
+            urlEntity.confidenceScore = evalResult.confidenceScore;
             urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
 
             if (
@@ -89,15 +89,15 @@ export class DiscoveryValidationService {
             logEntries.push(
                 this.logRepo.create({
                     sessionId,
-                    discoveryUrlId: urlEntity.id,
+                    isLatestLog: true,
                     validationBatchId: batch.id,
+                    discoveryUrlId: urlEntity.id,
                     operationStatus: 'completed',
+                    reason: evalResult.reason,
                     matchResult: evalResult.matchResult,
                     confidenceScore: evalResult.confidenceScore,
-                    reason: evalResult.reason,
                     matchedCriteria: evalResult.matchedCriteria,
                     processingDuration: Date.now() - startTime,
-                    isLatestLog: true,
                 }),
             );
         }
@@ -105,13 +105,15 @@ export class DiscoveryValidationService {
         await this.dataSource.transaction(async (manager) => {
             await manager.save(DiscoveryUrlEntity, urls);
             await manager.save(DiscoveryValidationLogEntity, logEntries);
+
             await manager.update(DiscoveryValidationBatchEntity, batch.id, {
-                status: ValidationBatchStatus.COMPLETED,
-                processedUrls: urls.length,
+                completedAt: new Date(),
                 matchedUrls: matchedCount,
                 noMatchUrls: noMatchCount,
-                completedAt: new Date(),
+                processedUrls: urls.length,
+                status: ValidationBatchStatus.COMPLETED,
             });
+
             await manager.update(DiscoverySessionEntity, sessionId, {
                 totalValidated: urls.length,
             });
@@ -129,9 +131,10 @@ export class DiscoveryValidationService {
         }
 
         await this.batchRepo.update(batchId, {
-            status: ValidationBatchStatus.CANCELLED,
             reasonCancelled: reason,
+            status: ValidationBatchStatus.CANCELLED,
         });
+
         return true;
     }
 
@@ -141,29 +144,29 @@ export class DiscoveryValidationService {
 
         const startTime = Date.now();
         const evalResult = DiscoveryValidationHelper.evaluateUrl({
+            targetKeyword,
             url: urlEntity.url,
             title: urlEntity.title,
-            targetKeyword,
             domain: urlEntity.domain,
         });
 
-        urlEntity.confidenceScore = evalResult.confidenceScore;
         urlEntity.matchResult = evalResult.matchResult;
+        urlEntity.confidenceScore = evalResult.confidenceScore;
         urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
 
         await this.logRepo.update({ discoveryUrlId: urlId }, { isLatestLog: false });
 
         const log = this.logRepo.create({
-            sessionId: urlEntity.sessionId,
-            discoveryUrlId: urlEntity.id,
-            validationBatchId: urlEntity.sessionId, // Fallback if single
+            isLatestLog: true,
             operationStatus: 'completed',
+            discoveryUrlId: urlEntity.id,
+            sessionId: urlEntity.sessionId,
+            validationBatchId: urlEntity.sessionId, // Fallback if single
             matchResult: evalResult.matchResult,
             confidenceScore: evalResult.confidenceScore,
             reason: `Revalidation: ${evalResult.reason}`,
             matchedCriteria: evalResult.matchedCriteria,
             processingDuration: Date.now() - startTime,
-            isLatestLog: true,
         });
 
         await this.dataSource.transaction(async (manager) => {
@@ -179,8 +182,8 @@ export class DiscoveryValidationService {
 
         const result = await this.urlRepo.update(urlId, {
             userAction: action,
-            userActionDate: new Date(),
             userActionReason: reason,
+            userActionDate: new Date(),
             finalValidationStatus: finalStatus,
         });
 
@@ -198,8 +201,8 @@ export class DiscoveryValidationService {
             { id: In(urlIds) },
             {
                 userAction: action,
-                userActionDate: new Date(),
                 userActionReason: reason,
+                userActionDate: new Date(),
                 finalValidationStatus: finalStatus,
             },
         );
