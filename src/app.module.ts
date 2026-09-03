@@ -14,6 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { BullBoardAppModule } from './modules/bull-board/bull-board.module';
 import { CloudDataModule } from './modules/cloud-data/cloud-data.module';
 import { DataProviderModule } from './modules/data-provider/data-provider.module';
 import { GoogleModule } from './modules/google/google.module';
@@ -71,6 +72,7 @@ import { SharedModule } from './shared/shared.module';
         QueueModule,
         ScheduleExecutorModule,
         WorkerModule.register(),
+        BullBoardAppModule.register(),
         NotificationModule,
         WebsocketModule,
         CloudDataModule,

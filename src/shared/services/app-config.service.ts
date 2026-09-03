@@ -3,7 +3,15 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 
 import { ISwaggerConfigInterface } from '../../interfaces/swagger-config.interface';
-import { ICloudflareConfig, IJwtConfig, IRedisConfig, ISchedulerConfig, IScraperConfig, ITelegramConfig } from '../interfaces';
+import {
+    IBullBoardConfig,
+    ICloudflareConfig,
+    IJwtConfig,
+    IRedisConfig,
+    ISchedulerConfig,
+    IScraperConfig,
+    ITelegramConfig,
+} from '../interfaces';
 import { SnakeNamingStrategy } from '../typeorm/strategies/snake-naming.strategy';
 import { LoggerService } from './logger.service';
 
@@ -146,6 +154,15 @@ export class AppConfigService {
     get cloudflareConfig(): ICloudflareConfig {
         return {
             workerDomain: this.get('CLOUDFLARE_WORKER_DOMAIN'),
+        };
+    }
+
+    get bullBoardConfig(): IBullBoardConfig {
+        return {
+            enabled: this.getBoolean('ENABLE_BULL_BOARD') || false,
+            path: this.get('BULL_BOARD_PATH') || '/admin/queues',
+            username: this.get('BULL_BOARD_USERNAME') || 'admin',
+            password: this.get('BULL_BOARD_PASSWORD') || 'admin',
         };
     }
 }

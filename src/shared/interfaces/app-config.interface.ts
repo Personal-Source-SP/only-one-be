@@ -29,3 +29,10 @@ export interface ITelegramConfig {
 export interface ICloudflareConfig {
     workerDomain: string;
 }
+
+export interface IBullBoardConfig {
+    enabled: boolean;
+    path: string;
+    username: string;
+    password: string;
+}
