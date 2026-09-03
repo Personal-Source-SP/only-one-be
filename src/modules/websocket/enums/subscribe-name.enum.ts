@@ -18,6 +18,15 @@ export enum SubscribeName {
     AI_VALIDATION_FAILED = 'aiValidationFailed',
     AI_VALIDATION_CANCELLED = 'aiValidationCancelled',
     AI_URL_VALIDATION_UPDATE = 'aiUrlValidationUpdate',
+
+    // Job Lifecycle Events
+    JOB_STARTED = 'jobStarted',
+    JOB_PROGRESS = 'jobProgress',
+    JOB_COMPLETED = 'jobCompleted',
+    JOB_FAILED = 'jobFailed',
+
+    // Notification Events
+    NEW_NOTIFICATION = 'newNotification',
 }
 
 export enum WebSocketEvent {
@@ -27,6 +36,10 @@ export enum WebSocketEvent {
     HEARTBEAT = 'heartbeat',
     SUBSCRIBE = 'subscribe',
     UNSUBSCRIBE = 'unsubscribe',
+    SUBSCRIBE_JOB = 'subscribeJob',
+    UNSUBSCRIBE_JOB = 'unsubscribeJob',
+    SUBSCRIBE_PROVIDER = 'subscribeProvider',
+    UNSUBSCRIBE_PROVIDER = 'unsubscribeProvider',
 
     // Notification Events
     SCOUT_REQUEST_PROCESSING = 'scout.request.processing',
@@ -42,6 +55,12 @@ export enum WebSocketEvent {
     AI_VALIDATION_FAILED = 'ai.validation.failed',
     AI_VALIDATION_CANCELLED = 'ai.validation.cancelled',
     AI_URL_VALIDATION_UPDATE = 'ai.url.validation.update',
+
+    // Job Events
+    JOB_STARTED = 'job.started',
+    JOB_PROGRESS = 'job.progress',
+    JOB_COMPLETED = 'job.completed',
+    JOB_FAILED = 'job.failed',
 
     // Notification Events
     NOTIFICATION_CREATED = 'notification.created',

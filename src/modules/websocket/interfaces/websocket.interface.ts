@@ -44,3 +44,23 @@ export interface PriceMatrixData {
     lastScrapeStatus: string;
     lastScrapedTimestamp?: Date;
 }
+
+export interface IJobProgressData {
+    jobId: string;
+    jobName: string;
+    progress: number;
+    status: 'pending' | 'active' | 'completed' | 'failed';
+    data?: any;
+    error?: string;
+    timestamp: number;
+}
+
+export interface INotificationSocketData {
+    id: string;
+    userId: string;
+    title: string;
+    content: string;
+    type?: string;
+    metadata?: any;
+    createdAt?: Date | string;
+}

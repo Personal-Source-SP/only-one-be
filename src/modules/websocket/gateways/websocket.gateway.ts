@@ -48,6 +48,15 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             client.join('default');
             this.addClientToRoom(client.id, 'default');
 
+            // If user is authenticated, join personal user room
+            const user = client.data?.user;
+            if (user?.id) {
+                const userRoom = `user_${user.id}`;
+                client.join(userRoom);
+                this.addClientToRoom(client.id, userRoom);
+                this.loggerService.log(`Client ${client.id} joined personal room: ${userRoom}`);
+            }
+
             this.loggerService.log(`Client ${client.id} joined default room`);
         } catch (error) {
             this.loggerService.error(`Error handling connection for client ${client.id}: ${error.message}`);
@@ -149,6 +158,20 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
         }
     }
 
+    @SubscribeMessage(WebSocketEvent.SUBSCRIBE_JOB)
+    handleSubscribeJob(client: Socket, payload: { jobId: string } | string): WebSocketResponse {
+        const jobId = typeof payload === 'string' ? payload : payload?.jobId;
+        const roomName = `job_${jobId}`;
+        return this.handleJoinRoom(client, roomName);
+    }
+
+    @SubscribeMessage(WebSocketEvent.UNSUBSCRIBE_JOB)
+    handleUnsubscribeJob(client: Socket, payload: { jobId: string } | string): WebSocketResponse {
+        const jobId = typeof payload === 'string' ? payload : payload?.jobId;
+        const roomName = `job_${jobId}`;
+        return this.handleLeaveRoom(client, roomName);
+    }
+
     @SubscribeMessage(WebSocketEvent.MESSAGE)
     handleMessage<T>(client: Socket, message: WebSocketMessage<T>): WebSocketResponse {
         try {
@@ -214,6 +237,29 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             this.server.to(roomName).emit(event, { data, timestamp: Date.now() });
         } catch (error) {
             this.loggerService.error(`Error sending message to room: ${roomName}: ${error.message}`);
+        }
+    }
+
+    sendNotificationToUser<T>(userId: string | number, data: T): void {
+        try {
+            const roomName = `user_${userId}`;
+            this.loggerService.log(`Sending notification to user room: ${roomName}`);
+            this.server.to(roomName).emit(SubscribeName.NEW_NOTIFICATION, {
+                status: 'success',
+                timestamp: Date.now(),
+                data,
+            });
+        } catch (error) {
+            this.loggerService.error(`Error sending notification to user ${userId}: ${error.message}`);
+        }
+    }
+
+    sendJobProgress<T>(jobId: string, event: string, data: T): void {
+        try {
+            const roomName = `job_${jobId}`;
+            this.sendMessageToRoom(roomName, event, data);
+        } catch (error) {
+            this.loggerService.error(`Error sending job progress for ${jobId}: ${error.message}`);
         }
     }
 
