@@ -1,9 +1,10 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 
+import { LoggerService } from '../../../shared/services/logger.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IDiscoveryValidationJob } from '../../queue/interfaces';
 import { QueueService } from '../../queue/services/queue.service';
@@ -13,13 +14,7 @@ import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from '../entities/discovery-validation-batch.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
-import {
-    DiscoveryValidationStatus,
-    FinalValidationStatus,
-    ValidationBatchStatus,
-    ValidationMatchResult,
-    ValidationUserAction,
-} from '../enums';
+import { DiscoveryValidationStatus, FinalValidationStatus, ValidationBatchStatus, ValidationUserAction } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { DiscoveryUrlService } from './discovery-url.service';
 
@@ -28,6 +23,7 @@ export class DiscoveryValidationService {
     constructor(
         private readonly dataSource: DataSource,
         private readonly queueService: QueueService,
+        private readonly loggerService: LoggerService,
         @Inject(forwardRef(() => DiscoveryUrlService))
         private readonly discoveryUrlService: DiscoveryUrlService,
         @InjectMapper() private readonly mapper: Mapper,
@@ -55,11 +51,11 @@ export class DiscoveryValidationService {
         const batch = this.batchRepo.create({
             sessionId,
             batchNumber,
-            startedAt: new Date(),
-            totalUrls: urls.length,
-            processedUrls: 0,
             matchedUrls: 0,
             noMatchUrls: 0,
+            processedUrls: 0,
+            startedAt: new Date(),
+            totalUrls: urls.length,
             status: ValidationBatchStatus.PROCESSING,
         });
         await this.batchRepo.save(batch);
@@ -70,19 +66,23 @@ export class DiscoveryValidationService {
         // Enqueue bulk jobs into Redis queue
         const jobs = urls.map((u) => ({
             data: {
-                urlId: u.id,
                 sessionId,
-                batchId: batch.id,
                 targetKeyword,
+                urlId: u.id,
+                batchId: batch.id,
             } as IDiscoveryValidationJob,
             opts: {
                 attempts: 3,
-                backoff: { type: 'exponential', delay: 1000 },
                 removeOnComplete: true,
+                backoff: { type: 'exponential', delay: 1000 },
             },
         }));
 
-        await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_VALIDATION_JOB, jobs);
+        const result = await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_VALIDATION_JOB, jobs);
+        if (!result) {
+            this.loggerService.warn('[startBatchValidation] Failed to add jobs to queue');
+            throw new InternalServerErrorException('Failed to add jobs to queue');
+        }
 
         return this.mapper.map(batch, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
@@ -95,12 +95,12 @@ export class DiscoveryValidationService {
             throw new BadRequestException('Batch is already finished or cancelled');
         }
 
-        await this.batchRepo.update(batchId, {
+        const result = await this.batchRepo.update(batchId, {
             reasonCancelled: reason,
             status: ValidationBatchStatus.CANCELLED,
         });
 
-        return true;
+        return result.affected > 0;
     }
 
     async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlDto> {
@@ -176,8 +176,10 @@ export class DiscoveryValidationService {
             for (const urlId of urlIds) {
                 try {
                     await this.discoveryUrlService.ingestDiscoveredUrl(urlId);
-                } catch {
-                    // Log and continue on single failure
+                } catch (err) {
+                    this.loggerService.warn(
+                        `[submitBulkUserActions] Failed to ingest discovered URL with id: ${urlId} error: ${err?.message}`,
+                    );
                 }
             }
         }
