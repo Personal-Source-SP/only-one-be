@@ -3,6 +3,7 @@ export enum DiscoveryUrlStatus {
     QUEUED = 'queued',
     SCRAPED = 'scraped',
     FAILED = 'failed',
+    INGESTED = 'ingested',
 }
 
 export enum DiscoveryValidationStatus {

@@ -9,13 +9,8 @@ import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DISCOVERY_SESSION_PAGINATION_CONFIG } from '../constants/discovery-session-pagination.config';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
-import {
-    BatchEnqueueDiscoveryUrlsRequestDto,
-    CreateDiscoverySessionRequestDto,
-    SubmitBulkUserActionRequestDto,
-    TriggerValidationRequestDto,
-} from '../dtos/requests';
-import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
+import { CreateDiscoverySessionRequestDto, SubmitBulkUserActionRequestDto, TriggerValidationRequestDto } from '../dtos/requests';
+import { DiscoverySessionSummaryResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoverySessionService } from '../services/discovery-session.service';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
@@ -66,7 +61,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
     public async triggerValidation(
         @Param('id', new ParseUUIDPipe()) id: string,
         @Body() request?: TriggerValidationRequestDto,
-    ): Promise<any> {
+    ): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.startBatchValidation(id, request?.targetKeyword);
     }
 
@@ -75,7 +70,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
     @Version('1')
     @Get(':id/validation-latest-batch')
     @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async getLatestBatch(@Param('id', new ParseUUIDPipe()) id: string): Promise<any> {
+    public async getLatestBatch(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.getLatestValidationBatch(id);
     }
 
@@ -91,14 +86,15 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         return await this.validationService.submitBulkUserActions(request.urlIds, request.action, request.reason);
     }
 
-    @ApiOperation({ summary: 'Batch enqueue URLs into scraping queue' })
+    @ApiOperation({ summary: 'Batch ingest approved URLs into Item and DataProviderItem catalog' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @Post(':id/enqueue-urls')
-    public async batchEnqueueUrls(
+    @Post(':id/ingest-urls')
+    @BaseApiOkResponse(IngestDiscoveryUrlResponseDto)
+    public async batchIngestUrls(
         @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request: BatchEnqueueDiscoveryUrlsRequestDto,
-    ): Promise<{ enqueuedCount: number }> {
-        return await this.discoveryUrlService.batchEnqueue(id, request.urlIds);
+        @Body() request?: { urlIds?: string[] },
+    ): Promise<IngestDiscoveryUrlResponseDto> {
+        return await this.discoveryUrlService.batchIngest(id, request?.urlIds);
     }
 }

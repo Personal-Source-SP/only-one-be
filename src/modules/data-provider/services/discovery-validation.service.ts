@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 
+import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
+import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from '../entities/discovery-validation-batch.entity';
@@ -14,10 +18,15 @@ import {
     ValidationUserAction,
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
+import { DiscoveryUrlService } from './discovery-url.service';
 
 @Injectable()
 export class DiscoveryValidationService {
     constructor(
+        private readonly dataSource: DataSource,
+        @Inject(forwardRef(() => DiscoveryUrlService))
+        private readonly discoveryUrlService: DiscoveryUrlService,
+        @InjectMapper() private readonly mapper: Mapper,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly urlRepo: Repository<DiscoveryUrlEntity>,
         @InjectRepository(DiscoveryValidationBatchEntity)
@@ -26,10 +35,9 @@ export class DiscoveryValidationService {
         private readonly logRepo: Repository<DiscoveryValidationLogEntity>,
         @InjectRepository(DiscoverySessionEntity)
         private readonly sessionRepo: Repository<DiscoverySessionEntity>,
-        private readonly dataSource: DataSource,
     ) {}
 
-    async startBatchValidation(sessionId: string, targetKeyword?: string): Promise<DiscoveryValidationBatchEntity> {
+    async startBatchValidation(sessionId: string, targetKeyword?: string): Promise<DiscoveryValidationBatchDto> {
         const session = await this.sessionRepo.findOne({
             where: { id: sessionId },
             relations: ['dataProvider'],
@@ -112,7 +120,7 @@ export class DiscoveryValidationService {
             });
         });
 
-        return batch;
+        return this.mapper.map(batch, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
 
     async cancelValidationBatch(batchId: string, reason?: string): Promise<boolean> {
@@ -130,7 +138,7 @@ export class DiscoveryValidationService {
         return true;
     }
 
-    async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlEntity> {
+    async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlDto> {
         const urlEntity = await this.urlRepo.findOne({ where: { id: urlId } });
         if (!urlEntity) throw new NotFoundException('Discovered URL not found');
 
@@ -169,7 +177,7 @@ export class DiscoveryValidationService {
             await manager.save(DiscoveryValidationLogEntity, log);
         });
 
-        return urlEntity;
+        return this.mapper.map(urlEntity, DiscoveryUrlEntity, DiscoveryUrlDto);
     }
 
     async submitUserAction(urlId: string, action: ValidationUserAction, reason?: string): Promise<boolean> {
@@ -181,6 +189,11 @@ export class DiscoveryValidationService {
             userActionReason: reason,
             finalValidationStatus: finalStatus,
         });
+
+        if (action === ValidationUserAction.CONFIRM) {
+            await this.discoveryUrlService.ingestDiscoveredUrl(urlId);
+        }
+
         return (result.affected ?? 0) > 0;
     }
 
@@ -196,13 +209,27 @@ export class DiscoveryValidationService {
                 finalValidationStatus: finalStatus,
             },
         );
+
+        if (action === ValidationUserAction.CONFIRM) {
+            for (const urlId of urlIds) {
+                try {
+                    await this.discoveryUrlService.ingestDiscoveredUrl(urlId);
+                } catch {
+                    // Log and continue on single failure
+                }
+            }
+        }
+
         return (result.affected ?? 0) > 0;
     }
 
-    async getLatestValidationBatch(sessionId: string): Promise<DiscoveryValidationBatchEntity | null> {
-        return await this.batchRepo.findOne({
+    async getLatestValidationBatch(sessionId: string): Promise<DiscoveryValidationBatchDto | null> {
+        const batch = await this.batchRepo.findOne({
             where: { sessionId },
             order: { createdAt: 'DESC' },
         });
+        if (!batch) return null;
+
+        return this.mapper.map(batch, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
 }

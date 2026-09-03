@@ -6,6 +6,7 @@ import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
 import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
+import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { RevalidateUrlRequestDto, SubmitUserActionRequestDto } from '../dtos/requests';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
@@ -46,7 +47,10 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     @Version('1')
     @Post(':id/re-validate')
     @BaseApiOkResponse(DiscoveryUrlDto)
-    public async revalidate(@Param('id', new ParseUUIDPipe()) id: string, @Body() request?: RevalidateUrlRequestDto): Promise<any> {
+    public async revalidate(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() request?: RevalidateUrlRequestDto,
+    ): Promise<DiscoveryUrlDto> {
         return await this.validationService.revalidateDiscoveredUrl(id, request?.targetKeyword);
     }
 
@@ -54,7 +58,8 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Get(':id/validation-logs')
-    public async getValidationLogs(@Param('id', new ParseUUIDPipe()) id: string): Promise<any> {
+    @BaseApiOkResponse(DiscoveryValidationLogDto, { isArray: true })
+    public async getValidationLogs(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryUrlService.getValidationLogsByUrl(id);
     }
 }

@@ -1,3 +1,4 @@
+import { DiscoveryUrlStatus } from '../enums';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
 
 describe('DiscoveryUrlService', () => {
@@ -6,12 +7,21 @@ describe('DiscoveryUrlService', () => {
     let sessionRepo: any;
     let logRepo: any;
     let mapper: any;
-    let dataSource: any;
+    let itemService: any;
+    let dataProviderItemService: any;
 
     beforeEach(() => {
         urlRepo = {
-            find: jest.fn(),
-            findOne: jest.fn(),
+            find: jest
+                .fn()
+                .mockResolvedValue([{ id: 'url-1', dataProviderId: 'dp-1', url: 'https://example.com/p1?sku=SKU-1', title: 'Product 1' }]),
+            findOne: jest.fn().mockResolvedValue({
+                id: 'url-1',
+                dataProviderId: 'dp-1',
+                url: 'https://example.com/p1?sku=SKU-1',
+                title: 'Product 1',
+            }),
+            update: jest.fn().mockResolvedValue({ affected: 1 }),
             count: jest.fn().mockResolvedValue(2),
         };
 
@@ -29,27 +39,35 @@ describe('DiscoveryUrlService', () => {
             mapArray: jest.fn().mockImplementation((a: any) => a),
         };
 
-        dataSource = {
-            transaction: jest.fn().mockImplementation(async (cb) => {
-                return await cb({
-                    find: jest.fn().mockResolvedValue([
-                        { id: 'url-1', dataProviderId: 'dp-1', url: 'https://example.com/p1' },
-                        { id: 'url-2', dataProviderId: 'dp-1', url: 'https://example.com/p2' },
-                    ]),
-                    update: jest.fn().mockResolvedValue({ affected: 2 }),
-                    create: jest.fn().mockImplementation((_: any, dto: any) => dto),
-                    save: jest.fn().mockResolvedValue([]),
-                    count: jest.fn().mockResolvedValue(2),
-                });
-            }),
+        itemService = {
+            findOneByFilter: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue({ id: 'item-1', name: 'Product 1', code: 'SKU-1' }),
         };
 
-        service = new DiscoveryUrlService(urlRepo, sessionRepo, logRepo, mapper, dataSource);
+        dataProviderItemService = {
+            findOneByFilterAndOptions: jest.fn().mockResolvedValue(null),
+            create: jest
+                .fn()
+                .mockResolvedValue({ id: 'dpi-1', itemId: 'item-1', dataProviderId: 'dp-1', itemUrl: 'https://example.com/p1?sku=SKU-1' }),
+        };
+
+        service = new DiscoveryUrlService(itemService, dataProviderItemService, mapper, urlRepo, sessionRepo, logRepo);
     });
 
-    it('should batch enqueue URLs into scraping queue and update session totalQueued', async () => {
-        const result = await service.batchEnqueue('session-1', ['url-1', 'url-2']);
-        expect(result.enqueuedCount).toBe(2);
-        expect(dataSource.transaction).toHaveBeenCalled();
+    it('should ingest discovered URL by creating item and dataProviderItem', async () => {
+        const result = await service.ingestDiscoveredUrl('url-1');
+
+        expect(result.itemId).toBe('item-1');
+        expect(result.dataProviderItemId).toBe('dpi-1');
+        expect(result.isNewItem).toBe(true);
+        expect(urlRepo.update).toHaveBeenCalledWith('url-1', { status: DiscoveryUrlStatus.INGESTED });
+    });
+
+    it('should batch ingest URLs in a session', async () => {
+        const result = await service.batchIngest('session-1', ['url-1']);
+
+        expect(result.totalProcessed).toBe(1);
+        expect(result.itemsCreated).toBe(1);
+        expect(result.dataProviderItemsCreated).toBe(1);
     });
 });
