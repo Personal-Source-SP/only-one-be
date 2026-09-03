@@ -16,4 +16,5 @@
 - **[AVOID]** Non-idempotent item ingestion actions — Ensure approving or ingesting a `DiscoveryUrl` multiple times is safe and idempotent.
 - **[AVOID]** Performing heavy batch URL heuristic scoring synchronously in-process on the API server — Offload batch validation jobs to background worker queues (`QUEUE_NAME.DISCOVERY_VALIDATION_JOB`) with atomic counter increments.
 - **[AVOID]** Hardcoding fallback boundaries for crawler limits (`maxUrls`) — Allow `null` for unbounded traversals constrained solely by search depth.
+- **[AVOID]** Performing heavy multi-table database transactions and business entity creation directly inside worker processors — Keep worker processors as thin delegators that focus purely on queue job lifecycle, offloading domain business rules and atomic progress transactions to dedicated domain services.
 

@@ -113,4 +113,73 @@ describe('DiscoveryValidationService', () => {
             }),
         );
     });
+
+    it('should validate URL for batch and execute transaction successfully', async () => {
+        batchRepo.findOne.mockResolvedValue({
+            id: 'batch-1',
+            status: 'processing',
+            totalUrls: 10,
+            processedUrls: 9,
+        });
+
+        urlRepo.findOne.mockResolvedValue({
+            id: 'url-1',
+            sessionId: 'session-1',
+            url: 'https://amazon.com/dp/B08N5WRWNW',
+            domain: 'amazon.com',
+            title: 'Sony WH-1000XM4 Headphones',
+        });
+
+        const mockExecute = jest.fn().mockResolvedValue({ affected: 1 });
+        const mockManager: any = {
+            update: jest.fn().mockResolvedValue({ affected: 1 }),
+            save: jest.fn().mockResolvedValue(true),
+            create: jest.fn().mockImplementation((entityClass, data) => data),
+            findOne: jest.fn().mockResolvedValue({
+                id: 'batch-1',
+                totalUrls: 10,
+                processedUrls: 10,
+            }),
+            createQueryBuilder: jest.fn().mockReturnValue({
+                update: jest.fn().mockReturnThis(),
+                set: jest.fn().mockReturnThis(),
+                where: jest.fn().mockReturnThis(),
+                execute: mockExecute,
+            }),
+        };
+
+        dataSource.transaction = jest.fn().mockImplementation(async (cb) => cb(mockManager));
+
+        await service.validateUrlForBatch({
+            urlId: 'url-1',
+            sessionId: 'session-1',
+            batchId: 'batch-1',
+            targetKeyword: 'Sony WH-1000XM4',
+        });
+
+        expect(mockManager.update).toHaveBeenCalledWith(
+            expect.anything(),
+            'url-1',
+            expect.objectContaining({
+                validationStatus: 'completed',
+            }),
+        );
+        expect(mockManager.save).toHaveBeenCalled();
+        expect(mockExecute).toHaveBeenCalled();
+    });
+
+    it('should skip validateUrlForBatch if batch is cancelled', async () => {
+        batchRepo.findOne.mockResolvedValue({
+            id: 'batch-1',
+            status: 'cancelled',
+        });
+
+        await service.validateUrlForBatch({
+            urlId: 'url-1',
+            sessionId: 'session-1',
+            batchId: 'batch-1',
+        });
+
+        expect(urlRepo.findOne).not.toHaveBeenCalled();
+    });
 });

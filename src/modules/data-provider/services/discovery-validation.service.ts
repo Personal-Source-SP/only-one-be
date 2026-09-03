@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 
 import { LoggerService } from '../../../shared/services/logger.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
@@ -14,7 +14,13 @@ import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationBatchEntity } from '../entities/discovery-validation-batch.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
-import { DiscoveryValidationStatus, FinalValidationStatus, ValidationBatchStatus, ValidationUserAction } from '../enums';
+import {
+    DiscoveryValidationStatus,
+    FinalValidationStatus,
+    ValidationBatchStatus,
+    ValidationMatchResult,
+    ValidationUserAction,
+} from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { DiscoveryUrlService } from './discovery-url.service';
 
@@ -185,6 +191,84 @@ export class DiscoveryValidationService {
         }
 
         return (result.affected ?? 0) > 0;
+    }
+
+    async validateUrlForBatch(jobData: IDiscoveryValidationJob): Promise<void> {
+        const { urlId, sessionId, batchId, targetKeyword } = jobData;
+        const startTime = Date.now();
+
+        const batch = await this.discoveryValidationBatchRepository.findOne({ where: { id: batchId } });
+        if (!batch || batch.status === ValidationBatchStatus.CANCELLED) {
+            this.loggerService.warn(`[validateUrlForBatch] Skipping validation: Batch ${batchId} not found or cancelled`);
+            return;
+        }
+
+        const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
+        if (!urlEntity) {
+            this.loggerService.warn(`[validateUrlForBatch] Skipping validation: Discovery URL ${urlId} not found`);
+            return;
+        }
+
+        const evalResult = DiscoveryValidationHelper.evaluateUrl({
+            targetKeyword,
+            url: urlEntity.url,
+            title: urlEntity.title,
+            domain: urlEntity.domain,
+        });
+
+        const isMatched =
+            evalResult.matchResult === ValidationMatchResult.EXACT_MATCH ||
+            evalResult.matchResult === ValidationMatchResult.PARTIAL_MATCH;
+
+        await this.dataSource.transaction(async (manager) => {
+            await manager.update(DiscoveryUrlEntity, urlId, {
+                matchResult: evalResult.matchResult,
+                confidenceScore: evalResult.confidenceScore,
+                validationStatus: DiscoveryValidationStatus.COMPLETED,
+            });
+
+            await manager.save(
+                DiscoveryValidationLogEntity,
+                manager.create(DiscoveryValidationLogEntity, {
+                    sessionId,
+                    isLatestLog: true,
+                    validationBatchId: batchId,
+                    discoveryUrlId: urlId,
+                    operationStatus: 'completed',
+                    reason: evalResult.reason,
+                    matchResult: evalResult.matchResult,
+                    confidenceScore: evalResult.confidenceScore,
+                    matchedCriteria: evalResult.matchedCriteria,
+                    processingDuration: Date.now() - startTime,
+                }),
+            );
+
+            await this.incrementBatchProgress(manager, batchId, isMatched);
+
+            const updatedBatch = await manager.findOne(DiscoveryValidationBatchEntity, { where: { id: batchId } });
+            if (updatedBatch && updatedBatch.processedUrls >= updatedBatch.totalUrls) {
+                await manager.update(DiscoveryValidationBatchEntity, batchId, {
+                    status: ValidationBatchStatus.COMPLETED,
+                    completedAt: new Date(),
+                });
+                await manager.update(DiscoverySessionEntity, sessionId, {
+                    totalValidated: updatedBatch.processedUrls,
+                });
+            }
+        });
+    }
+
+    private async incrementBatchProgress(manager: EntityManager, batchId: string, isMatched: boolean): Promise<void> {
+        await manager
+            .createQueryBuilder()
+            .update(DiscoveryValidationBatchEntity)
+            .set({
+                processedUrls: () => 'processed_urls + 1',
+                matchedUrls: () => (isMatched ? 'matched_urls + 1' : 'matched_urls'),
+                noMatchUrls: () => (!isMatched ? 'no_match_urls + 1' : 'no_match_urls'),
+            })
+            .where('id = :batchId', { batchId })
+            .execute();
     }
 
     async getLatestValidationBatch(sessionId: string): Promise<DiscoveryValidationBatchDto | null> {

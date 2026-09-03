@@ -42,3 +42,10 @@
   > *"WebSocket gateway utilizes targeted channel subscriptions to broadcast job telemetry directly to interested clients without broadcasting globally."*
 - **Origin Task**: `20260903-192300-sync-websocket-infrastructure`
 
+### 7. Thin Delegator Worker Pattern & Service Encapsulation
+- **Meaning (VI)**: Mô hình worker tinh gọn chỉ điều phối hàng đợi và chuyển giao toàn bộ giao dịch nghiệp vụ sang domain service.
+- **Grammar / Usage**: `Structure worker processors as [thin delegators] while encapsulating [multi-entity transactions] in domain services`
+- **Engineering Example**:
+  > *"Adopting the thin delegator pattern ensures workers focus strictly on queue job dispatching, while the domain service encapsulates atomic batch updates."*
+- **Origin Task**: `20260903-211230-refactor-discovery-validation-worker`
+
