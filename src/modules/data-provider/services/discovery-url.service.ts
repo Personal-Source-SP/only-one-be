@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
@@ -62,15 +62,15 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         // Step 4: Check & create DataProviderItem
         let dataProviderItem = await this.dataProviderItemService.findOneByFilterAndOptions({
             itemId: item.id,
-            dataProviderId: urlEntity.dataProviderId,
             itemUrl: urlEntity.url,
+            dataProviderId: urlEntity.dataProviderId,
         });
 
         if (!dataProviderItem) {
             dataProviderItem = await this.dataProviderItemService.create({
                 itemId: item.id,
-                dataProviderId: urlEntity.dataProviderId,
                 itemUrl: urlEntity.url,
+                dataProviderId: urlEntity.dataProviderId,
             });
         }
 
@@ -78,9 +78,9 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         await this.urlRepository.update(urlId, { status: DiscoveryUrlStatus.INGESTED });
 
         return new IngestDiscoveredUrlResponseDto({
+            isNewItem,
             itemId: item.id,
             dataProviderItemId: dataProviderItem.id,
-            isNewItem,
         });
     }
 
@@ -88,7 +88,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         const session = await this.sessionRepository.findOne({ where: { id: sessionId } });
         if (!session) throw new NotFoundException(`Discovery session not found with id: ${sessionId}`);
 
-        const whereCondition: any = { sessionId };
+        const whereCondition: FindOptionsWhere<DiscoveryUrlEntity> = { sessionId };
         if (urlIds && urlIds.length > 0) {
             whereCondition.id = In(urlIds);
         } else {
@@ -117,6 +117,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
                 } else {
                     itemsReused++;
                 }
+
                 dataProviderItemsCreated++;
             } catch (error) {
                 this.loggerService.error(`Failed to ingest discovery URL ${u.id}: ${error.message}`);
@@ -124,10 +125,10 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         }
 
         return new IngestDiscoveryUrlResponseDto({
-            totalProcessed: urls.length,
-            itemsCreated,
             itemsReused,
+            itemsCreated,
             dataProviderItemsCreated,
+            totalProcessed: urls.length,
         });
     }
 
@@ -140,7 +141,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         return this.mapper.mapArray(entities, DiscoveryValidationLogEntity, DiscoveryValidationLogDto);
     }
 
-    private extractCodeFromUrl(url: string, _title?: string): string | undefined {
+    private extractCodeFromUrl(url: string, title?: string): string | undefined {
         try {
             const parsed = new URL(url);
             const skuParam =
@@ -148,6 +149,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
                 parsed.searchParams.get('code') ||
                 parsed.searchParams.get('productId') ||
                 parsed.searchParams.get('id');
+
             if (skuParam && skuParam.length <= 20) {
                 return skuParam;
             }
@@ -159,6 +161,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         } catch {
             // ignore malformed URL
         }
+
         return undefined;
     }
 }
