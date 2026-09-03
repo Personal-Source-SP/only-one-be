@@ -28,27 +28,27 @@ export class DiscoveryValidationService {
         private readonly discoveryUrlService: DiscoveryUrlService,
         @InjectMapper() private readonly mapper: Mapper,
         @InjectRepository(DiscoveryUrlEntity)
-        private readonly urlRepo: Repository<DiscoveryUrlEntity>,
-        @InjectRepository(DiscoveryValidationBatchEntity)
-        private readonly batchRepo: Repository<DiscoveryValidationBatchEntity>,
-        @InjectRepository(DiscoveryValidationLogEntity)
-        private readonly logRepo: Repository<DiscoveryValidationLogEntity>,
+        private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
         @InjectRepository(DiscoverySessionEntity)
-        private readonly sessionRepo: Repository<DiscoverySessionEntity>,
+        private readonly discoverySessionRepository: Repository<DiscoverySessionEntity>,
+        @InjectRepository(DiscoveryValidationLogEntity)
+        private readonly discoveryValidationLogRepository: Repository<DiscoveryValidationLogEntity>,
+        @InjectRepository(DiscoveryValidationBatchEntity)
+        private readonly discoveryValidationBatchRepository: Repository<DiscoveryValidationBatchEntity>,
     ) {}
 
     async startBatchValidation(sessionId: string, targetKeyword?: string): Promise<DiscoveryValidationBatchDto> {
-        const session = await this.sessionRepo.findOne({
+        const session = await this.discoverySessionRepository.findOne({
             where: { id: sessionId },
             relations: ['dataProvider'],
         });
         if (!session) throw new NotFoundException('Discovery session not found');
 
-        const urls = await this.urlRepo.find({ where: { sessionId } });
+        const urls = await this.discoveryUrlRepository.find({ where: { sessionId } });
         if (!urls.length) throw new BadRequestException('No discovered URLs found for session');
 
         const batchNumber = `BATCH-${Date.now()}`;
-        const batch = this.batchRepo.create({
+        const batch = this.discoveryValidationBatchRepository.create({
             sessionId,
             batchNumber,
             matchedUrls: 0,
@@ -58,10 +58,10 @@ export class DiscoveryValidationService {
             totalUrls: urls.length,
             status: ValidationBatchStatus.PROCESSING,
         });
-        await this.batchRepo.save(batch);
+        await this.discoveryValidationBatchRepository.save(batch);
 
         // Mark existing logs as not latest
-        await this.logRepo.update({ sessionId }, { isLatestLog: false });
+        await this.discoveryValidationLogRepository.update({ sessionId }, { isLatestLog: false });
 
         // Enqueue bulk jobs into Redis queue
         const jobs = urls.map((u) => ({
@@ -88,14 +88,14 @@ export class DiscoveryValidationService {
     }
 
     async cancelValidationBatch(batchId: string, reason?: string): Promise<boolean> {
-        const batch = await this.batchRepo.findOne({ where: { id: batchId } });
+        const batch = await this.discoveryValidationBatchRepository.findOne({ where: { id: batchId } });
         if (!batch) throw new NotFoundException('Validation batch not found');
 
         if ([ValidationBatchStatus.COMPLETED, ValidationBatchStatus.CANCELLED].includes(batch.status)) {
             throw new BadRequestException('Batch is already finished or cancelled');
         }
 
-        const result = await this.batchRepo.update(batchId, {
+        const result = await this.discoveryValidationBatchRepository.update(batchId, {
             reasonCancelled: reason,
             status: ValidationBatchStatus.CANCELLED,
         });
@@ -104,7 +104,7 @@ export class DiscoveryValidationService {
     }
 
     async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlDto> {
-        const urlEntity = await this.urlRepo.findOne({ where: { id: urlId } });
+        const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
         if (!urlEntity) throw new NotFoundException('Discovered URL not found');
 
         const startTime = Date.now();
@@ -119,9 +119,9 @@ export class DiscoveryValidationService {
         urlEntity.confidenceScore = evalResult.confidenceScore;
         urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
 
-        await this.logRepo.update({ discoveryUrlId: urlId }, { isLatestLog: false });
+        await this.discoveryValidationLogRepository.update({ discoveryUrlId: urlId }, { isLatestLog: false });
 
-        const log = this.logRepo.create({
+        const log = this.discoveryValidationLogRepository.create({
             isLatestLog: true,
             operationStatus: 'completed',
             discoveryUrlId: urlEntity.id,
@@ -145,7 +145,7 @@ export class DiscoveryValidationService {
     async submitUserAction(urlId: string, action: ValidationUserAction, reason?: string): Promise<boolean> {
         const finalStatus = action === ValidationUserAction.CONFIRM ? FinalValidationStatus.APPROVED : FinalValidationStatus.REJECTED;
 
-        const result = await this.urlRepo.update(urlId, {
+        const result = await this.discoveryUrlRepository.update(urlId, {
             userAction: action,
             userActionReason: reason,
             userActionDate: new Date(),
@@ -162,7 +162,7 @@ export class DiscoveryValidationService {
     async submitBulkUserActions(urlIds: string[], action: ValidationUserAction, reason?: string): Promise<boolean> {
         const finalStatus = action === ValidationUserAction.CONFIRM ? FinalValidationStatus.APPROVED : FinalValidationStatus.REJECTED;
 
-        const result = await this.urlRepo.update(
+        const result = await this.discoveryUrlRepository.update(
             { id: In(urlIds) },
             {
                 userAction: action,
@@ -188,7 +188,7 @@ export class DiscoveryValidationService {
     }
 
     async getLatestValidationBatch(sessionId: string): Promise<DiscoveryValidationBatchDto | null> {
-        const batch = await this.batchRepo.findOne({
+        const batch = await this.discoveryValidationBatchRepository.findOne({
             where: { sessionId },
             order: { createdAt: 'DESC' },
         });

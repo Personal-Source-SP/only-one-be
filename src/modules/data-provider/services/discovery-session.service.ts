@@ -22,13 +22,13 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         private readonly discoveryRunner: DiscoveryRunner,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoverySessionEntity)
-        private readonly sessionRepository: Repository<DiscoverySessionEntity>,
+        private readonly discoverySessionRepository: Repository<DiscoverySessionEntity>,
         @InjectRepository(DataProviderEntity)
         private readonly dataProviderRepository: Repository<DataProviderEntity>,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
     ) {
-        super(sessionRepository, mapper, DiscoverySessionDto, DiscoverySessionService.name);
+        super(discoverySessionRepository, mapper, DiscoverySessionDto, DiscoverySessionService.name);
     }
 
     async createSession(request: CreateDiscoverySessionRequestDto, user?: PayloadDto): Promise<DiscoverySessionDto> {
