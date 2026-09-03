@@ -17,6 +17,9 @@ import { QueueService } from './services/queue.service';
             {
                 name: QUEUE_NAME.DISCOVERY_VALIDATION_JOB,
             },
+            {
+                name: QUEUE_NAME.DISCOVERY_INGESTION_JOB,
+            },
         ),
     ],
     controllers: [QueueController],

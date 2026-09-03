@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
+import { QueueService } from '../../queue/services/queue.service';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
@@ -21,6 +23,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
     constructor(
         private readonly itemService: ItemService,
         private readonly dataProviderItemService: DataProviderItemService,
+        private readonly queueService: QueueService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
@@ -98,36 +101,42 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         if (!urls.length) {
             return new IngestDiscoveryUrlResponseDto({
                 totalProcessed: 0,
+                totalQueued: 0,
+                sessionId,
                 itemsCreated: 0,
                 itemsReused: 0,
                 dataProviderItemsCreated: 0,
             });
         }
 
-        let itemsCreated = 0;
-        let itemsReused = 0;
-        let dataProviderItemsCreated = 0;
+        const targetUrlIds = urls.map((u) => u.id);
+        await this.discoveryUrlRepository.update({ id: In(targetUrlIds) }, { status: DiscoveryUrlStatus.QUEUED });
 
-        for (const u of urls) {
-            try {
-                const result = await this.ingestDiscoveredUrl(u.id);
-                if (result.isNewItem) {
-                    itemsCreated++;
-                } else {
-                    itemsReused++;
-                }
+        const jobs = urls.map((u) => ({
+            data: {
+                urlId: u.id,
+                sessionId: u.sessionId,
+                dataProviderId: u.dataProviderId,
+            },
+            opts: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+                removeOnComplete: true,
+            },
+        }));
 
-                dataProviderItemsCreated++;
-            } catch (error) {
-                this.loggerService.error(`Failed to ingest discovery URL ${u.id}: ${error.message}`);
-            }
-        }
+        await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_INGESTION_JOB, jobs);
 
         return new IngestDiscoveryUrlResponseDto({
-            itemsReused,
-            itemsCreated,
-            dataProviderItemsCreated,
             totalProcessed: urls.length,
+            totalQueued: urls.length,
+            sessionId,
+            itemsCreated: 0,
+            itemsReused: 0,
+            dataProviderItemsCreated: 0,
         });
     }
 
