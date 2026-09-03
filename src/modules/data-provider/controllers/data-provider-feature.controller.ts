@@ -28,7 +28,7 @@ import {
     TestFeatureStatelessRequestDto,
     UpdateFeatureConfigRequestDto,
 } from '../dtos/requests/data-provider-feature-request.dto';
-import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { ConfigVersionService } from '../services/config-version.service';
 import { DataProviderFeatureService } from '../services/data-provider-feature.service';
@@ -50,7 +50,7 @@ export class DataProviderFeatureController {
     @Post('test')
     public async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<any> {
         const runner = this.runnerRegistry.getRunner(request.type);
-        return await runner.testStateless(request.service || 'generic', request.config, request.input);
+        return await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
     }
 
     @ApiOperation({ summary: 'Get feature by ID' })

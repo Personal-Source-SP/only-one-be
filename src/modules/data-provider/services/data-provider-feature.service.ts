@@ -12,7 +12,7 @@ import { NotificationType } from '../../notification/enum/notification.enum';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import { CreateDataProviderFeatureRequestDto, UpdateFeatureConfigRequestDto } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { ConfigVersionType } from '../enums/config-version-type.enum';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { ConfigVersionService } from './config-version.service';
@@ -42,7 +42,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         const entity = this.dataProviderFeatureRepository.create({
             dataProviderId,
             type: request.type,
-            service: request.service || 'generic',
+            service: request.service || ScraperServiceEnum.GENERIC,
             config: request.config,
             consecutiveFailures: 0,
             status: DataProviderFeatureStatus.UNCONFIGURED,

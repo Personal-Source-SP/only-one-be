@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
-import { DataProviderFeatureType } from '../../enums';
+import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderFeatureRequestDto {
     @ApiProperty({ enum: DataProviderFeatureType, description: 'Type of feature' })
@@ -9,10 +9,10 @@ export class CreateDataProviderFeatureRequestDto {
     @IsNotEmpty()
     type: DataProviderFeatureType;
 
-    @ApiPropertyOptional({ default: 'generic', description: 'Service runtime identifier' })
-    @IsString()
+    @ApiPropertyOptional({ enum: ScraperServiceEnum, default: ScraperServiceEnum.GENERIC, description: 'Service runtime identifier' })
+    @IsEnum(ScraperServiceEnum)
     @IsOptional()
-    service?: string;
+    service?: ScraperServiceEnum;
 
     @ApiPropertyOptional({ type: Object, description: 'Feature configuration payload' })
     @IsObject()
@@ -26,10 +26,10 @@ export class UpdateFeatureConfigRequestDto {
     @IsNotEmpty()
     config: Record<string, any>;
 
-    @ApiPropertyOptional({ description: 'Service runtime identifier' })
-    @IsString()
+    @ApiPropertyOptional({ enum: ScraperServiceEnum, description: 'Service runtime identifier' })
+    @IsEnum(ScraperServiceEnum)
     @IsOptional()
-    service?: string;
+    service?: ScraperServiceEnum;
 
     @ApiPropertyOptional({ description: 'Description of changes for version history' })
     @IsString()
@@ -43,10 +43,10 @@ export class TestFeatureStatelessRequestDto {
     @IsNotEmpty()
     type: DataProviderFeatureType;
 
-    @ApiPropertyOptional({ default: 'generic', description: 'Service engine to test' })
-    @IsString()
+    @ApiPropertyOptional({ enum: ScraperServiceEnum, default: ScraperServiceEnum.GENERIC, description: 'Service engine to test' })
+    @IsEnum(ScraperServiceEnum)
     @IsOptional()
-    service?: string;
+    service?: ScraperServiceEnum;
 
     @ApiProperty({ type: Object, description: 'Raw draft configuration payload' })
     @IsObject()

@@ -34,3 +34,18 @@
 - **Engineering Example**:
   > *"By deleting PriceDetectorHelper, we eliminate an extraneous dependency from the discovery subsystem."*
 - **Origin Task**: `20260903-161800-purge-price-fields-from-discovery`
+
+### 6. Tighten Validation Constraints
+- **Meaning (VI)**: Thắt chặt các ràng buộc kiểm tra hợp lệ dữ liệu đầu vào.
+- **Grammar / Usage**: `tighten + validation constraints / rules`
+- **Engineering Example**:
+  > *"We tightened the validation constraints on request DTOs by replacing `@IsString()` with `@IsEnum(ScraperServiceEnum)`."*
+- **Origin Task**: `20260903-214741-set-scraper-service-enum-for-data-provider-feature`
+
+### 7. Graceful Fallback
+- **Meaning (VI)**: Cơ chế chuyển đổi dự phòng êm đẹp/tự động nhận giá trị an toàn khi thiếu tham số.
+- **Grammar / Usage**: `provide / ensure + graceful fallback`
+- **Engineering Example**:
+  > *"Using `ScraperServiceEnum.GENERIC` ensures a graceful fallback whenever the client omits the service field."*
+- **Origin Task**: `20260903-214741-set-scraper-service-enum-for-data-provider-feature`
+

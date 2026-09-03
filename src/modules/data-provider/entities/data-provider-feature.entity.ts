@@ -2,7 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { ConfigVersionEntity } from './config-version.entity';
 import { DataProviderEntity } from './data-provider.entity';
 
@@ -17,9 +17,9 @@ export class DataProviderFeatureEntity extends AbstractEntity {
     @AutoMap()
     type: DataProviderFeatureType;
 
-    @Column({ type: 'varchar', length: 50, default: 'generic' })
+    @Column({ type: 'varchar', length: 50, default: ScraperServiceEnum.GENERIC })
     @AutoMap()
-    service: string;
+    service: ScraperServiceEnum;
 
     @Column({ type: 'varchar', length: 50, default: DataProviderFeatureStatus.UNCONFIGURED })
     @AutoMap()
