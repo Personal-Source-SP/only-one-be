@@ -38,11 +38,7 @@ describe('DiscoverySessionService', () => {
             runDiscovery: jest.fn().mockResolvedValue(undefined),
         };
 
-        const discoveryUrlService: any = {
-            batchIngest: jest.fn().mockResolvedValue({ totalProcessed: 1, itemsCreated: 1, itemsReused: 0, dataProviderItemsCreated: 1 }),
-        };
-
-        service = new DiscoverySessionService(sessionRepo, dataProviderRepo, discoveryUrlRepo, mapper, runnerService, discoveryUrlService);
+        service = new DiscoverySessionService(runnerService, mapper, sessionRepo, dataProviderRepo, discoveryUrlRepo);
     });
 
     it('should create a new discovery session with generated sessionCode and trigger runner', async () => {
@@ -108,11 +104,5 @@ describe('DiscoverySessionService', () => {
         expect(summary.exactMatches).toBe(5);
         expect(summary.partialMatches).toBe(5);
         expect(summary.noMatches).toBe(5);
-    });
-
-    it('should delegate batchIngestUrls to discoveryUrlService.batchIngest', async () => {
-        const result = await service.batchIngestUrls('session-1', ['url-1']);
-        expect(result).toBeDefined();
-        expect(result.itemsCreated).toBe(1);
     });
 });

@@ -26,8 +26,8 @@ export class DiscoveryRunner {
     constructor(
         private readonly scraperService: ScraperService,
         private readonly baseHttpService: BaseHttpService,
-        private readonly validationService: DiscoveryValidationService,
         private readonly extractDataHelper: ExtractDataHelper,
+        private readonly validationService: DiscoveryValidationService,
         @InjectRepository(DiscoverySessionEntity)
         private readonly sessionRepo: Repository<DiscoverySessionEntity>,
         @InjectRepository(DiscoveryUrlEntity)

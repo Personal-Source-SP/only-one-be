@@ -8,21 +8,18 @@ import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { CreateDiscoverySessionRequestDto } from '../dtos/requests/create-discovery-session-request.dto';
-import { DiscoverySessionSummaryResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
+import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { ValidationMatchResult } from '../enums';
 import { DiscoveryRunner } from '../runners/discovery.runner';
-import { DiscoveryUrlService } from './discovery-url.service';
 
 @Injectable()
 export class DiscoverySessionService extends BaseService<DiscoverySessionEntity, DiscoverySessionDto> {
     constructor(
         @Inject(forwardRef(() => DiscoveryRunner))
         private readonly discoveryRunner: DiscoveryRunner,
-        @Inject(forwardRef(() => DiscoveryUrlService))
-        private readonly discoveryUrlService: DiscoveryUrlService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoverySessionEntity)
         private readonly sessionRepository: Repository<DiscoverySessionEntity>,
@@ -76,16 +73,12 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
 
         return new DiscoverySessionSummaryResponseDto({
             session,
+            noMatches,
             exactMatches,
             partialMatches,
-            noMatches,
-            totalDiscovered: session.totalDiscovered,
             totalQueued: session.totalQueued,
+            totalDiscovered: session.totalDiscovered,
         });
-    }
-
-    async batchIngestUrls(sessionId: string, urlIds?: string[]): Promise<IngestDiscoveryUrlResponseDto> {
-        return await this.discoveryUrlService.batchIngest(sessionId, urlIds);
     }
 
     private generateSessionCode(dataProvider: DataProviderEntity): string {
