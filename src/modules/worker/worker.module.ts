@@ -2,14 +2,21 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AppConfigService } from '../../shared/services/app-config.service';
+import { AuditLogModule } from '../audit-log/audit-log.module';
 import { DataProviderModule } from '../data-provider/data-provider.module';
 import { QueueModule } from '../queue/queue.module';
 import { ScheduleExecutorModule } from '../schedule/schedule.module';
+import { AuditLogWorkerProcessor } from './processors/audit-log-worker.processor';
 import { DiscoveryIngestionWorkerProcessor } from './processors/discovery-ingestion-worker.processor';
 import { DiscoveryValidationWorkerProcessor } from './processors/discovery-validation-worker.processor';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
 
-const processors = [ScrapingWorkerProcessor, DiscoveryValidationWorkerProcessor, DiscoveryIngestionWorkerProcessor];
+const processors = [
+    ScrapingWorkerProcessor,
+    DiscoveryValidationWorkerProcessor,
+    DiscoveryIngestionWorkerProcessor,
+    AuditLogWorkerProcessor,
+];
 
 @Module({})
 export class WorkerModule {
@@ -28,7 +35,7 @@ export class WorkerModule {
 
         return {
             module: WorkerModule,
-            imports: [QueueModule, ConfigModule, ScheduleExecutorModule, DataProviderModule],
+            imports: [QueueModule, ConfigModule, ScheduleExecutorModule, DataProviderModule, AuditLogModule],
             controllers: [],
             providers: providers,
             exports: [],

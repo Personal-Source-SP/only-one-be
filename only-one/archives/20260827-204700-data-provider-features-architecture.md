@@ -34,13 +34,13 @@ flowchart TD
 ```
 
 ## 3. Scope & Key Changes
-- [`src/modules/data-provider/entities/data-provider.entity.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/entities/data-provider.entity.ts): Flat provider entity schema without parent-child relation.
-- [`src/modules/data-provider/entities/data-provider-feature.entity.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/entities/data-provider-feature.entity.ts): Pluggable feature entity with polymorphic JSONB config and status lifecycle.
-- [`src/modules/data-provider/entities/config-version.entity.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/entities/config-version.entity.ts): Version history snapshot entity anchored to `featureId`.
-- [`src/modules/data-provider/controllers/data-provider-feature.controller.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/controllers/data-provider-feature.controller.ts): RESTful feature management, version rollback, and test execution API.
-- [`src/modules/data-provider/services/data-provider-feature.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/data-provider-feature.service.ts): Feature lifecycle, status toggling, and metric tracking.
-- [`src/modules/data-provider/services/config-version.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/config-version.service.ts): Version creation, listing with pagination and active flags, and atomic rollback service.
-- [`src/modules/data-provider/runners/`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/runners): Feature runner strategy registry (`FeatureRunnerRegistry`, `ScrapingFeatureRunner`, `DiscoveryRunner`).
+- [`src/modules/data-provider/entities/data-provider.entity.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider.entity.ts): Flat provider entity schema without parent-child relation.
+- [`src/modules/data-provider/entities/data-provider-feature.entity.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/data-provider-feature.entity.ts): Pluggable feature entity with polymorphic JSONB config and status lifecycle.
+- [`src/modules/data-provider/entities/config-version.entity.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/entities/config-version.entity.ts): Version history snapshot entity anchored to `featureId`.
+- [`src/modules/data-provider/controllers/data-provider-feature.controller.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/controllers/data-provider-feature.controller.ts): RESTful feature management, version rollback, and test execution API.
+- [`src/modules/data-provider/services/data-provider-feature.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/data-provider-feature.service.ts): Feature lifecycle, status toggling, and metric tracking.
+- [`src/modules/data-provider/services/config-version.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/config-version.service.ts): Version creation, listing with pagination and active flags, and atomic rollback service.
+- [`src/modules/data-provider/runners/`](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/runners): Feature runner strategy registry (`FeatureRunnerRegistry`, `ScrapingFeatureRunner`, `DiscoveryRunner`).
 
 ## 4. Verification Evidence & PR
 - **Test Status**: 100% Passed (NestJS compilation and typecheck succeeded with 0 errors).

@@ -13,6 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BullBoardAppModule } from './modules/bull-board/bull-board.module';
 import { CloudDataModule } from './modules/cloud-data/cloud-data.module';
@@ -75,6 +76,7 @@ import { SharedModule } from './shared/shared.module';
         BullBoardAppModule.register(),
         NotificationModule,
         WebsocketModule,
+        AuditLogModule,
         CloudDataModule,
     ],
     controllers: [AppController],

@@ -27,3 +27,18 @@
 - **Engineering Example**:
   > *"Pruning the price attributes allows DiscoveryUrlEntity to achieve a lean domain model focused purely on URL lifecycle management."*
 - **Origin Task**: `20260903-161800-purge-price-fields-from-discovery`
+
+### 5. Asynchronous Audit Trailing & Sensitive Data Sanitization
+- **Meaning (VI)**: Ghi vết nhật ký kiểm toán theo cơ chế bất đồng bộ kèm làm sạch/ẩn thông tin nhạy cảm.
+- **Grammar / Usage**: `Offload [audit event recording] to background workers while applying recursive [sensitive data sanitization]`
+- **Engineering Example**:
+  > *"The system implements asynchronous audit trailing via Bull queue to eliminate database latency on mutation endpoints while enforcing automatic field redaction."*
+- **Origin Task**: `20260903-193230-implement-audit-log-module`
+
+### 6. Targeted Channel Subscription & Bi-directional Event Streaming
+- **Meaning (VI)**: Đăng ký nhận tin theo phòng/kênh xác định kèm luồng dữ liệu hai chiều thời gian thực.
+- **Grammar / Usage**: `Enable [bi-directional event streaming] with [targeted channel subscriptions] for real-time progress feedback`
+- **Engineering Example**:
+  > *"WebSocket gateway utilizes targeted channel subscriptions to broadcast job telemetry directly to interested clients without broadcasting globally."*
+- **Origin Task**: `20260903-192300-sync-websocket-infrastructure`
+
