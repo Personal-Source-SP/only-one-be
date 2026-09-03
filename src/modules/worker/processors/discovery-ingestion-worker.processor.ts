@@ -42,9 +42,8 @@ export class DiscoveryIngestionWorkerProcessor {
             this.loggerService.log(`Successfully ingested discovery URL ${urlId}`);
         } catch (error) {
             this.loggerService.error(`Failed to ingest discovery URL ${urlId}: ${error?.message}`);
-            await this.discoveryUrlRepository.update(urlId, {
-                status: DiscoveryUrlStatus.FAILED,
-            });
+            await this.discoveryUrlRepository.update(urlId, { status: DiscoveryUrlStatus.FAILED });
+
             throw error;
         }
     }
