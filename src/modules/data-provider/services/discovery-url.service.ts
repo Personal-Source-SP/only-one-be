@@ -9,7 +9,7 @@ import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagi
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
-import { IngestDiscoveryUrlResponseDto } from '../dtos/responses';
+import { IngestDiscoveredUrlResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
@@ -33,7 +33,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         super(urlRepository, mapper, DiscoveryUrlDto, DiscoveryUrlService.name);
     }
 
-    async ingestDiscoveredUrl(urlId: string): Promise<{ itemId: string; dataProviderItemId: string; isNewItem: boolean }> {
+    async ingestDiscoveredUrl(urlId: string): Promise<IngestDiscoveredUrlResponseDto> {
         const urlEntity = await this.urlRepository.findOne({ where: { id: urlId } });
         if (!urlEntity) throw new NotFoundException(`Discovery URL not found with id: ${urlId}`);
 
@@ -77,7 +77,11 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         // Step 5: Mark status INGESTED
         await this.urlRepository.update(urlId, { status: DiscoveryUrlStatus.INGESTED });
 
-        return { itemId: item.id, dataProviderItemId: dataProviderItem.id, isNewItem };
+        return new IngestDiscoveredUrlResponseDto({
+            itemId: item.id,
+            dataProviderItemId: dataProviderItem.id,
+            isNewItem,
+        });
     }
 
     async batchIngest(sessionId: string, urlIds?: string[]): Promise<IngestDiscoveryUrlResponseDto> {

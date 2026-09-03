@@ -26,6 +26,7 @@ import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
 import { IDataProviderScraperService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
+import { DiscoveryRunner } from './runners/discovery.runner';
 import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
 import { ScrapingFeatureRunner } from './runners/scraping-feature.runner';
 import { ConfigVersionService } from './services/config-version.service';
@@ -36,7 +37,6 @@ import { DataProviderScraperService } from './services/data-provider-scraper.ser
 import { ApiDataProviderScraperService } from './services/data-provider-scraper/api-data-provider-scraper.service';
 import { GenericDataProviderScraperService } from './services/data-provider-scraper/generic-data-provider-scraper.service';
 import { LocalDataProviderScraperService } from './services/data-provider-scraper/local-data-provider-scraper.service';
-import { DiscoveryRunnerService } from './services/discovery-runner.service';
 import { DiscoverySessionService } from './services/discovery-session.service';
 import { DiscoveryUrlService } from './services/discovery-url.service';
 import { DiscoveryValidationService } from './services/discovery-validation.service';
@@ -67,7 +67,7 @@ const controllers = [
     DiscoverySessionController,
     DiscoveryUrlController,
 ];
-const runners = [ScrapingFeatureRunner, FeatureRunnerRegistry];
+const runners = [ScrapingFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
 const services = [
     ItemService,
     ScraperService,
@@ -80,7 +80,6 @@ const services = [
     ApiDataProviderScraperService,
     LocalDataProviderScraperService,
     GenericDataProviderScraperService,
-    DiscoveryRunnerService,
     DiscoverySessionService,
     DiscoveryValidationService,
     DiscoveryUrlService,

@@ -13,23 +13,23 @@ import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { ValidationMatchResult } from '../enums';
-import { DiscoveryRunnerService } from './discovery-runner.service';
+import { DiscoveryRunner } from '../runners/discovery.runner';
 import { DiscoveryUrlService } from './discovery-url.service';
 
 @Injectable()
 export class DiscoverySessionService extends BaseService<DiscoverySessionEntity, DiscoverySessionDto> {
     constructor(
+        @Inject(forwardRef(() => DiscoveryRunner))
+        private readonly discoveryRunner: DiscoveryRunner,
+        @Inject(forwardRef(() => DiscoveryUrlService))
+        private readonly discoveryUrlService: DiscoveryUrlService,
+        @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoverySessionEntity)
         private readonly sessionRepository: Repository<DiscoverySessionEntity>,
         @InjectRepository(DataProviderEntity)
         private readonly dataProviderRepository: Repository<DataProviderEntity>,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
-        @InjectMapper() mapper: Mapper,
-        @Inject(forwardRef(() => DiscoveryRunnerService))
-        private readonly discoveryRunnerService: DiscoveryRunnerService,
-        @Inject(forwardRef(() => DiscoveryUrlService))
-        private readonly discoveryUrlService: DiscoveryUrlService,
     ) {
         super(sessionRepository, mapper, DiscoverySessionDto, DiscoverySessionService.name);
     }
@@ -49,7 +49,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         const createdSession = await this.create(entity, user);
 
         // Run background crawling job asynchronously
-        this.discoveryRunnerService
+        this.discoveryRunner
             .runDiscovery(createdSession.id, request.targetKeyword)
             .catch((err) => this.loggerService.error(`Discovery runner error: ${err.message}`));
 

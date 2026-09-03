@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { DataProviderFeatureType } from '../enums';
-import { IFeatureRunner } from './interfaces/feature-runner.interface';
+import { IFeatureRunner } from '../interfaces';
 import { ScrapingFeatureRunner } from './scraping-feature.runner';
 
 @Injectable()

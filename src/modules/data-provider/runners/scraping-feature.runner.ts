@@ -2,9 +2,8 @@ import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/com
 
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { IDataProviderScraperService, IExtractDataResponse, ITargetConfig } from '../interfaces';
+import { IDataProviderScraperService, IExtractDataResponse, IFeatureRunner, ITargetConfig } from '../interfaces';
 import { DataProviderItemService } from '../services/data-provider-item.service';
-import { IFeatureRunner } from './interfaces/feature-runner.interface';
 
 @Injectable()
 export class ScrapingFeatureRunner implements IFeatureRunner<ITargetConfig, any, IExtractDataResponse | any> {

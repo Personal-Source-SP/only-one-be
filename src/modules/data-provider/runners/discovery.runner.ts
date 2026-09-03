@@ -16,12 +16,12 @@ import {
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
 import { IDiscoveryCrawlQueueItem, IDiscoveryExtractedItem, IDiscoveryFetchHtmlResult, ITargetConfig } from '../interfaces';
-import { DiscoveryValidationService } from './discovery-validation.service';
-import { ScraperService } from './scraper.service';
+import { DiscoveryValidationService } from '../services/discovery-validation.service';
+import { ScraperService } from '../services/scraper.service';
 
 @Injectable()
-export class DiscoveryRunnerService {
-    private readonly logger = new Logger(DiscoveryRunnerService.name);
+export class DiscoveryRunner {
+    private readonly logger = new Logger(DiscoveryRunner.name);
 
     constructor(
         private readonly scraperService: ScraperService,
