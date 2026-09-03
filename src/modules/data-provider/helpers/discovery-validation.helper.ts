@@ -1,15 +1,11 @@
 import { PDP_NEGATIVE_KEYWORDS, PDP_POSITIVE_KEYWORDS } from '../constants/discovery-constants';
 import { ValidationMatchResult } from '../enums';
-import { PriceDetectorHelper } from './price-detector.helper';
 
 export interface ValidationEvaluationResult {
     confidenceScore: number;
     matchResult: ValidationMatchResult;
     reason: string;
     matchedCriteria: Record<string, any>;
-    priceDetected: boolean;
-    detectedPrice?: number;
-    detectedCurrency?: string;
 }
 
 export class DiscoveryValidationHelper {
@@ -35,7 +31,7 @@ export class DiscoveryValidationHelper {
         // 2. Positive PDP Path Check
         for (const pos of PDP_POSITIVE_KEYWORDS) {
             if (normalizedUrl.includes(pos)) {
-                pathScore = 0.4;
+                pathScore = 0.5;
                 break;
             }
         }
@@ -43,11 +39,7 @@ export class DiscoveryValidationHelper {
             pathScore = Math.max(0, pathScore - 0.3);
         }
 
-        // 3. Price & Currency Detection from title
-        const priceInfo = PriceDetectorHelper.detectPriceInText(title);
-        const priceScore = priceInfo.priceDetected ? 0.2 : 0.0;
-
-        // 4. Token Overlap / Similarity
+        // 3. Token Overlap / Similarity Check
         let similarityScore = 0.2; // Baseline for valid domain page
         if (targetKeyword && title) {
             const targetTokens = targetKeyword
@@ -56,16 +48,16 @@ export class DiscoveryValidationHelper {
                 .filter((t) => t.length > 2);
             if (targetTokens.length > 0) {
                 const matchedTokens = targetTokens.filter((t) => title.toLowerCase().includes(t));
-                similarityScore = (matchedTokens.length / targetTokens.length) * 0.4;
+                similarityScore = (matchedTokens.length / targetTokens.length) * 0.3;
             }
         }
 
-        const totalScore = Math.min(1.0, parseFloat((pathScore + priceScore + similarityScore).toFixed(2)));
+        const totalScore = Math.min(1.0, parseFloat((pathScore + similarityScore).toFixed(2)));
 
         let matchResult = ValidationMatchResult.NO_MATCH;
-        if (totalScore >= 0.75) {
+        if (totalScore >= 0.7) {
             matchResult = ValidationMatchResult.EXACT_MATCH;
-        } else if (totalScore >= 0.45) {
+        } else if (totalScore >= 0.4) {
             matchResult = ValidationMatchResult.PARTIAL_MATCH;
         } else {
             matchResult = ValidationMatchResult.NO_MATCH;
@@ -74,11 +66,8 @@ export class DiscoveryValidationHelper {
         return {
             confidenceScore: totalScore,
             matchResult,
-            reason: `Heuristic: PDP=${pathScore > 0}, Negative=${negativeHit}, Price=${priceInfo.priceDetected}, Similarity=${similarityScore}`,
-            matchedCriteria: { pathScore, priceScore, similarityScore, negativeHit },
-            priceDetected: priceInfo.priceDetected,
-            detectedPrice: priceInfo.detectedPrice,
-            detectedCurrency: priceInfo.detectedCurrency,
+            reason: `Heuristic: PDP=${pathScore > 0}, Negative=${negativeHit}, Similarity=${similarityScore}`,
+            matchedCriteria: { pathScore, similarityScore, negativeHit },
         };
     }
 }

@@ -46,15 +46,6 @@ export class DiscoveryUrlDto extends AbstractDto {
     confidenceScore: number;
 
     @AutoMap()
-    priceDetected: boolean;
-
-    @AutoMap()
-    detectedPrice?: number;
-
-    @AutoMap()
-    detectedCurrency?: string;
-
-    @AutoMap()
     validationStatus: DiscoveryValidationStatus;
 
     @AutoMap()

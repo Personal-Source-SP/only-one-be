@@ -54,18 +54,6 @@ export class DiscoveryUrlEntity extends AbstractEntity {
     @AutoMap()
     confidenceScore: number;
 
-    @Column({ type: 'boolean', default: false })
-    @AutoMap()
-    priceDetected: boolean;
-
-    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-    @AutoMap()
-    detectedPrice?: number;
-
-    @Column({ type: 'varchar', length: 10, nullable: true })
-    @AutoMap()
-    detectedCurrency?: string;
-
     @Column({ type: 'varchar', length: 20, default: DiscoveryValidationStatus.PENDING })
     @AutoMap()
     validationStatus: DiscoveryValidationStatus;

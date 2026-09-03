@@ -76,9 +76,6 @@ export class DiscoveryValidationService {
             urlEntity.confidenceScore = evalResult.confidenceScore;
             urlEntity.matchResult = evalResult.matchResult;
             urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
-            urlEntity.priceDetected = evalResult.priceDetected;
-            urlEntity.detectedPrice = evalResult.detectedPrice;
-            urlEntity.detectedCurrency = evalResult.detectedCurrency;
 
             if (
                 evalResult.matchResult === ValidationMatchResult.EXACT_MATCH ||
@@ -153,9 +150,6 @@ export class DiscoveryValidationService {
         urlEntity.confidenceScore = evalResult.confidenceScore;
         urlEntity.matchResult = evalResult.matchResult;
         urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
-        urlEntity.priceDetected = evalResult.priceDetected;
-        urlEntity.detectedPrice = evalResult.detectedPrice;
-        urlEntity.detectedCurrency = evalResult.detectedCurrency;
 
         await this.logRepo.update({ discoveryUrlId: urlId }, { isLatestLog: false });
 

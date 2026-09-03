@@ -58,7 +58,16 @@ describe('DiscoveryValidationService', () => {
             }),
         };
 
-        service = new DiscoveryValidationService(urlRepo, batchRepo, logRepo, sessionRepo, dataSource);
+        const mapper: any = {
+            map: jest.fn().mockImplementation((e: any) => e),
+            mapArray: jest.fn().mockImplementation((a: any) => a),
+        };
+
+        const discoveryUrlService: any = {
+            ingestDiscoveredUrl: jest.fn().mockResolvedValue({ itemId: 'item-1', dataProviderItemId: 'dpi-1' }),
+        };
+
+        service = new DiscoveryValidationService(dataSource, discoveryUrlService, mapper, urlRepo, batchRepo, logRepo, sessionRepo);
     });
 
     it('should run batch validation and save results and audit logs', async () => {
