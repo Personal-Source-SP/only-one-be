@@ -67,14 +67,27 @@ describe('DiscoveryValidationService', () => {
             ingestDiscoveredUrl: jest.fn().mockResolvedValue({ itemId: 'item-1', dataProviderItemId: 'dpi-1' }),
         };
 
-        service = new DiscoveryValidationService(dataSource, discoveryUrlService, mapper, urlRepo, batchRepo, logRepo, sessionRepo);
+        const queueService: any = {
+            addBulkJob: jest.fn().mockResolvedValue([]),
+        };
+
+        service = new DiscoveryValidationService(
+            dataSource,
+            queueService,
+            discoveryUrlService,
+            mapper,
+            urlRepo,
+            batchRepo,
+            logRepo,
+            sessionRepo,
+        );
     });
 
-    it('should run batch validation and save results and audit logs', async () => {
+    it('should create batch and enqueue jobs to Bull queue', async () => {
         const batch = await service.startBatchValidation('session-1', 'Sony WH-1000XM4');
         expect(batch).toBeDefined();
         expect(batch.sessionId).toBe('session-1');
-        expect(dataSource.transaction).toHaveBeenCalled();
+        expect(batch.status).toBe('processing');
     });
 
     it('should submit user action and set final status to APPROVED when confirmed', async () => {

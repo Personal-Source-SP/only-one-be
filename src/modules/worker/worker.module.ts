@@ -5,9 +5,10 @@ import { AppConfigService } from '../../shared/services/app-config.service';
 import { DataProviderModule } from '../data-provider/data-provider.module';
 import { QueueModule } from '../queue/queue.module';
 import { ScheduleExecutorModule } from '../schedule/schedule.module';
+import { DiscoveryValidationWorkerProcessor } from './processors/discovery-validation-worker.processor';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
 
-const processors = [ScrapingWorkerProcessor];
+const processors = [ScrapingWorkerProcessor, DiscoveryValidationWorkerProcessor];
 
 @Module({})
 export class WorkerModule {

@@ -4,6 +4,9 @@ import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 
+import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
+import { IDiscoveryValidationJob } from '../../queue/interfaces';
+import { QueueService } from '../../queue/services/queue.service';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
@@ -24,6 +27,7 @@ import { DiscoveryUrlService } from './discovery-url.service';
 export class DiscoveryValidationService {
     constructor(
         private readonly dataSource: DataSource,
+        private readonly queueService: QueueService,
         @Inject(forwardRef(() => DiscoveryUrlService))
         private readonly discoveryUrlService: DiscoveryUrlService,
         @InjectMapper() private readonly mapper: Mapper,
@@ -53,6 +57,9 @@ export class DiscoveryValidationService {
             batchNumber,
             startedAt: new Date(),
             totalUrls: urls.length,
+            processedUrls: 0,
+            matchedUrls: 0,
+            noMatchUrls: 0,
             status: ValidationBatchStatus.PROCESSING,
         });
         await this.batchRepo.save(batch);
@@ -60,64 +67,22 @@ export class DiscoveryValidationService {
         // Mark existing logs as not latest
         await this.logRepo.update({ sessionId }, { isLatestLog: false });
 
-        let matchedCount = 0;
-        let noMatchCount = 0;
-        const logEntries: DiscoveryValidationLogEntity[] = [];
-
-        for (const urlEntity of urls) {
-            const startTime = Date.now();
-            const evalResult = DiscoveryValidationHelper.evaluateUrl({
+        // Enqueue bulk jobs into Redis queue
+        const jobs = urls.map((u) => ({
+            data: {
+                urlId: u.id,
+                sessionId,
+                batchId: batch.id,
                 targetKeyword,
-                url: urlEntity.url,
-                title: urlEntity.title,
-                domain: urlEntity.domain,
-            });
+            } as IDiscoveryValidationJob,
+            opts: {
+                attempts: 3,
+                backoff: { type: 'exponential', delay: 1000 },
+                removeOnComplete: true,
+            },
+        }));
 
-            urlEntity.matchResult = evalResult.matchResult;
-            urlEntity.confidenceScore = evalResult.confidenceScore;
-            urlEntity.validationStatus = DiscoveryValidationStatus.COMPLETED;
-
-            if (
-                evalResult.matchResult === ValidationMatchResult.EXACT_MATCH ||
-                evalResult.matchResult === ValidationMatchResult.PARTIAL_MATCH
-            ) {
-                matchedCount++;
-            } else {
-                noMatchCount++;
-            }
-
-            logEntries.push(
-                this.logRepo.create({
-                    sessionId,
-                    isLatestLog: true,
-                    validationBatchId: batch.id,
-                    discoveryUrlId: urlEntity.id,
-                    operationStatus: 'completed',
-                    reason: evalResult.reason,
-                    matchResult: evalResult.matchResult,
-                    confidenceScore: evalResult.confidenceScore,
-                    matchedCriteria: evalResult.matchedCriteria,
-                    processingDuration: Date.now() - startTime,
-                }),
-            );
-        }
-
-        await this.dataSource.transaction(async (manager) => {
-            await manager.save(DiscoveryUrlEntity, urls);
-            await manager.save(DiscoveryValidationLogEntity, logEntries);
-
-            await manager.update(DiscoveryValidationBatchEntity, batch.id, {
-                completedAt: new Date(),
-                matchedUrls: matchedCount,
-                noMatchUrls: noMatchCount,
-                processedUrls: urls.length,
-                status: ValidationBatchStatus.COMPLETED,
-            });
-
-            await manager.update(DiscoverySessionEntity, sessionId, {
-                totalValidated: urls.length,
-            });
-        });
+        await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_VALIDATION_JOB, jobs);
 
         return this.mapper.map(batch, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
