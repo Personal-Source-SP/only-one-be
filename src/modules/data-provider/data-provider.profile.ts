@@ -43,98 +43,126 @@ export class DataProviderProfile extends AutomapperProfile {
 
     override get profile(): MappingProfile {
         return (mapper) => {
-            createMap(mapper, DataProviderEntity, DataProviderDto);
-            createMap(mapper, CreateDataProviderRequestDto, DataProviderEntity);
-            createMap(mapper, UpdateDataProviderRequestDto, DataProviderEntity);
-
-            createMap(
-                mapper,
-                DataProviderFeatureEntity,
-                DataProviderFeatureDto,
-                forMember(
-                    (d) => d.config,
-                    mapFrom((s) => s.config),
-                ),
-            );
-            createMap(mapper, CreateDataProviderFeatureRequestDto, DataProviderFeatureEntity);
-
-            createMap(mapper, DataProviderItemEntity, DataProviderItemDto);
-            createMap(mapper, CreateDataProviderItemRequestDto, DataProviderItemEntity);
-            createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
-
-            createMap(
-                mapper,
-                ScrapingDataEntity,
-                ScrapingDataDto,
-                forMember(
-                    (d) => d.url,
-                    mapFrom((s) => UrlResolverHelper.resolveUrl(s)),
-                ),
-            );
-            createMap(
-                mapper,
-                CreateScrapingDataRequestDto,
-                ScrapingDataEntity,
-                forMember(
-                    (d) => d.scrapeTimestamp,
-                    mapFrom((s) => new Date()),
-                ),
-            );
-
-            createMap(mapper, ItemEntity, ItemDto);
-            createMap(mapper, ItemDto, ItemEntity);
-            createMap(mapper, CreateItemRequestDto, ItemEntity);
-            createMap(mapper, UpdateItemRequestDto, ItemEntity);
-
-            createMap(
-                mapper,
-                ConfigVersionEntity,
-                ConfigVersionDto,
-                forMember(
-                    (d) => d.config,
-                    mapFrom((s) => s.config),
-                ),
-            );
-            createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
-
-            createMap(mapper, DiscoverySessionEntity, DiscoverySessionDto);
-            createMap(
-                mapper,
-                CreateDiscoverySessionRequestDto,
-                DiscoverySessionEntity,
-                forMember(
-                    (d) => d.status,
-                    mapFrom(() => DiscoverySessionStatus.PENDING),
-                ),
-                forMember(
-                    (d) => d.depth,
-                    mapFrom((s) => s.depth || 1),
-                ),
-                forMember(
-                    (d) => d.maxUrls,
-                    mapFrom((s) => (s.maxUrls !== undefined ? s.maxUrls : null)),
-                ),
-                forMember(
-                    (d) => d.autoValidate,
-                    mapFrom((s) => (s.autoValidate !== undefined ? s.autoValidate : true)),
-                ),
-                forMember(
-                    (d) => d.totalDiscovered,
-                    mapFrom(() => 0),
-                ),
-                forMember(
-                    (d) => d.totalQueued,
-                    mapFrom(() => 0),
-                ),
-                forMember(
-                    (d) => d.totalValidated,
-                    mapFrom(() => 0),
-                ),
-            );
-
-            createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
-
-            createMap(mapper, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
+            this.mapDataProvider(mapper);
+            this.mapDataProviderFeature(mapper);
+            this.mapDataProviderItem(mapper);
+            this.mapScrapingData(mapper);
+            this.mapItem(mapper);
+            this.mapConfigVersion(mapper);
+            this.mapDiscoverySession(mapper);
+            this.mapDiscoveryUrl(mapper);
+            this.mapDiscoveryValidationBatch(mapper);
         };
+    }
+
+    private mapDataProvider(mapper: Mapper): void {
+        createMap(mapper, DataProviderEntity, DataProviderDto);
+        createMap(mapper, CreateDataProviderRequestDto, DataProviderEntity);
+        createMap(mapper, UpdateDataProviderRequestDto, DataProviderEntity);
+    }
+
+    private mapDataProviderFeature(mapper: Mapper): void {
+        createMap(
+            mapper,
+            DataProviderFeatureEntity,
+            DataProviderFeatureDto,
+            forMember(
+                (d) => d.config,
+                mapFrom((s) => s.config),
+            ),
+        );
+        createMap(mapper, CreateDataProviderFeatureRequestDto, DataProviderFeatureEntity);
+    }
+
+    private mapDataProviderItem(mapper: Mapper): void {
+        createMap(mapper, DataProviderItemEntity, DataProviderItemDto);
+        createMap(mapper, CreateDataProviderItemRequestDto, DataProviderItemEntity);
+        createMap(mapper, UpdateDataProviderItemRequestDto, DataProviderItemEntity);
+    }
+
+    private mapScrapingData(mapper: Mapper): void {
+        createMap(
+            mapper,
+            ScrapingDataEntity,
+            ScrapingDataDto,
+            forMember(
+                (d) => d.url,
+                mapFrom((s) => UrlResolverHelper.resolveUrl(s)),
+            ),
+        );
+        createMap(
+            mapper,
+            CreateScrapingDataRequestDto,
+            ScrapingDataEntity,
+            forMember(
+                (d) => d.scrapeTimestamp,
+                mapFrom(() => new Date()),
+            ),
+        );
+    }
+
+    private mapItem(mapper: Mapper): void {
+        createMap(mapper, ItemEntity, ItemDto);
+        createMap(mapper, ItemDto, ItemEntity);
+        createMap(mapper, CreateItemRequestDto, ItemEntity);
+        createMap(mapper, UpdateItemRequestDto, ItemEntity);
+    }
+
+    private mapConfigVersion(mapper: Mapper): void {
+        createMap(
+            mapper,
+            ConfigVersionEntity,
+            ConfigVersionDto,
+            forMember(
+                (d) => d.config,
+                mapFrom((s) => s.config),
+            ),
+        );
+        createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
+    }
+
+    private mapDiscoverySession(mapper: Mapper): void {
+        createMap(mapper, DiscoverySessionEntity, DiscoverySessionDto);
+        createMap(
+            mapper,
+            CreateDiscoverySessionRequestDto,
+            DiscoverySessionEntity,
+            forMember(
+                (d) => d.status,
+                mapFrom(() => DiscoverySessionStatus.PENDING),
+            ),
+            forMember(
+                (d) => d.depth,
+                mapFrom((s) => s.depth || 1),
+            ),
+            forMember(
+                (d) => d.maxUrls,
+                mapFrom((s) => (s.maxUrls !== undefined ? s.maxUrls : null)),
+            ),
+            forMember(
+                (d) => d.autoValidate,
+                mapFrom((s) => (s.autoValidate !== undefined ? s.autoValidate : true)),
+            ),
+            forMember(
+                (d) => d.totalDiscovered,
+                mapFrom(() => 0),
+            ),
+            forMember(
+                (d) => d.totalQueued,
+                mapFrom(() => 0),
+            ),
+            forMember(
+                (d) => d.totalValidated,
+                mapFrom(() => 0),
+            ),
+        );
+    }
+
+    private mapDiscoveryUrl(mapper: Mapper): void {
+        createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
+    }
+
+    private mapDiscoveryValidationBatch(mapper: Mapper): void {
+        createMap(mapper, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
 }
