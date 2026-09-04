@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-03T10:22:56.728Z",
+  "updatedAt": "2026-09-04T08:57:44.741Z",
   "installed": {
     "rules": {
       "nest-architecture-stack": {
@@ -105,16 +105,6 @@
         "installedAt": "2026-09-03T10:22:56.716Z",
         "updatedAt": "2026-09-03T10:22:56.716Z"
       },
-      "conversational-english-coaching": {
-        "version": "0.0.1",
-        "installedAt": "2026-09-03T10:22:56.716Z",
-        "updatedAt": "2026-09-03T10:22:56.716Z"
-      },
-      "english-learning-extraction": {
-        "version": "0.0.1",
-        "installedAt": "2026-09-03T10:22:56.716Z",
-        "updatedAt": "2026-09-03T10:22:56.716Z"
-      },
       "only-one-nestjs-development": {
         "version": "0.0.1",
         "installedAt": "2026-09-03T10:22:56.716Z",
@@ -123,19 +113,19 @@
     },
     "workflows": {
       "only-one-idea": {
-        "version": "0.0.1",
+        "version": "0.0.3",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-04T08:57:44.738Z"
       },
       "only-one-plan": {
-        "version": "0.0.1",
+        "version": "0.0.3",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-04T08:57:44.738Z"
       },
       "only-one-apply": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-04T08:57:44.738Z"
       },
       "only-one-debug": {
         "version": "0.0.1",
@@ -158,14 +148,14 @@
         "updatedAt": "2026-09-03T10:22:56.728Z"
       },
       "only-one-archive": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-04T08:57:44.738Z"
       },
       "only-one-clean": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-04T08:57:44.738Z"
       }
     }
   }

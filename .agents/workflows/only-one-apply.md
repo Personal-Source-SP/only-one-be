@@ -61,8 +61,9 @@ grep -rl "status: planned" only-one/tasks/ --include="plan.md" 2>/dev/null
 
 1. **Load Negative Rules (Mandatory Constraints)**:
    Read `only-one/rules.md` if present. Strictly obey all negative constraints.
-2. **Load Project Tech Skills**:
-   Check `only-one/skills/` (and `.agents/skills/`) for relevant skills. Read their `SKILL.md` before making code changes.
+2. **Load Project Tech & Language Skills (Mandatory Standards)**:
+   Check `only-one/skills/` (and `.agents/skills/`) for relevant technology and language skills (e.g. `nestjs-development`, TypeScript strict typing).
+   Read their `SKILL.md` to extract coding conventions, naming patterns, typing rules, and architectural standards.
 
 ---
 
@@ -75,9 +76,9 @@ Check the frontmatter `status` field:
 
 ---
 
-### Step 3 — Fast-Path Parse Machine-Readable Task Matrix
+### Step 3 — Parse Task Matrix & Dependency Graph
 
-1. Jump directly to **Section 3.1 Machine-Readable Task Matrix & Dependency Graph** in `plan.md`.
+1. Jump directly to **Section 3. Task Matrix & Dependency Graph** in `plan.md`.
 2. Extract the ordered sequence: `Order`, `Status`, `Action`, `File Path`, `Target Symbols`, `Depends On`, `Fast Test Command`.
 3. Skip rows already marked `[x]` (Done), identify the first pending row `[ ]` or in-progress row `[/]`.
 
@@ -88,12 +89,16 @@ Check the frontmatter `status` field:
 For each pending row in the Task Matrix:
 1. Verify that all prerequisite files (`Depends On`) have been successfully applied and verified (`[x]`).
 2. Mark the row's `Status` as `[/]` (in-progress) in `plan.md`.
-3. **Step 4a — Pre-apply Context & Existing Imports Inspection**:
+3. **Step 4a — Pre-apply Context, Existing Imports & Language Skill Compliance Gate**:
    - Read the target file (`view_file`) to inspect its current imports, shared utilities, and surrounding code patterns.
    - Verify that all existing helpers/hooks specified in the `Reused Existing Utilities / Helpers` column are properly imported and utilized.
    - ❌ **Strict Anti-Reinvention Check**: Do NOT write inline helper logic or duplicate functions if a shared project utility already exists.
-4. **Step 4b — Apply Code Modification**:
-   - Locate the corresponding section in **Section 4. Implementation Code Examples** and apply the code modification at the exact `// [TARGET SEAM]`.
+   - 🛑 **Strict Language Skill & Rule Adherence Gate**:
+     - Code modification MUST strictly follow conventions defined in active language/tech skills (Step 1b) and `only-one/rules.md`.
+     - ❌ **Anti-Agent-Drift**: DO NOT code arbitrarily based on agent habits or unverified training defaults. Adhere 100% to project typing, naming, and error handling standards.
+4. **Step 4b — Apply Code Modification (Diff Application)**:
+   - Locate the corresponding file in **Section 4. Code Changes (Unified Diff)**.
+   - Apply the modification precisely by replacing the deleted lines (`-`) with added lines (`+`).
 5. **Step 4c — Run Fast Test Command**:
    - Run the row's **`Fast Test Command`** immediately:
      - If test passes: mark row `Status` as `[x]` (done) in `plan.md` and proceed to next row.
@@ -123,7 +128,8 @@ For each pending row in the Task Matrix:
 ## Guardrails
 
 - **Enforce Bilingual Hybrid Walkthrough**: Write narrative in Vietnamese while preserving English technical terms.
+- **🛑 Strict Tech Skill & Rule Adherence**: Applied code must strictly adhere to active language/tech skills and repository rules. Agent MUST NOT write arbitrary code based on personal assumptions.
 - **Enforce Reuse-First Verification**: Always inspect target file imports and utilize project shared utilities; never duplicate existing code.
-- Prioritize parsing Section 3.1 Task Matrix for sub-second ingestion.
+- Prioritize parsing Section 3 Task Matrix for sub-second ingestion.
 - Execute `Fast Test Command` per file before proceeding to the next.
 - Maintain Beyoncé Rule at all times.

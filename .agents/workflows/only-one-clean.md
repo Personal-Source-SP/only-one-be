@@ -44,9 +44,8 @@ Activate and apply these skills throughout the clean workflow:
    - Otherwise:
      - Execute the full `/only-one-archive` protocol on that task:
        1. Append negative rules to `only-one/rules.md`.
-       2. Append English learning patterns to `only-one/learn/<topic>.md`.
-       3. Author single distilled record `only-one/archives/<timestamp>-<slug>.md`.
-       4. Remove raw task directory `rm -rf only-one/tasks/<slug>`.
+       2. Author single distilled record `only-one/archives/<timestamp>-<slug>.md`.
+       3. Remove raw task directory `rm -rf only-one/tasks/<slug>`.
 3. Check for tasks with `status: in-progress` or `status: planned`:
    - Log notice: `ℹ️ Preserved active/planned task: <slug>`.
    - Never archive or delete in-progress or planned tasks.

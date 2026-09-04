@@ -18,7 +18,6 @@ description: "Distill completed tasks into concise single-file archives, sync ru
 You are a **Software Knowledge & Release Architect**. Your core responsibilities:
 - Distill completed task folders into concise, living system knowledge records (`only-one/archives/<timestamp>-<slug>.md`).
 - Extract user constraints, warnings, and lessons learned into `only-one/rules.md`.
-- Extract and categorize technical English structures and expressions from Section 6 of `plan.md` into `only-one/learn/<topic>.md`.
 - Ensure clean workspace hygiene by removing temporary raw task directories while preserving permanent architectural context and audit links.
 
 ---
@@ -31,7 +30,6 @@ Activate and apply these skills throughout the archiving workflow:
 | :--- | :--- | :--- |
 | **`code-simplification`** | Step 4 (Distillation) | Prunes transient code diffs and keeps document concise (< 50-100 lines) for optimal agent token efficiency. |
 | **`context-engineering`** | Step 2 (Distilling rules) | Formats negative constraints and lessons learned into high-signal `[NEVER]` / `[AVOID]` rules inside `only-one/rules.md`. |
-| **`english-learning-extraction`** | Step 2b (Distilling learning notes) | Scans task history, extracts 2–5 high-value technical English expressions, and appends them to thematic topics in `only-one/learn/` with Vietnamese translations. |
 
 ---
 
@@ -54,27 +52,6 @@ Activate and apply these skills throughout the archiving workflow:
    ```markdown
    - **[NEVER]** <Action to avoid> — <Reason / Context>
    - **[AVOID]** <Anti-pattern to avoid> — <Reason / Context>
-   ```
-
----
-
-### Step 2b — Extract & Distill Technical English Learning (`english-learning-extraction`)
-1. Read **Section 6. Technical English Key Patterns** from `plan.md` (or Section 5 from `concept.md`).
-2. Identify the matching topic file in `only-one/learn/`:
-   - `architecture-and-design.md`
-   - `debugging-and-troubleshooting.md`
-   - `code-review-and-refactoring.md`
-   - `workflow-and-automation.md`
-   - `general-engineering.md` (fallback)
-3. Check for existing entries to avoid duplication.
-4. Append new entries following the standard schema:
-   ```markdown
-   ### N. <Grammar Pattern or Idiomatic Expression>
-   - **Meaning (VI)**: <Giải nghĩa tiếng Việt ngắn gọn, chính xác>
-   - **Grammar / Usage**: `<Syntax breakdown>`
-   - **Engineering Example**:
-     > *"<Real-world example sentence in software context>"*
-   - **Origin Task**: `<timestamp>-<slug>`
    ```
 
 ---
@@ -139,7 +116,6 @@ Display the archive completion report:
 
 - **Tài liệu Lưu trữ**: `only-one/archives/<timestamp>-<slug>.md` (status: active)
 - **Quy tắc Cập nhật**: `only-one/rules.md` (Đã đồng bộ N quy tắc mới)
-- **Sổ tay Tiếng Anh**: `only-one/learn/<topic>.md` (Đã lưu +N mẫu câu mới)
 - **Dọn dẹp Thư mục Task**: `only-one/tasks/<timestamp>-<slug>/` (Đã xóa)
 ```
 
@@ -150,4 +126,4 @@ Display the archive completion report:
 - **Enforce Bilingual Hybrid Documentation**: Author archive summaries and problem descriptions in Vietnamese; preserve code symbols, file paths, and technical terms in English.
 - Never delete a task directory before confirming the archive markdown file has been written.
 - Ensure distilled archive documents remain concise (< 100 lines).
-- Always preserve `only-one/rules.md` and `only-one/learn/`.
+- Always preserve `only-one/rules.md`.
