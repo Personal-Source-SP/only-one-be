@@ -23,9 +23,9 @@ affected_modules:
   - `NotificationSocketService`: Bắt `@OnEvent(WebSocketEvent.NOTIFICATION_CREATED)` và phát tới room `user_${userId}`.
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [`src/modules/websocket/enums/subscribe-name.enum.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/enums/subscribe-name.enum.ts): Enums `SubscribeName` và `WebSocketEvent`.
-- [`src/modules/websocket/interfaces/websocket.interface.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/interfaces/websocket.interface.ts): Data contracts `IJobProgressData`, `INotificationSocketData`.
-- [`src/modules/websocket/gateways/websocket.gateway.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/gateways/websocket.gateway.ts): Gateway xử lý handshake, room management và helper dispatchers.
-- [`src/modules/websocket/services/job.socket.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/services/job.socket.service.ts): Service chuyển tiếp tiến độ job.
-- [`src/modules/websocket/services/notification.socket.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/services/notification.socket.service.ts): Service chuyển tiếp thông báo cá nhân.
-- [`src/modules/websocket/websocket.module.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/websocket/websocket.module.ts): Export toàn bộ Gateway và Socket Services.
+- [`src/modules/websocket/enums/subscribe-name.enum.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/enums/subscribe-name.enum.ts): Enums `SubscribeName` và `WebSocketEvent`.
+- [`src/modules/websocket/interfaces/websocket.interface.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/interfaces/websocket.interface.ts): Data contracts `IJobProgressData`, `INotificationSocketData`.
+- [`src/modules/websocket/gateways/websocket.gateway.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/gateways/websocket.gateway.ts): Gateway xử lý handshake, room management và helper dispatchers.
+- [`src/modules/websocket/services/job.socket.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/services/job.socket.service.ts): Service chuyển tiếp tiến độ job.
+- [`src/modules/websocket/services/notification.socket.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/services/notification.socket.service.ts): Service chuyển tiếp thông báo cá nhân.
+- [`src/modules/websocket/websocket.module.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/websocket/websocket.module.ts): Export toàn bộ Gateway và Socket Services.

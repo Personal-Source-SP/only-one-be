@@ -27,12 +27,12 @@ affected_modules:
   - `AuditLogController extends BaseController<AuditLogEntity, AuditLogDto>` với cấu hình phân trang `AUDIT_LOG_PAGINATION_CONFIG` qua `nestjs-paginate`.
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [`src/modules/audit-log/enums/audit-log.enum.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/enums/audit-log.enum.ts): `AuditAction`, `AuditStatus`, `AuditResource`.
-- [`src/modules/audit-log/entities/audit-log.entity.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/entities/audit-log.entity.ts): Thực thể `AuditLogEntity` với các trường JSONB.
-- [`src/modules/audit-log/dtos/audit-log.dto.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/dtos/audit-log.dto.ts) & [`record-audit-log.dto.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/dtos/requests/record-audit-log.dto.ts): DTOs.
-- [`src/modules/audit-log/profiles/audit-log.profile.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/profiles/audit-log.profile.ts): AutoMapper profile.
-- [`src/modules/audit-log/services/audit-log.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/services/audit-log.service.ts): Service quản lý nghiệp vụ và sanitization.
-- [`src/modules/audit-log/listeners/audit-log.listener.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/listeners/audit-log.listener.ts): Listener đẩy job vào Bull Queue.
-- [`src/modules/worker/processors/audit-log-worker.processor.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/worker/processors/audit-log-worker.processor.ts): Worker xử lý lưu log.
-- [`src/modules/audit-log/controllers/audit-log.controller.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/controllers/audit-log.controller.ts): REST API Controller.
-- [`src/modules/audit-log/audit-log.module.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/audit-log.module.ts) & [`src/modules/worker/worker.module.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/worker/worker.module.ts): Đăng ký module và processor.
+- [`src/modules/audit-log/enums/audit-log.enum.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/enums/audit-log.enum.ts): `AuditAction`, `AuditStatus`, `AuditResource`.
+- [`src/modules/audit-log/entities/audit-log.entity.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/entities/audit-log.entity.ts): Thực thể `AuditLogEntity` với các trường JSONB.
+- [`src/modules/audit-log/dtos/audit-log.dto.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/dtos/audit-log.dto.ts) & [`record-audit-log.dto.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/dtos/requests/record-audit-log.dto.ts): DTOs.
+- [`src/modules/audit-log/profiles/audit-log.profile.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/profiles/audit-log.profile.ts): AutoMapper profile.
+- [`src/modules/audit-log/services/audit-log.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/services/audit-log.service.ts): Service quản lý nghiệp vụ và sanitization.
+- [`src/modules/audit-log/listeners/audit-log.listener.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/listeners/audit-log.listener.ts): Listener đẩy job vào Bull Queue.
+- [`src/modules/worker/processors/audit-log-worker.processor.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/worker/processors/audit-log-worker.processor.ts): Worker xử lý lưu log.
+- [`src/modules/audit-log/controllers/audit-log.controller.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/controllers/audit-log.controller.ts): REST API Controller.
+- [`src/modules/audit-log/audit-log.module.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/audit-log.module.ts) & [`src/modules/worker/worker.module.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/worker/worker.module.ts): Đăng ký module và processor.
