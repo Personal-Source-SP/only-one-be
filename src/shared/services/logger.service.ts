@@ -44,10 +44,10 @@ export class LoggerService extends ConsoleLogger {
         this.logger.debug(message);
     }
 
-    error(context?: string | HttpException): void {
-        this.logger.error(
-            typeof context === 'string' ? context : context instanceof HttpException ? JSON.stringify(context.getResponse()) : '',
-        );
+    error(context?: string | HttpException, stack?: string): void {
+        const message =
+            typeof context === 'string' ? context : context instanceof HttpException ? JSON.stringify(context.getResponse()) : '';
+        this.logger.error(message, stack ? { stack } : undefined);
     }
 
     warn(message: string): void {

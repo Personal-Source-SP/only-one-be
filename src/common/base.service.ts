@@ -28,64 +28,48 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
     async findAll(options?: IFindOptions<T>): Promise<D[]> {
         const { relations, select } = options ?? {};
 
-        try {
-            const entities = await this.repository.find({
-                select: select ?? undefined,
-                relations: relations ?? undefined,
-            });
+        const entities = await this.repository.find({
+            select: select ?? undefined,
+            relations: relations ?? undefined,
+        });
 
-            return this.mapEntityToDto(entities) as D[];
-        } catch (error) {
-            this.handleError(error, []);
-        }
+        return this.mapEntityToDto(entities) as D[];
     }
 
     async findById(id: string, options?: IFindOptions<T>): Promise<D> {
         const { relations, select } = options ?? {};
 
-        try {
-            const entity = await this.repository.findOne({
-                select: select ?? undefined,
-                relations: relations ?? undefined,
-                where: { id } as unknown as FindOptionsWhere<T>,
-            });
-            if (!entity) return null;
+        const entity = await this.repository.findOne({
+            select: select ?? undefined,
+            relations: relations ?? undefined,
+            where: { id } as unknown as FindOptionsWhere<T>,
+        });
+        if (!entity) return null;
 
-            return this.mapEntityToDto(entity) as D;
-        } catch (error) {
-            this.handleError(error);
-        }
+        return this.mapEntityToDto(entity) as D;
     }
 
     async findOneByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D> {
         const { relations, select } = options ?? {};
 
-        try {
-            const entity = await this.repository.findOne({ where, relations: relations ?? undefined, select: select ?? undefined });
-            if (!entity) return null;
+        const entity = await this.repository.findOne({ where, relations: relations ?? undefined, select: select ?? undefined });
+        if (!entity) return null;
 
-            return this.mapEntityToDto(entity) as D;
-        } catch (error) {
-            this.handleError(error);
-        }
+        return this.mapEntityToDto(entity) as D;
     }
 
     async findListByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D[]> {
         const { relations, select, withDeleted } = options ?? {};
 
-        try {
-            const entities = await this.repository.find({
-                where,
-                select: select ?? undefined,
-                relations: relations ?? undefined,
-                withDeleted: withDeleted ?? false,
-            });
-            if (!entities) return [];
+        const entities = await this.repository.find({
+            where,
+            select: select ?? undefined,
+            relations: relations ?? undefined,
+            withDeleted: withDeleted ?? false,
+        });
+        if (!entities) return [];
 
-            return this.mapEntityToDto(entities) as D[];
-        } catch (error) {
-            this.handleError(error);
-        }
+        return this.mapEntityToDto(entities) as D[];
     }
 
     async create(data: T, user?: PayloadDto): Promise<D> {
@@ -93,14 +77,10 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
             data.createdBy = user.id;
         }
 
-        try {
-            const savedEntity = await this.repository.save(data);
-            if (!savedEntity) return null;
+        const savedEntity = await this.repository.save(data);
+        if (!savedEntity) return null;
 
-            return this.mapEntityToDto(savedEntity) as D;
-        } catch (error) {
-            this.handleError(error);
-        }
+        return this.mapEntityToDto(savedEntity) as D;
     }
 
     async createMany(data: T[], user?: PayloadDto): Promise<D[]> {
@@ -110,14 +90,10 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
             });
         }
 
-        try {
-            const createdEntities = await this.repository.save(data);
-            if (!createdEntities) return [];
+        const createdEntities = await this.repository.save(data);
+        if (!createdEntities) return [];
 
-            return this.mapEntityToDto(createdEntities) as D[];
-        } catch (error) {
-            this.handleError(error);
-        }
+        return this.mapEntityToDto(createdEntities) as D[];
     }
 
     async update(id: string, data: any, user?: PayloadDto): Promise<boolean> {
@@ -125,51 +101,31 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
             data.updatedBy = user.id;
         }
 
-        try {
-            const result = await this.repository.update(id, data);
-            return result.affected > 0;
-        } catch (error) {
-            this.handleError(error);
-        }
+        const result = await this.repository.update(id, data);
+        return (result?.affected ?? 0) > 0;
     }
 
     async delete(id: string, user?: PayloadDto): Promise<boolean> {
-        try {
-            const exists = await this.exists({ id } as unknown as FindOptionsWhere<T>);
-            if (!exists) {
-                throw new NotFoundException('Entity not found');
-            }
-
-            const result = await this.repository.delete(id);
-            return result.affected > 0;
-        } catch (error) {
-            this.handleError(error);
+        const exists = await this.exists({ id } as unknown as FindOptionsWhere<T>);
+        if (!exists) {
+            throw new NotFoundException('Entity not found');
         }
+
+        const result = await this.repository.delete(id);
+        return (result?.affected ?? 0) > 0;
     }
 
     async deleteMany(where: FindOptionsWhere<T>): Promise<boolean> {
-        try {
-            const result = await this.repository.update(where, { deletedAt: new Date() } as any);
-            return result.affected > 0;
-        } catch (error) {
-            this.handleError(error);
-        }
+        const result = await this.repository.update(where, { deletedAt: new Date() } as any);
+        return (result?.affected ?? 0) > 0;
     }
 
     async count(where: FindOptionsWhere<T>): Promise<number> {
-        try {
-            return this.repository.count({ where });
-        } catch (error) {
-            return this.handleError(error, 0);
-        }
+        return this.repository.count({ where });
     }
 
     async exists(where: FindOptionsWhere<T>): Promise<boolean> {
-        try {
-            return this.repository.exists({ where });
-        } catch (error) {
-            return this.handleError(error, false);
-        }
+        return this.repository.exists({ where });
     }
 
     async getPaginationWithCustomQuery(query: PaginateQuery, config: PaginateConfig<T>): Promise<Paginated<D>> {
@@ -185,16 +141,12 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
             links: null,
         };
 
-        try {
-            const result = await paginate(query, this.repository, defaultConfig);
-            if (!result?.data?.length) return defaultResult;
+        const result = await paginate(query, this.repository, defaultConfig);
+        if (!result?.data?.length) return defaultResult;
 
-            const mappedData = this.mapEntityToDto(result.data) as D[];
+        const mappedData = this.mapEntityToDto(result.data) as D[];
 
-            return { ...result, data: mappedData } as Paginated<D>;
-        } catch (error) {
-            return this.handleError(error, defaultResult);
-        }
+        return { ...result, data: mappedData } as Paginated<D>;
     }
 
     protected mapDataToEntity<K>(data: T | D | K): T | T[] {
@@ -221,6 +173,10 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         return this.mapper.map(entity, this.entityMappingKey, this.dtoMappingKey);
     }
 
+    /**
+     * @deprecated Exception handling is now centralized at AllExceptionsFilter.
+     * Direct usage in services is discouraged.
+     */
     protected handleError(error: any, result?: any): any {
         let methodName = 'BaseService';
         const err = new Error();
