@@ -1,18 +1,13 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
 
-import { SimulationService } from '../../enums';
+import { ObjectFieldOptional, StringField } from '../../../../decorators';
 
 export class CreateSimulationItemRequest {
-    @ApiProperty({ description: 'Simulation context ID' })
-    @IsString()
+    @StringField({ description: 'Simulation context ID' })
     @AutoMap()
     simulationContextId: string;
 
-    @ApiPropertyOptional({ description: 'Payload' })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional({ description: 'Payload' })
     @AutoMap(() => Object)
     payload?: Record<string, any>;
 }

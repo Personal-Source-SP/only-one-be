@@ -1,22 +1,8 @@
-import {
-    Body,
-    Controller,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    ParseBoolPipe,
-    ParseUUIDPipe,
-    Post,
-    Put,
-    UseGuards,
-    Version,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseBoolPipe, Post, Put, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { DATA_PROVIDER_ITEM_PAGINATION_CONFIG } from '../constants/data-provider-item-pagination.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
@@ -25,8 +11,7 @@ import { DataProviderItemService } from '../services/data-provider-item.service'
 
 @Controller('data-provider-items')
 @ApiTags('Data Provider Items')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class DataProviderItemController extends BaseController<DataProviderItemEntity, DataProviderItemDto> {
     constructor(private readonly dataProviderItemService: DataProviderItemService) {
         super(dataProviderItemService, DATA_PROVIDER_ITEM_PAGINATION_CONFIG);
@@ -37,7 +22,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
     @Version('1')
     @Get('data-provider/:dataProviderId')
     @BaseApiOkResponse(DataProviderItemDto, { isArray: true })
-    public async getByDataProviderId(@Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string): Promise<DataProviderItemDto[]> {
+    public async getByDataProviderId(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderItemDto[]> {
         const result = await this.dataProviderItemService.findListByFilter({ dataProviderId }, { relations: { dataProvider: true } });
         return result;
     }
@@ -47,7 +32,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
     @Version('1')
     @Get('item/:itemId')
     @BaseApiOkResponse(DataProviderItemDto, { isArray: true })
-    public async getByItemId(@Param('itemId', new ParseUUIDPipe()) itemId: string): Promise<DataProviderItemDto[]> {
+    public async getByItemId(@UUIDParam('itemId') itemId: string): Promise<DataProviderItemDto[]> {
         const result = await this.dataProviderItemService.findListByFilter({ itemId }, { relations: { item: true } });
         return result;
     }
@@ -69,7 +54,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
     @BaseApiOkResponse(Boolean)
     public async switchActiveStatus(
         @Param('activeStatus', new ParseBoolPipe()) activeStatus: boolean,
-        @Param('id', new ParseUUIDPipe()) id: string,
+        @UUIDParam('id') id: string,
     ): Promise<boolean> {
         const result = await this.dataProviderItemService.switchActiveStatus(id, activeStatus);
         return result;
@@ -80,7 +65,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
     @Version('1')
     @Put(':id')
     @BaseApiOkResponse(Boolean)
-    public async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() request: UpdateDataProviderItemRequestDto): Promise<boolean> {
+    public async update(@UUIDParam('id') id: string, @Body() request: UpdateDataProviderItemRequestDto): Promise<boolean> {
         const result = await this.dataProviderItemService.update(id, request);
         return result;
     }

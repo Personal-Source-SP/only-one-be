@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEnum } from 'class-validator';
+import { IsArray } from 'class-validator';
 
+import { EnumField } from '../../../../decorators';
 import { ImportDataType } from '../../enums';
 
 export class ImportDataRequestDto {
-    @ApiProperty()
-    @IsEnum(ImportDataType)
+    @EnumField(() => ImportDataType)
     dataType: ImportDataType;
 
     @ApiProperty()

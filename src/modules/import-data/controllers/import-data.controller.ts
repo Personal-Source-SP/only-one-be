@@ -7,18 +7,17 @@ import {
     Param,
     Post,
     UploadedFile,
-    UseGuards,
     UseInterceptors,
     Version,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
+import { Auth } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { ImportDataRequestDto } from '../dtos/requests';
 import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ExcelFileTypes, ImportDataType } from '../enums';
@@ -26,8 +25,7 @@ import { ImportDataService } from '../services/import-data.service';
 
 @Controller('import-data')
 @ApiTags('Import Data')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class ImportDataController {
     constructor(private readonly importDataService: ImportDataService) {}
 

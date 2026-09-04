@@ -1,9 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { DATA_PROVIDER_PAGINATION_CONFIG } from '../constants/data-provider-pagination.config';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests/data-provider-request.dto';
@@ -12,8 +11,7 @@ import { DataProviderService } from '../services/data-provider.service';
 
 @Controller('data-providers')
 @ApiTags('Data Providers')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class DataProviderController extends BaseController<DataProviderEntity, DataProviderDto> {
     constructor(private readonly dataProviderService: DataProviderService) {
         super(dataProviderService, DATA_PROVIDER_PAGINATION_CONFIG);
@@ -34,7 +32,7 @@ export class DataProviderController extends BaseController<DataProviderEntity, D
     @Version('1')
     @Put(':id')
     @BaseApiOkResponse(Boolean)
-    public async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() request: UpdateDataProviderRequestDto): Promise<boolean> {
+    public async update(@UUIDParam('id') id: string, @Body() request: UpdateDataProviderRequestDto): Promise<boolean> {
         const result = await this.dataProviderService.update(id, request);
         return result;
     }

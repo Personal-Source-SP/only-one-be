@@ -1,8 +1,8 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Version } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
 import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 import { ScheduleJobService } from '../services/schedule-job.service';
@@ -19,7 +19,7 @@ export class ScheduleJobController extends BaseController<ScheduleJobEntity, Sch
     @Version('1')
     @Get('schedule/:scheduleId')
     @BaseApiOkResponse(ScheduleJobDto, { isArray: true })
-    public async getByScheduleId(@Param('scheduleId', new ParseUUIDPipe()) scheduleId: string): Promise<ScheduleJobDto[]> {
+    public async getByScheduleId(@UUIDParam('scheduleId') scheduleId: string): Promise<ScheduleJobDto[]> {
         const result = await this.scheduleJobService.findListByFilter({ scheduleId });
         return result;
     }

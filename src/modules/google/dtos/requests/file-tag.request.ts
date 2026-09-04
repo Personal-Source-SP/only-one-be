@@ -1,43 +1,30 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { StringField, UUIDField } from '../../../../decorators';
 
 export class CreateFileTagRequestDto {
-    @ApiProperty({ description: 'Tag name' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Tag name' })
     name: string;
 }
 
 export class UpdateFileTagRequestDto {
-    @ApiProperty({ description: 'Tag name' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Tag name' })
     name: string;
 }
 
 export class AssignTagsToFileByIdsRequestDto {
-    @ApiProperty({ description: 'Google drive file id (uuid)' })
-    @IsString()
-    @IsNotEmpty()
+    @UUIDField({ description: 'Google drive file id (uuid)' })
     fileId: string;
 
-    @ApiProperty({ description: 'Tag ids (uuid) to assign' })
-    @IsArray()
-    @IsString({ each: true })
+    @UUIDField({ description: 'Tag ids (uuid) to assign', each: true })
     fileTagIds: string[];
 }
 
 export class RemoveTagsFromFileByIdsRequestDto extends AssignTagsToFileByIdsRequestDto {}
 
 export class AssignFilesToTagByIdsRequestDto {
-    @ApiProperty({ description: 'Tag id (uuid)' })
-    @IsString()
-    @IsNotEmpty()
+    @UUIDField({ description: 'Tag id (uuid)' })
     fileTagId: string;
 
-    @ApiProperty({ description: 'Google drive file ids to assign' })
-    @IsArray()
-    @IsString({ each: true })
+    @UUIDField({ description: 'Google drive file ids to assign', each: true })
     fileIds: string[];
 }
 

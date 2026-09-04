@@ -1,17 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put, Version } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { User } from '../../../decorators/user.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, User } from '../../../decorators';
 import { GoogleDrivePreviewRequest, GoogleDriveSyncRequest } from '../dtos/requests';
 import { GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveService } from '../services/google-drive.service';
 
 @Controller('google-drive')
 @ApiTags('Google Drive')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class GoogleDriveController {
     constructor(private readonly googleDriveService: GoogleDriveService) {}
 

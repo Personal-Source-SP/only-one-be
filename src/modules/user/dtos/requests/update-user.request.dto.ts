@@ -1,31 +1,21 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+
+import { EmailFieldOptional, PhoneFieldOptional, StringFieldOptional } from '../../../../decorators';
 
 export class UpdateUserRequestDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(100)
+    @StringFieldOptional({ maxLength: 100 })
     @AutoMap()
     firstName?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(100)
+    @StringFieldOptional({ maxLength: 100 })
     @AutoMap()
     lastName?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsEmail()
+    @EmailFieldOptional()
     @AutoMap()
     email?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @PhoneFieldOptional()
     @AutoMap()
     phoneNumber?: string;
 }

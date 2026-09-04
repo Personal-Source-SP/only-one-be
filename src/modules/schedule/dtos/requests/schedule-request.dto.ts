@@ -1,113 +1,89 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 
+import {
+    BooleanField,
+    BooleanFieldOptional,
+    EnumField,
+    EnumFieldOptional,
+    NumberFieldOptional,
+    ObjectFieldOptional,
+    StringField,
+    StringFieldOptional,
+} from '../../../../decorators';
 import { ExecutionServiceEnum, ScheduleType } from '../../enums';
 
 export class PayloadScheduleDto {
-    @ApiPropertyOptional({ description: 'Data provider IDs to pass to the schedule' })
-    @IsOptional()
-    @IsArray()
+    @StringFieldOptional({ each: true, description: 'Data provider IDs to pass to the schedule' })
     @AutoMap()
     dataProviderIds?: string[];
 
-    @ApiPropertyOptional({ description: 'Item IDs to pass to the schedule' })
-    @IsOptional()
-    @IsArray()
+    @StringFieldOptional({ each: true, description: 'Item IDs to pass to the schedule' })
     @AutoMap()
     itemIds?: string[];
 
-    @ApiPropertyOptional({ description: 'Search queries to pass to the schedule' })
-    @IsOptional()
-    @IsArray()
+    @StringFieldOptional({ each: true, description: 'Search queries to pass to the schedule' })
     @AutoMap()
     searchQueries?: string[];
 
-    @ApiPropertyOptional({ description: 'Barcodes to pass to the schedule' })
-    @IsOptional()
-    @IsArray()
+    @StringFieldOptional({ each: true, description: 'Barcodes to pass to the schedule' })
     @AutoMap()
     barcodes?: string[];
 }
 
 export class CreateScheduleRequestDto {
-    @ApiProperty({ description: 'Type of the schedule', enum: ScheduleType, example: ScheduleType.GLOBAL })
-    @IsEnum(ScheduleType)
+    @EnumField(() => ScheduleType, { description: 'Type of the schedule', example: ScheduleType.GLOBAL })
     @AutoMap()
     type: ScheduleType;
 
-    @ApiProperty({
+    @EnumField(() => ExecutionServiceEnum, {
         description: 'Execution service of the schedule',
-        enum: ExecutionServiceEnum,
         example: ExecutionServiceEnum.DATA_PROVIDER,
     })
-    @IsEnum(ExecutionServiceEnum)
     @AutoMap()
     executionService: ExecutionServiceEnum;
 
-    @ApiProperty()
-    @IsBoolean()
+    @BooleanField()
     @AutoMap()
     enabled: boolean;
 
-    @ApiProperty({ description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
-    @IsString()
-    @MaxLength(255)
+    @StringField({ maxLength: 255, description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
     @AutoMap()
     cronExpression: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
+    @NumberFieldOptional({ int: true, default: 60 })
     @AutoMap()
     minScrapeIntervalMinutes?: number = 60;
 
-    @ApiPropertyOptional({ description: 'Payload to pass to the schedule' })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional({ description: 'Payload to pass to the schedule' })
     @AutoMap(() => PayloadScheduleDto)
     payload?: PayloadScheduleDto;
 }
 
 export class UpdateScheduleRequestDto {
-    @ApiPropertyOptional({ description: 'Type of the schedule', enum: ScheduleType, example: ScheduleType.GLOBAL })
-    @IsOptional()
-    @IsEnum(ScheduleType)
+    @EnumFieldOptional(() => ScheduleType, { description: 'Type of the schedule', example: ScheduleType.GLOBAL })
     @AutoMap()
     type?: ScheduleType;
 
-    @ApiPropertyOptional({
+    @EnumFieldOptional(() => ExecutionServiceEnum, {
         description: 'Execution service of the schedule',
-        enum: ExecutionServiceEnum,
         example: ExecutionServiceEnum.DATA_PROVIDER,
     })
-    @IsOptional()
-    @IsEnum(ExecutionServiceEnum)
     @AutoMap()
     executionService?: ExecutionServiceEnum;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     @AutoMap()
     enabled?: boolean;
 
-    @ApiProperty({ description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
-    @IsOptional()
-    @IsString()
-    @MaxLength(255)
+    @StringFieldOptional({ maxLength: 255, description: 'Cron expression for the scraping schedule', example: '0 0 * * *' })
     @AutoMap()
     cronExpression?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
+    @NumberFieldOptional({ int: true })
     @AutoMap()
     minScrapeIntervalMinutes?: number;
 
-    @ApiPropertyOptional({ description: 'Payload to pass to the schedule' })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional({ description: 'Payload to pass to the schedule' })
     @AutoMap(() => PayloadScheduleDto)
     payload?: PayloadScheduleDto;
 }

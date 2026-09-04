@@ -1,72 +1,61 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 
+import {
+    BooleanFieldOptional,
+    ClassFieldOptional,
+    EnumField,
+    EnumFieldOptional,
+    ObjectFieldOptional,
+    StringField,
+    StringFieldOptional,
+    UUIDField,
+} from '../../../../decorators';
 import { CloudDataProviderType } from '../../enums';
 import { TelegramUploadDocumentRequest } from './telegram-request.dto';
 
 export class CreateCloudDataProviderRequest {
-    @ApiProperty()
-    @IsString()
+    @StringField()
     @AutoMap()
     name: string;
 
-    @ApiProperty({ enum: CloudDataProviderType })
-    @IsEnum(CloudDataProviderType)
+    @EnumField(() => CloudDataProviderType)
     @AutoMap()
     type: CloudDataProviderType;
 
-    @ApiPropertyOptional({ type: Object })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional()
     @AutoMap(() => Object)
     config?: Record<string, any>;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     @AutoMap()
     isActive?: boolean;
 }
 
 export class UpdateCloudDataProviderRequest {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     @AutoMap()
     name?: string;
 
-    @ApiPropertyOptional({ enum: CloudDataProviderType })
-    @IsOptional()
-    @IsEnum(CloudDataProviderType)
+    @EnumFieldOptional(() => CloudDataProviderType)
     @AutoMap()
     type?: CloudDataProviderType;
 
-    @ApiPropertyOptional({ type: Object })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional()
     @AutoMap(() => Object)
     config?: Record<string, any>;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     @AutoMap()
     isActive?: boolean;
 }
 
 export class CloudDataUploadFileRequest {
-    @ApiProperty()
-    @IsUUID()
+    @UUIDField()
     cloudDataProviderId: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     fileUrl?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsObject()
+    @ClassFieldOptional(() => TelegramUploadDocumentRequest)
     payload?: TelegramUploadDocumentRequest;
 }

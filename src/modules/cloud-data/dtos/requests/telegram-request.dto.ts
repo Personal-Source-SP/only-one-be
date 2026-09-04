@@ -1,36 +1,22 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-
+import { BooleanFieldOptional, EnumFieldOptional, NumberFieldOptional, StringFieldOptional } from '../../../../decorators';
 import { TelegramParseMode } from '../../enums';
 
 export class TelegramUploadDocumentRequest {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
+    @NumberFieldOptional()
     messageId?: number;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     chatId?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     caption?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsEnum(TelegramParseMode)
+    @EnumFieldOptional(() => TelegramParseMode)
     parseMode?: TelegramParseMode;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
+    @NumberFieldOptional()
     replyToMessageId?: number;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     disableNotification?: boolean;
 }

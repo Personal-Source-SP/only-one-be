@@ -1,25 +1,8 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    ParseIntPipe,
-    ParseUUIDPipe,
-    Post,
-    Put,
-    Query,
-    UseGuards,
-    Version,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { User } from '../../../decorators/user.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, User, UUIDParam } from '../../../decorators';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
@@ -35,8 +18,7 @@ import { DataProviderFeatureService } from '../services/data-provider-feature.se
 
 @Controller('data-provider-features')
 @ApiTags('Data Provider Features')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class DataProviderFeatureController {
     constructor(
         private readonly featureService: DataProviderFeatureService,
@@ -57,7 +39,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Get(':id')
     @BaseApiOkResponse(DataProviderFeatureDto)
-    public async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<DataProviderFeatureDto> {
+    public async findById(@UUIDParam('id') id: string): Promise<DataProviderFeatureDto> {
         return await this.featureService.findById(id);
     }
 
@@ -65,7 +47,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Get('data-providers/:dataProviderId')
     @BaseApiOkResponse(DataProviderFeatureDto, { isArray: true })
-    public async findByProvider(@Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string): Promise<DataProviderFeatureDto[]> {
+    public async findByProvider(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return await this.featureService.getFeaturesByProviderId(dataProviderId);
     }
 
@@ -74,7 +56,7 @@ export class DataProviderFeatureController {
     @Get('data-providers/:dataProviderId/:type')
     @BaseApiOkResponse(DataProviderFeatureDto)
     public async findByProviderAndType(
-        @Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string,
+        @UUIDParam('dataProviderId') dataProviderId: string,
         @Param('type') type: DataProviderFeatureType,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.getFeatureByProviderIdAndType(dataProviderId, type);
@@ -85,7 +67,7 @@ export class DataProviderFeatureController {
     @Post('data-providers/:dataProviderId')
     @BaseApiOkResponse(DataProviderFeatureDto)
     public async createFeature(
-        @Param('dataProviderId', new ParseUUIDPipe()) dataProviderId: string,
+        @UUIDParam('dataProviderId') dataProviderId: string,
         @Body() request: CreateDataProviderFeatureRequestDto,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.createFeature(dataProviderId, request);
@@ -96,7 +78,7 @@ export class DataProviderFeatureController {
     @Put(':id')
     @BaseApiOkResponse(DataProviderFeatureDto)
     public async updateConfig(
-        @Param('id', new ParseUUIDPipe()) id: string,
+        @UUIDParam('id') id: string,
         @Body() request: UpdateFeatureConfigRequestDto,
         @User() user: PayloadDto,
     ): Promise<DataProviderFeatureDto> {
@@ -107,10 +89,7 @@ export class DataProviderFeatureController {
     @HttpCode(HttpStatus.OK)
     @Version('1')
     @Post(':id/test')
-    public async testContextual(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request?: TestFeatureContextualRequestDto,
-    ): Promise<any> {
+    public async testContextual(@UUIDParam('id') id: string, @Body() request?: TestFeatureContextualRequestDto): Promise<any> {
         return await this.featureService.testFeature(id, request?.input);
     }
 
@@ -118,10 +97,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Put(':id/switch-status/:status')
     @BaseApiOkResponse(Boolean)
-    public async switchStatus(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Param('status') status: DataProviderFeatureStatus,
-    ): Promise<boolean> {
+    public async switchStatus(@UUIDParam('id') id: string, @Param('status') status: DataProviderFeatureStatus): Promise<boolean> {
         return await this.featureService.switchStatus(id, status);
     }
 
@@ -129,7 +105,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Get(':id/versions')
     @BaseApiOkResponse(ConfigVersionDto)
-    public async getVersions(@Param('id', new ParseUUIDPipe()) id: string): Promise<ConfigVersionDto[]> {
+    public async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
         return await this.configVersionService.getConfigVersionOptionsByFeature(id);
     }
 
@@ -138,7 +114,7 @@ export class DataProviderFeatureController {
     @Post(':id/versions/:versionId/rollback')
     @BaseApiOkResponse(Boolean)
     public async rollbackVersion(
-        @Param('id', new ParseUUIDPipe()) id: string,
+        @UUIDParam('id') id: string,
         @Param('versionId', ParseIntPipe) versionId: number,
         @User() user: PayloadDto,
     ): Promise<boolean> {
@@ -149,10 +125,7 @@ export class DataProviderFeatureController {
     @Version('1')
     @Delete(':id/versions/:versionId')
     @BaseApiOkResponse(Boolean)
-    public async deleteVersion(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Param('versionId', ParseIntPipe) versionId: number,
-    ): Promise<boolean> {
+    public async deleteVersion(@UUIDParam('id') id: string, @Param('versionId', ParseIntPipe) versionId: number): Promise<boolean> {
         return await this.configVersionService.deleteConfigVersionByFeature(id, versionId);
     }
 }

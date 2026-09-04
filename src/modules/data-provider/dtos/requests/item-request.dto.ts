@@ -1,26 +1,21 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
+
+import { StringField, StringFieldOptional } from '../../../../decorators';
 
 export class CreateItemRequestDto {
-    @ApiProperty()
-    @IsString()
-    @MaxLength(255)
+    @StringField({ maxLength: 255 })
     @AutoMap()
     name: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(20)
+    @StringFieldOptional({ maxLength: 20 })
     @AutoMap()
     code?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
+    @StringFieldOptional({
+        each: true,
+        description: 'Tags list or comma-separated string',
+    })
     @Transform(({ value }) => {
         if (typeof value === 'string') {
             return value
@@ -35,24 +30,15 @@ export class CreateItemRequestDto {
 }
 
 export class UpdateItemRequestDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(255)
+    @StringFieldOptional({ maxLength: 255 })
     @AutoMap()
     name?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    @MaxLength(20)
+    @StringFieldOptional({ maxLength: 20 })
     @AutoMap()
     code?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
+    @StringFieldOptional({ each: true })
     @AutoMap()
     tags?: string[];
 }

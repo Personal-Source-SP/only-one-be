@@ -1,14 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { StringFieldOptional } from '../../../../decorators';
 
 export class UpdateGoogleDriveFolderRequest {
-    @ApiPropertyOptional({ description: 'Filter by name' })
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional({ description: 'Filter by name' })
     name?: string;
 
-    @ApiPropertyOptional({ description: 'Filter by parent folder id' })
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional({ description: 'Filter by parent folder id' })
     parentFolderId?: string;
 }

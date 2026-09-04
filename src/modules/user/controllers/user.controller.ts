@@ -1,9 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { USER_PAGINATION_CONFIG } from '../constants/user-pagination.config';
 import { ChangePasswordRequestDto, UpdateUserRequestDto } from '../dtos/requests';
 import { UserDto } from '../dtos/user.dto';
@@ -12,8 +11,7 @@ import { UserService } from '../services/user.service';
 
 @Controller('users')
 @ApiTags('Users')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class UserController extends BaseController<UserEntity, UserDto> {
     constructor(private readonly userService: UserService) {
         super(userService, USER_PAGINATION_CONFIG);
@@ -34,7 +32,7 @@ export class UserController extends BaseController<UserEntity, UserDto> {
     @HttpCode(HttpStatus.OK)
     @BaseApiOkResponse(Boolean)
     @Put(':id')
-    public async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateUserRequestDto): Promise<boolean> {
+    public async update(@UUIDParam('id') id: string, @Body() updateDto: UpdateUserRequestDto): Promise<boolean> {
         const result = await this.userService.update(id, updateDto);
         return result;
     }

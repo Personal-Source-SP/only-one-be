@@ -1,9 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
+import { Auth, UUIDParam } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { CloudDataProviderDto } from '../dtos/cloud-data-provider.dto';
 import { CreateCloudDataProviderRequest, UpdateCloudDataProviderRequest } from '../dtos/requests';
 import { CloudDataProviderEntity } from '../entities/cloud-data-provider.entity';
@@ -11,8 +11,7 @@ import { CloudDataProviderService } from '../services/cloud-data-provider.servic
 
 @Controller('cloud-data-providers')
 @ApiTags('Cloud Data Providers')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class CloudDataProviderController extends BaseController<CloudDataProviderEntity, CloudDataProviderDto> {
     constructor(private readonly cloudDataProviderService: CloudDataProviderService) {
         super(cloudDataProviderService);
@@ -33,7 +32,7 @@ export class CloudDataProviderController extends BaseController<CloudDataProvide
     @HttpCode(HttpStatus.OK)
     @Put(':id')
     @BaseApiOkResponse(Boolean)
-    async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() request: UpdateCloudDataProviderRequest): Promise<boolean> {
+    async update(@UUIDParam('id') id: string, @Body() request: UpdateCloudDataProviderRequest): Promise<boolean> {
         const result = await this.cloudDataProviderService.update(id, request);
         return result;
     }

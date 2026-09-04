@@ -1,69 +1,56 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
 
 import { MimeType } from '../../../../common/enums/mime-type';
+import {
+    BooleanFieldOptional,
+    DateFieldOptional,
+    EnumFieldOptional,
+    ObjectFieldOptional,
+    UUIDField,
+    UUIDFieldOptional,
+} from '../../../../decorators';
 
 export class CreateScrapingDataRequestDto {
-    @ApiProperty()
-    @IsUUID()
+    @UUIDField()
     @AutoMap()
     dataProviderItemId: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsDate()
+    @DateFieldOptional()
     @AutoMap()
     scrapeTimestamp?: Date;
 
-    @ApiPropertyOptional()
-    @IsOptional()
+    @ObjectFieldOptional()
     @AutoMap()
     metadata?: Record<string, any>;
 }
 
 export class FilterScrapingDataPaginationDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsUUID()
+    @UUIDFieldOptional()
     dataProviderId?: string;
 }
 
 export class ScrapingDataPaginationRequestDto {
-    @ApiPropertyOptional()
-    @IsOptional()
+    @ObjectFieldOptional()
     filter?: FilterScrapingDataPaginationDto;
 }
 
 export class ProcessScrapeDataRequestDto {
-    @ApiProperty()
-    @IsOptional()
-    @IsArray()
+    @UUIDFieldOptional({ each: true })
     dataProviderIds?: string[];
 
-    @ApiProperty()
-    @IsOptional()
-    @IsArray()
+    @UUIDFieldOptional({ each: true })
     dataProviderItemIds?: string[];
 
-    @ApiProperty()
-    @IsOptional()
-    @IsArray()
+    @UUIDFieldOptional({ each: true })
     itemIds?: string[];
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsDate()
+    @DateFieldOptional()
     lastScrapeTimestamp?: Date;
 
-    @ApiPropertyOptional({ description: 'Check duplicate data', default: true })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Check duplicate data', default: true })
     checkDuplicateData?: boolean;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsArray()
+    @EnumFieldOptional(() => MimeType, { each: true })
     mimeTypes?: MimeType[];
 
     constructor(data?: Partial<ProcessScrapeDataRequestDto>) {

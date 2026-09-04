@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth } from '../../../decorators';
 import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
@@ -15,8 +15,7 @@ import { FileTagService } from '../services/file-tag.service';
 
 @Controller('file-tag')
 @ApiTags('File Tag')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class FileTagController extends BaseController<FileTagEntity, FileTagDto> {
     constructor(private readonly fileTagService: FileTagService) {
         super(fileTagService);

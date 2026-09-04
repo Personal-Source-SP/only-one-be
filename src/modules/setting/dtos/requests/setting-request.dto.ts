@@ -1,49 +1,36 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 
+import { BooleanFieldOptional, EnumFieldOptional, ObjectFieldOptional, StringField } from '../../../../decorators';
 import { SettingType } from '../../enums';
 
 export class CreateSettingRequestDto {
-    @ApiProperty({ maxLength: 200 })
-    @IsString()
-    @MaxLength(200)
+    @StringField({ maxLength: 200 })
     @AutoMap()
     key: string;
 
-    @ApiProperty({ type: Object })
-    @IsObject()
+    @ObjectFieldOptional()
     @AutoMap()
     value: Record<string, any>;
 
-    @ApiPropertyOptional({ enum: SettingType })
-    @IsOptional()
-    @IsEnum(SettingType)
+    @EnumFieldOptional(() => SettingType)
     @AutoMap()
     type?: SettingType;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     @AutoMap()
     isActive?: boolean;
 }
 
 export class UpdateSettingRequestDto {
-    @ApiPropertyOptional({ type: Object })
-    @IsOptional()
-    @IsObject()
+    @ObjectFieldOptional()
     @AutoMap()
     value?: Record<string, any>;
 
-    @ApiPropertyOptional({ enum: SettingType })
-    @IsOptional()
+    @EnumFieldOptional(() => SettingType)
     @AutoMap()
     type?: SettingType;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional()
     @AutoMap()
     isActive?: boolean;
 }

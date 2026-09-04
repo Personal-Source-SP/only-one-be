@@ -1,55 +1,53 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-
+import {
+    EnumField,
+    EnumFieldOptional,
+    NumberFieldOptional,
+    ObjectFieldOptional,
+    StringField,
+    StringFieldOptional,
+} from '../../../../decorators';
 import { AuditAction, AuditResource, AuditStatus } from '../../enums/audit-log.enum';
 
 export class RecordAuditLogDto {
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     userId?: string;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     userEmail?: string;
 
-    @IsEnum(AuditAction)
+    @EnumField(() => AuditAction)
     action: AuditAction;
 
-    @IsString()
+    @StringField()
     resource: AuditResource | string;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     resourceId?: string;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     ipAddress?: string;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     userAgent?: string;
 
-    @IsOptional()
+    @ObjectFieldOptional()
     oldValues?: Record<string, any>;
 
-    @IsOptional()
+    @ObjectFieldOptional()
     newValues?: Record<string, any>;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     description?: string;
 
-    @IsOptional()
+    @ObjectFieldOptional()
     metadata?: Record<string, any>;
 
-    @IsOptional()
-    @IsEnum(AuditStatus)
+    @EnumFieldOptional(() => AuditStatus)
     status?: AuditStatus;
 
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     errorMessage?: string;
 
-    @IsOptional()
+    @NumberFieldOptional({ int: true })
     durationMs?: number;
 }

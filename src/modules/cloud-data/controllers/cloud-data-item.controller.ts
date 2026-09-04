@@ -1,23 +1,9 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    ParseUUIDPipe,
-    Post,
-    UploadedFile,
-    UseGuards,
-    Version,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Post, UploadedFile, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { ApiFile } from '../../../decorators';
+import { ApiFile, Auth, UUIDParam } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { CloudDataItemDto } from '../dtos/cloud-data-item.dto';
 import { CloudDataUploadFileRequest } from '../dtos/requests';
 import { UploadFileResponse } from '../dtos/responses';
@@ -26,8 +12,7 @@ import { CloudDataItemService } from '../services/cloud-data-item.service';
 
 @Controller('cloud-data-items')
 @ApiTags('Cloud Data Items')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class CloudDataItemController extends BaseController<CloudDataItemEntity, CloudDataItemDto> {
     constructor(private readonly cloudDataItemService: CloudDataItemService) {
         super(cloudDataItemService);
@@ -38,7 +23,7 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
     @HttpCode(HttpStatus.OK)
     @Get(':id/download')
     @BaseApiOkResponse(String)
-    async downloadFile(@Param('id', new ParseUUIDPipe()) id: string): Promise<string> {
+    async downloadFile(@UUIDParam('id') id: string): Promise<string> {
         const fileResponse = await this.cloudDataItemService.getFileUrl(id);
         return fileResponse;
     }

@@ -1,39 +1,24 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { NumberField, NumberFieldOptional, StringField, StringFieldOptional } from '../../../../decorators';
 
 export class UpdateGoogleAuthRequestDto {
-    @ApiProperty({ description: 'Email from Google OAuth' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Email from Google OAuth' })
     email: string;
 
-    @ApiProperty({ description: 'Google token from Google OAuth' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Google token from Google OAuth' })
     accessToken: string;
 
-    @ApiProperty({ description: 'Expires in from Google OAuth' })
-    @IsNumber()
-    @IsNotEmpty()
+    @NumberField({ description: 'Expires in from Google OAuth' })
     expiresIn: number;
 
-    @ApiProperty({ description: 'Scope from Google OAuth' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Scope from Google OAuth' })
     scope: string;
 
-    @ApiProperty({ description: 'Token type from Google OAuth' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Token type from Google OAuth' })
     tokenType: string;
 
-    @ApiPropertyOptional({ description: 'Refresh token from Google OAuth' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Refresh token from Google OAuth' })
     refreshToken?: string;
 
-    @ApiPropertyOptional({ description: 'Refresh token expires in from Google OAuth' })
-    @IsNumber()
-    @IsOptional()
+    @NumberFieldOptional({ description: 'Refresh token expires in from Google OAuth' })
     refreshTokenExpiresIn?: number;
 }

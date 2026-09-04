@@ -1,114 +1,91 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+
+import {
+    BooleanFieldOptional,
+    NumberFieldOptional,
+    URLField,
+    URLFieldOptional,
+    UUIDField,
+    UUIDFieldOptional,
+} from '../../../../decorators';
 
 export class CreateDataProviderItemRequestDto {
-    @ApiProperty({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
-    @IsNotEmpty()
-    @IsUUID()
+    @UUIDField({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
     @AutoMap()
     itemId: string;
 
-    @ApiProperty({ description: 'Data Provider ID', example: '123e4567-e89b-12d3-a456-426614174001' })
-    @IsNotEmpty()
-    @IsUUID()
+    @UUIDField({ description: 'Data Provider ID', example: '123e4567-e89b-12d3-a456-426614174001' })
     @AutoMap()
     dataProviderId: string;
 
-    @ApiProperty({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
-    @IsNotEmpty()
-    @IsString()
-    @Transform(({ value }) => value?.trim())
+    @URLField({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
     @AutoMap()
     itemUrl: string;
 
-    @ApiPropertyOptional({ description: 'Active status of the data provider item' })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Active status of the data provider item' })
     @AutoMap()
     isActive?: boolean;
 
-    @ApiPropertyOptional({ description: 'Auto process scraping of the data provider item' })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Auto process scraping of the data provider item' })
     autoProcessScraping?: boolean;
 
-    @ApiPropertyOptional({ description: 'Check duplicate data', default: true })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Check duplicate data', default: true })
     checkDuplicateData?: boolean;
 
-    @ApiPropertyOptional({ description: 'Is saved to cloud data', default: false })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Is saved to cloud data', default: false })
     @AutoMap()
     isSavedToCloudData?: boolean;
 
-    @ApiPropertyOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
-    @IsOptional()
-    @IsUUID()
+    @UUIDFieldOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
     @AutoMap()
     cloudDataProviderId?: string;
 }
 
 export class UpdateDataProviderItemRequestDto {
-    @ApiPropertyOptional({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
-    @IsOptional()
-    @IsUUID()
+    @UUIDFieldOptional({ description: 'Item ID', example: '123e4567-e89b-12d3-a456-426614174000' })
     itemId?: string;
 
-    @ApiPropertyOptional({ description: 'Data Provider ID', example: '123e4567-e89b-12d3-a456-426614174001' })
-    @IsOptional()
-    @IsUUID()
+    @UUIDFieldOptional({ description: 'Data Provider ID', example: '123e4567-e89b-12d3-a456-426614174001' })
     dataProviderId?: string;
 
-    @ApiPropertyOptional({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => value?.trim())
+    @URLFieldOptional({ description: 'URL to the item on the data provider website', example: 'https://example.com/item/123' })
     itemUrl?: string;
 
-    @ApiPropertyOptional({ description: 'Active status of the data provider item' })
-    @IsOptional()
-    @IsBoolean()
+    @BooleanFieldOptional({ description: 'Active status of the data provider item' })
     @AutoMap()
-    @ApiPropertyOptional({ description: 'Is saved to cloud data', default: false })
-    @IsOptional()
-    @IsBoolean()
+    isActive?: boolean;
+
+    @BooleanFieldOptional({ description: 'Is saved to cloud data', default: false })
     @AutoMap()
     isSavedToCloudData?: boolean;
 
-    @ApiPropertyOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
-    @IsOptional()
-    @IsUUID()
+    @UUIDFieldOptional({ description: 'Cloud data provider ID', example: '123e4567-e89b-12d3-a456-426614174002' })
     @AutoMap()
     cloudDataProviderId?: string;
 }
 
 export class CreateManuallyTriggerScrapingRequestDto {
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsArray()
-    @IsUUID('all', { each: true })
+    @UUIDField({ each: true })
     ids: string[];
 
-    @ApiPropertyOptional({ description: 'Priority level (must be a positive integer greater than 0)', default: 10 })
-    @IsOptional()
-    @IsInt({ message: 'Priority must be a positive integer greater than 0' })
-    @Min(0, { message: 'Priority must be a positive integer greater than 0' })
+    @NumberFieldOptional({
+        int: true,
+        min: 0,
+        description: 'Priority level (must be a positive integer greater than 0)',
+        default: 10,
+    })
     priority?: number;
 }
 
 export class TriggerManuallyScrapingBulkRequestDto {
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsUUID()
+    @UUIDField()
     productId: string;
 
-    @ApiPropertyOptional({ description: 'Priority level (must be a positive integer greater than 0)', default: 10 })
-    @IsOptional()
-    @IsInt({ message: 'Priority must be a positive integer greater than 0' })
-    @Min(0, { message: 'Priority must be a positive integer greater than 0' })
+    @NumberFieldOptional({
+        int: true,
+        min: 0,
+        description: 'Priority level (must be a positive integer greater than 0)',
+        default: 10,
+    })
     priority?: number;
 }

@@ -1,18 +1,15 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, HttpCode, HttpStatus, Param, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseController } from '../../../common/base.controller';
-import { ResponseDto } from '../../../common/dto/response.dto';
+import { Auth } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
 import { QueueService } from '../services/queue.service';
 
 @Controller('queue')
 @ApiTags('Queue')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class QueueController {
     constructor(private readonly queueService: QueueService) {}
 

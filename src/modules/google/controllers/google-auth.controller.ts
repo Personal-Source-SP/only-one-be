@@ -1,10 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Put, Version } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { User } from '../../../decorators/user.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, User } from '../../../decorators';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
@@ -12,8 +11,7 @@ import { GoogleAuthService } from '../services/google-auth.service';
 
 @Controller('google-auth')
 @ApiTags('Google Auth')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class GoogleAuthController extends BaseController<GoogleAuthEntity, GoogleAuthDto> {
     constructor(private readonly googleAuthService: GoogleAuthService) {
         super(googleAuthService);

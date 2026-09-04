@@ -1,19 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { PasswordField, StringField } from '../../../../decorators';
 
 export class ChangePasswordRequestDto {
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    @PasswordField()
     currentPassword: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    @PasswordField()
     newPassword: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    @StringField()
     userId: string;
 }

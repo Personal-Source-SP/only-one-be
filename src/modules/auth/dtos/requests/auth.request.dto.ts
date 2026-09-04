@@ -1,50 +1,38 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MaxLength } from 'class-validator';
+
+import { EmailField, PasswordField, PhoneField, StringField } from '../../../../decorators';
 
 export class SignUpRequestDto {
-    @ApiProperty()
-    @IsString()
-    @MaxLength(100)
+    @StringField({ maxLength: 100 })
     @AutoMap()
     firstName: string;
 
-    @ApiProperty()
-    @IsString()
-    @MaxLength(100)
+    @StringField({ maxLength: 100 })
     @AutoMap()
     lastName: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsEmail()
+    @EmailField()
     @AutoMap()
     email: string;
 
-    @ApiProperty()
-    @IsString()
+    @PasswordField()
     @AutoMap()
     password: string;
 
-    @ApiProperty()
-    @IsString()
-    @MaxLength(100)
+    @PhoneField()
     @AutoMap()
     phoneNumber: string;
 }
 
 export class SignInRequestDto {
-    @ApiProperty()
-    @IsString()
+    @EmailField()
     email: string;
 
-    @ApiProperty()
-    @IsString()
+    @PasswordField()
     password: string;
 }
 
 export class RefreshTokenRequestDto {
-    @ApiProperty()
-    @IsString()
+    @StringField()
     refreshToken: string;
 }

@@ -1,55 +1,36 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
-
+import { EnumField, StringFieldOptional, UUIDField } from '../../../../decorators';
 import { ValidationUserAction } from '../../enums';
 
 export class TriggerValidationRequestDto {
-    @ApiPropertyOptional({ description: 'Target keyword/product name to match against' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Target keyword/product name to match against' })
     targetKeyword?: string;
 }
 
 export class SubmitUserActionRequestDto {
-    @ApiProperty({ enum: ValidationUserAction, description: 'User action on URL' })
-    @IsEnum(ValidationUserAction)
-    @IsNotEmpty()
+    @EnumField(() => ValidationUserAction, { description: 'User action on URL' })
     action: ValidationUserAction;
 
-    @ApiPropertyOptional({ description: 'Reason for action' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Reason for action' })
     reason?: string;
 }
 
 export class SubmitBulkUserActionRequestDto {
-    @ApiProperty({ description: 'List of Discovery URL IDs' })
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsUUID('all', { each: true })
+    @UUIDField({ each: true, description: 'List of Discovery URL IDs' })
     urlIds: string[];
 
-    @ApiProperty({ enum: ValidationUserAction, description: 'User action on URLs' })
-    @IsEnum(ValidationUserAction)
-    @IsNotEmpty()
+    @EnumField(() => ValidationUserAction, { description: 'User action on URLs' })
     action: ValidationUserAction;
 
-    @ApiPropertyOptional({ description: 'Reason for action' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Reason for action' })
     reason?: string;
 }
 
 export class RevalidateUrlRequestDto {
-    @ApiPropertyOptional({ description: 'Target keyword for revalidation' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Target keyword for revalidation' })
     targetKeyword?: string;
 }
 
 export class CancelValidationBatchRequestDto {
-    @ApiPropertyOptional({ description: 'Reason for cancellation' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Reason for cancellation' })
     reason?: string;
 }

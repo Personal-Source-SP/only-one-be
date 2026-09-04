@@ -1,9 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
+import { Auth, UUIDParam } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SIMULATION_ITEM_PAGINATION_CONFIG } from '../constants/simulation-item.config';
 import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
@@ -12,8 +12,7 @@ import { SimulationItemService } from '../services/simulation-item.service';
 
 @ApiTags('Simulation Items')
 @Controller('simulation-items')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class SimulationItemController extends BaseController<SimulationItemEntity, SimulationItemDto> {
     constructor(private readonly simulationItemService: SimulationItemService) {
         super(simulationItemService, SIMULATION_ITEM_PAGINATION_CONFIG);
@@ -34,7 +33,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
     @HttpCode(HttpStatus.OK)
     @Post(':id/run')
     @BaseApiOkResponse(Boolean)
-    public async run(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
+    public async run(@UUIDParam('id') id: string): Promise<boolean> {
         const result = await this.simulationItemService.run(id);
         return result;
     }

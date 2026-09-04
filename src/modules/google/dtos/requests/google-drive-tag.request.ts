@@ -1,33 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { StringField, UUIDField } from '../../../../decorators';
 
 export class CreateTagRequestDto {
-    @ApiProperty({ description: 'Tag name' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Tag name' })
     name: string;
 }
 
 export class AssignTagsToFileRequestDto {
-    @ApiProperty({ description: 'File id (uuid)' })
-    @IsString()
-    @IsNotEmpty()
+    @UUIDField({ description: 'File id (uuid)' })
     fileId: string;
 
-    @ApiProperty({ description: 'Array of tag names' })
-    @IsArray()
-    @IsString({ each: true })
+    @StringField({ each: true, description: 'Array of tag names' })
     tags: string[];
 }
 
 export class RemoveTagFromFileRequestDto {
-    @ApiProperty({ description: 'File id (uuid)' })
-    @IsString()
-    @IsNotEmpty()
+    @UUIDField({ description: 'File id (uuid)' })
     fileId: string;
 
-    @ApiProperty({ description: 'Tag name' })
-    @IsString()
-    @IsNotEmpty()
+    @StringField({ description: 'Tag name' })
     tag: string;
 }

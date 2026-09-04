@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Put, Version } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, UUIDParam } from '../../../decorators';
 import { GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG } from '../constants/google-drive-pagination.config';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
 import { UpdateGoogleDriveFolderRequest } from '../dtos/requests';
@@ -11,8 +11,7 @@ import { GoogleFolderService } from '../services/google-folder.service';
 
 @Controller('google-folder')
 @ApiTags('Google Folder')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class GoogleFolderController extends BaseController<GoogleDriveFolderEntity, GoogleDriveFolderDto> {
     constructor(private readonly googleFolderService: GoogleFolderService) {
         super(googleFolderService, GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG);
@@ -23,7 +22,7 @@ export class GoogleFolderController extends BaseController<GoogleDriveFolderEnti
     @Version('1')
     @Put(':id')
     @ApiOkResponse({ type: Boolean })
-    public async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() request: UpdateGoogleDriveFolderRequest): Promise<boolean> {
+    public async update(@UUIDParam('id') id: string, @Body() request: UpdateGoogleDriveFolderRequest): Promise<boolean> {
         const result = await this.googleFolderService.update(id, request);
         return result;
     }

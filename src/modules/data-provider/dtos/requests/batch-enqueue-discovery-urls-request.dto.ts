@@ -1,10 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsUUID } from 'class-validator';
+import { UUIDField } from '../../../../decorators';
 
 export class BatchEnqueueDiscoveryUrlsRequestDto {
-    @ApiProperty({ description: 'List of discovery URL IDs to enqueue for scraping' })
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsUUID('all', { each: true })
+    @UUIDField({ each: true, description: 'List of discovery URL IDs to enqueue for scraping' })
     urlIds: string[];
 }

@@ -1,8 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse } from '../../../decorators';
 import { CreateUserRequestDto } from '../../user/dtos/requests';
 import { UserDto } from '../../user/dtos/user.dto';
 import { RefreshTokenRequestDto, SignInRequestDto } from '../dtos/requests/auth.request.dto';
@@ -37,8 +36,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Refresh token' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
+    @Auth()
     @Post('refresh-token')
     @BaseApiOkResponse(RefreshTokenResponseDto)
     async refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {

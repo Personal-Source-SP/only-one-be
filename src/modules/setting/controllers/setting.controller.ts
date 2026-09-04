@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Version } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth } from '../../../decorators';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
@@ -10,8 +10,7 @@ import { SettingService } from '../services/setting.service';
 
 @Controller('settings')
 @ApiTags('Settings')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class SettingController extends BaseController<SettingEntity, SettingDto> {
     constructor(private readonly settingService: SettingService) {
         super(settingService);

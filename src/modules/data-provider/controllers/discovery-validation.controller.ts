@@ -1,8 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
 import {
@@ -15,8 +14,7 @@ import { DiscoveryValidationService } from '../services/discovery-validation.ser
 
 @ApiTags('Discovery Validations')
 @Controller('discovery-validations')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class DiscoveryValidationController {
     constructor(private readonly validationService: DiscoveryValidationService) {}
 
@@ -26,7 +24,7 @@ export class DiscoveryValidationController {
     @Post('sessions/:sessionId/validate')
     @BaseApiOkResponse(DiscoveryValidationBatchDto)
     public async triggerValidation(
-        @Param('sessionId', new ParseUUIDPipe()) sessionId: string,
+        @UUIDParam('sessionId') sessionId: string,
         @Body() request?: TriggerValidationRequestDto,
     ): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.startBatchValidation(sessionId, request?.targetKeyword);
@@ -37,7 +35,7 @@ export class DiscoveryValidationController {
     @Version('1')
     @Get('sessions/:sessionId/latest-batch')
     @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async getLatestBatch(@Param('sessionId', new ParseUUIDPipe()) sessionId: string): Promise<DiscoveryValidationBatchDto> {
+    public async getLatestBatch(@UUIDParam('sessionId') sessionId: string): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.getLatestValidationBatch(sessionId);
     }
 
@@ -55,10 +53,7 @@ export class DiscoveryValidationController {
     @Version('1')
     @Post('urls/:id/user-action')
     @BaseApiOkResponse(Boolean)
-    public async submitUserAction(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request: SubmitUserActionRequestDto,
-    ): Promise<boolean> {
+    public async submitUserAction(@UUIDParam('id') id: string, @Body() request: SubmitUserActionRequestDto): Promise<boolean> {
         return await this.validationService.submitUserAction(id, request.action, request.reason);
     }
 
@@ -67,10 +62,7 @@ export class DiscoveryValidationController {
     @Version('1')
     @Post('urls/:id/re-validate')
     @BaseApiOkResponse(DiscoveryUrlDto)
-    public async revalidate(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Body() request?: RevalidateUrlRequestDto,
-    ): Promise<DiscoveryUrlDto> {
+    public async revalidate(@UUIDParam('id') id: string, @Body() request?: RevalidateUrlRequestDto): Promise<DiscoveryUrlDto> {
         return await this.validationService.revalidateDiscoveredUrl(id, request?.targetKeyword);
     }
 }

@@ -1,51 +1,39 @@
 import { AutoMap } from '@automapper/classes';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Max, Min } from 'class-validator';
+
+import { BooleanFieldOptional, NumberFieldOptional, StringFieldOptional, URLField, UUIDField } from '../../../../decorators';
 
 export class CreateDiscoverySessionRequestDto {
-    @ApiProperty({ description: 'Data Provider ID' })
-    @IsUUID()
-    @IsNotEmpty()
+    @UUIDField({ description: 'Data Provider ID' })
     @AutoMap()
     dataProviderId: string;
 
-    @ApiProperty({ description: 'Target URL to begin link discovery' })
-    @IsUrl()
-    @IsNotEmpty()
+    @URLField({ description: 'Target URL to begin link discovery' })
     @AutoMap()
     targetUrl: string;
 
-    @ApiPropertyOptional({ description: 'Crawl depth (1-5)', default: 1 })
-    @IsNumber()
-    @Min(1)
-    @Max(5)
-    @IsOptional()
+    @NumberFieldOptional({ int: true, min: 1, max: 5, description: 'Crawl depth (1-5)', default: 1 })
     @AutoMap()
     depth?: number;
 
-    @ApiPropertyOptional({ description: 'Maximum URLs to discover (omit for unbounded discovery)', default: null })
-    @IsNumber()
-    @Min(1)
-    @Max(10000)
-    @IsOptional()
+    @NumberFieldOptional({
+        int: true,
+        min: 1,
+        max: 10000,
+        description: 'Maximum URLs to discover (omit for unbounded discovery)',
+        default: null,
+    })
     @AutoMap()
     maxUrls?: number;
 
-    @ApiPropertyOptional({ description: 'Automatically run validation batch upon completion', default: true })
-    @IsBoolean()
-    @IsOptional()
+    @BooleanFieldOptional({ description: 'Automatically run validation batch upon completion', default: true })
     @AutoMap()
     autoValidate?: boolean;
 
-    @ApiPropertyOptional({ description: 'Target keyword for fuzzy matching' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Target keyword for fuzzy matching' })
     @AutoMap()
     targetKeyword?: string;
 
-    @ApiPropertyOptional({ description: 'Notes for the session' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Notes for the session' })
     @AutoMap()
     notes?: string;
 }

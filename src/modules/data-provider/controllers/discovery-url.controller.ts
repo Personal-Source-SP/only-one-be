@@ -1,9 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
+import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
@@ -13,8 +12,7 @@ import { DiscoveryUrlService } from '../services/discovery-url.service';
 
 @ApiTags('Discovery URLs')
 @Controller('discovery-urls')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Auth()
 export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, DiscoveryUrlDto> {
     constructor(private readonly discoveryUrlService: DiscoveryUrlService) {
         super(discoveryUrlService, DISCOVERY_URL_PAGINATION_CONFIG, {
@@ -32,7 +30,7 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     @Post('sessions/:sessionId/batch-ingest')
     @BaseApiOkResponse(IngestDiscoveryUrlResponseDto)
     public async batchIngestUrls(
-        @Param('sessionId', new ParseUUIDPipe()) sessionId: string,
+        @UUIDParam('sessionId') sessionId: string,
         @Body() request?: { urlIds?: string[] },
     ): Promise<IngestDiscoveryUrlResponseDto> {
         return await this.discoveryUrlService.batchIngest(sessionId, request?.urlIds);
@@ -43,7 +41,7 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     @Version('1')
     @Get(':id/validation-logs')
     @BaseApiOkResponse(DiscoveryValidationLogDto, { isArray: true })
-    public async getValidationLogs(@Param('id', new ParseUUIDPipe()) id: string): Promise<DiscoveryValidationLogDto[]> {
+    public async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryUrlService.getValidationLogsByUrl(id);
     }
 }

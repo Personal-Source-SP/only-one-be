@@ -1,67 +1,49 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-
+import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringFieldOptional } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderFeatureRequestDto {
-    @ApiProperty({ enum: DataProviderFeatureType, description: 'Type of feature' })
-    @IsEnum(DataProviderFeatureType)
-    @IsNotEmpty()
+    @EnumField(() => DataProviderFeatureType, { description: 'Type of feature' })
     type: DataProviderFeatureType;
 
-    @ApiPropertyOptional({ enum: ScraperServiceEnum, default: ScraperServiceEnum.GENERIC, description: 'Service runtime identifier' })
-    @IsEnum(ScraperServiceEnum)
-    @IsOptional()
+    @EnumFieldOptional(() => ScraperServiceEnum, {
+        default: ScraperServiceEnum.GENERIC,
+        description: 'Service runtime identifier',
+    })
     service?: ScraperServiceEnum;
 
-    @ApiPropertyOptional({ type: Object, description: 'Feature configuration payload' })
-    @IsObject()
-    @IsOptional()
+    @ObjectFieldOptional({ description: 'Feature configuration payload' })
     config?: Record<string, any>;
 }
 
 export class UpdateFeatureConfigRequestDto {
-    @ApiProperty({ type: Object, description: 'Feature configuration payload' })
-    @IsObject()
-    @IsNotEmpty()
+    @ObjectFieldOptional({ description: 'Feature configuration payload' })
     config: Record<string, any>;
 
-    @ApiPropertyOptional({ enum: ScraperServiceEnum, description: 'Service runtime identifier' })
-    @IsEnum(ScraperServiceEnum)
-    @IsOptional()
+    @EnumFieldOptional(() => ScraperServiceEnum, { description: 'Service runtime identifier' })
     service?: ScraperServiceEnum;
 
-    @ApiPropertyOptional({ description: 'Description of changes for version history' })
-    @IsString()
-    @IsOptional()
+    @StringFieldOptional({ description: 'Description of changes for version history' })
     changeDescription?: string;
 }
 
 export class TestFeatureStatelessRequestDto {
-    @ApiProperty({ enum: DataProviderFeatureType, description: 'Feature type to test' })
-    @IsEnum(DataProviderFeatureType)
-    @IsNotEmpty()
+    @EnumField(() => DataProviderFeatureType, { description: 'Feature type to test' })
     type: DataProviderFeatureType;
 
-    @ApiPropertyOptional({ enum: ScraperServiceEnum, default: ScraperServiceEnum.GENERIC, description: 'Service engine to test' })
-    @IsEnum(ScraperServiceEnum)
-    @IsOptional()
+    @EnumFieldOptional(() => ScraperServiceEnum, {
+        default: ScraperServiceEnum.GENERIC,
+        description: 'Service engine to test',
+    })
     service?: ScraperServiceEnum;
 
-    @ApiProperty({ type: Object, description: 'Raw draft configuration payload' })
-    @IsObject()
-    @IsNotEmpty()
+    @ObjectFieldOptional({ description: 'Raw draft configuration payload' })
     config: Record<string, any>;
 
-    @ApiPropertyOptional({ type: Object, description: 'Test input payload (e.g. url, htmlContentString, query)' })
-    @IsObject()
-    @IsOptional()
+    @ObjectFieldOptional({ description: 'Test input payload (e.g. url, htmlContentString, query)' })
     input?: Record<string, any>;
 }
 
 export class TestFeatureContextualRequestDto {
-    @ApiPropertyOptional({ type: Object, description: 'Optional input payload override' })
-    @IsObject()
-    @IsOptional()
+    @ObjectFieldOptional({ description: 'Optional input payload override' })
     input?: Record<string, any>;
 }

@@ -1,9 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Version } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
+import { Auth } from '../../../decorators';
 import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 import { SIMULATION_CONTEXT_PAGINATION_CONFIG } from '../constants/simulation-context.config';
 import { CreateSimulationContextRequest } from '../dtos/requests';
 import { SimulationContextDto } from '../dtos/simulation-context.dto';
@@ -12,8 +12,7 @@ import { SimulationContextService } from '../services/simulation-context.service
 
 @ApiTags('Simulation Contexts')
 @Controller('simulation-contexts')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@Auth()
 export class SimulationContextController extends BaseController<SimulationContextEntity, SimulationContextDto> {
     constructor(private readonly simulationContextService: SimulationContextService) {
         super(simulationContextService, SIMULATION_CONTEXT_PAGINATION_CONFIG);

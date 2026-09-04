@@ -1,10 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseBoolPipe, ParseUUIDPipe, Post, Put, Version } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseBoolPipe, Post, Put, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
-import { User } from '../../../decorators/user.decorator';
+import { BaseApiOkResponse, User, UUIDParam } from '../../../decorators';
 import { SCHEDULE_PAGINATION_CONFIG } from '../constants/schedule.config';
 import { CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
@@ -23,7 +22,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
     @Version('1')
     @Post(':id/manual-trigger')
     @BaseApiOkResponse(Boolean)
-    public async manualTrigger(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
+    public async manualTrigger(@UUIDParam('id') id: string): Promise<boolean> {
         const result = await this.scheduleService.manualTrigger(id);
         return result;
     }
@@ -43,10 +42,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
     @Version('1')
     @Put(':id/switch-status/:status')
     @BaseApiOkResponse(Boolean)
-    public async switchStatus(
-        @Param('id', new ParseUUIDPipe()) id: string,
-        @Param('status', new ParseBoolPipe()) status: boolean,
-    ): Promise<boolean> {
+    public async switchStatus(@UUIDParam('id') id: string, @Param('status', new ParseBoolPipe()) status: boolean): Promise<boolean> {
         const result = await this.scheduleService.switchStatus(id, status);
         return result;
     }
@@ -57,7 +53,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
     @Put(':id')
     @BaseApiOkResponse(Boolean)
     public async update(
-        @Param('id', new ParseUUIDPipe()) id: string,
+        @UUIDParam('id') id: string,
         @Body() request: UpdateScheduleRequestDto,
         @User() user: PayloadDto,
     ): Promise<boolean> {

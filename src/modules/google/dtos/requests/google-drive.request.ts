@@ -1,66 +1,55 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateIf } from 'class-validator';
+import { ValidateIf } from 'class-validator';
 
 import { MimeType } from '../../../../common/enums/mime-type';
+import {
+    DateFieldOptional,
+    EnumField,
+    EnumFieldOptional,
+    NumberFieldOptional,
+    StringField,
+    StringFieldOptional,
+    UUIDFieldOptional,
+} from '../../../../decorators';
 import { GoogleDriveType } from '../../enums';
 import { GoogleDrivePreviewItem } from '../responses/google-drive-preview-response.dto';
 
 export class GoogleDrivePreviewRequest {
-    @ApiProperty()
-    @IsEnum(GoogleDriveType)
+    @EnumField(() => GoogleDriveType)
     type: GoogleDriveType;
 
-    @ApiProperty()
-    @IsString()
+    @StringField()
     googleAuthId: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsArray()
+    @EnumFieldOptional(() => MimeType, { each: true })
     fileTypes?: MimeType[];
 
-    @ApiPropertyOptional({ description: 'Filter by modified time from (ISO string)' })
-    @IsOptional()
-    @IsDateString()
+    @DateFieldOptional({ description: 'Filter by modified time from (ISO string)' })
     modifiedTimeFrom?: string;
 
-    @ApiPropertyOptional({ description: 'Filter by modified time to (ISO string)' })
-    @IsOptional()
-    @IsDateString()
+    @DateFieldOptional({ description: 'Filter by modified time to (ISO string)' })
     modifiedTimeTo?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
+    @NumberFieldOptional({ int: true, min: 0 })
     maxResults?: number;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     folderId?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
+    @StringFieldOptional()
     customQuery?: string;
 }
 
 export class GoogleDriveSyncRequest {
-    @ApiProperty()
-    @IsEnum(GoogleDriveType)
+    @EnumField(() => GoogleDriveType)
     type: GoogleDriveType;
 
-    @ApiProperty()
-    @IsString()
+    @StringField()
     googleAuthId: string;
 
-    @ApiProperty()
-    @IsArray()
+    @StringFieldOptional({ each: true })
     data: GoogleDrivePreviewItem[];
 
-    @ApiPropertyOptional()
     @ValidateIf((object) => object.type === GoogleDriveType.FILE)
-    @IsUUID()
+    @UUIDFieldOptional()
     folderId?: string;
 }
