@@ -21,9 +21,7 @@ export class DiscoveryValidationWorkerProcessor {
     @Process({ concurrency: 5 })
     async process(job: DiscoveryValidationJobType): Promise<void> {
         const { urlId, sessionId, batchId } = job.data;
-        this.loggerService.log(
-            `Processing validation job ${job.id} for URL ${urlId} (Batch: ${batchId}, Session: ${sessionId})`,
-        );
+        this.loggerService.log(`Processing validation job ${job.id} for URL ${urlId} (Batch: ${batchId}, Session: ${sessionId})`);
 
         try {
             await this.discoveryValidationService.validateUrlForBatch(job.data);

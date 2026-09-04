@@ -217,8 +217,7 @@ export class DiscoveryValidationService {
         });
 
         const isMatched =
-            evalResult.matchResult === ValidationMatchResult.EXACT_MATCH ||
-            evalResult.matchResult === ValidationMatchResult.PARTIAL_MATCH;
+            evalResult.matchResult === ValidationMatchResult.EXACT_MATCH || evalResult.matchResult === ValidationMatchResult.PARTIAL_MATCH;
 
         await this.dataSource.transaction(async (manager) => {
             await manager.update(DiscoveryUrlEntity, urlId, {
