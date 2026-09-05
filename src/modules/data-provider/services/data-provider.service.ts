@@ -1,11 +1,13 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests';
 import { DataProviderEntity } from '../entities/data-provider.entity';
@@ -32,7 +34,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
 
     async create(data: CreateDataProviderRequestDto): Promise<DataProviderDto> {
         if (data?.identifier && !/^[a-z0-9-]+$/.test(data.identifier)) {
-            throw new BadRequestException('Identifier must contain lowercase letters, numbers, and dashes');
+            throw new AppException(DataProviderError.InvalidIdentifierFormat);
         }
 
         if (data?.baseUrl) {
@@ -40,7 +42,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
 
             if (existingDataProviderWithBaseUrl) {
                 this.loggerService.error(`Data provider with baseUrl ${data.baseUrl} already exists`);
-                throw new ConflictException(`Data provider with baseUrl ${data.baseUrl} already exists`);
+                throw new AppException(DataProviderError.BaseUrlAlreadyExists(data.baseUrl));
             }
         }
 
@@ -49,7 +51,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
 
             if (existingDataProviderWithIdentifier) {
                 this.loggerService.error(`Data provider with identifier ${data.identifier} already exists`);
-                throw new ConflictException(`Data provider with identifier ${data.identifier} already exists`);
+                throw new AppException(DataProviderError.IdentifierAlreadyExists(data.identifier));
             }
         }
 
@@ -62,12 +64,12 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
         const existingDataProvider = await this.findById(id);
         if (!existingDataProvider) {
             this.loggerService.error(`Data provider with ID ${id} not found`);
-            throw new NotFoundException(`Data provider with ID ${id} not found`);
+            throw new AppException(DataProviderError.DataProviderWithIdNotFound(id));
         }
 
         // Check if identifier is valid
         if (data?.identifier && !/^[a-z0-9-]+$/.test(data.identifier)) {
-            throw new BadRequestException('Identifier must contain lowercase letters, numbers, and dashes');
+            throw new AppException(DataProviderError.InvalidIdentifierFormat);
         }
 
         // Check unique identifier
@@ -79,7 +81,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
 
             if (countExistingDataProvider) {
                 this.loggerService.error(`Data provider with identifier ${data.identifier} already exists`);
-                throw new ConflictException(`Data provider with identifier ${data.identifier} already exists`);
+                throw new AppException(DataProviderError.IdentifierAlreadyExists(data.identifier));
             }
         }
 
@@ -92,7 +94,7 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
 
             if (existingDataProviderWithBaseUrl) {
                 this.loggerService.error(`Data provider with baseUrl ${data.baseUrl} already exists`);
-                throw new ConflictException(`Data provider with baseUrl ${data.baseUrl} already exists`);
+                throw new AppException(DataProviderError.BaseUrlAlreadyExists(data.baseUrl));
             }
 
             // Update item URL if base URL is changed

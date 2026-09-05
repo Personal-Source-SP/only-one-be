@@ -1,8 +1,10 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Job, JobOptions, Queue } from 'bull';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
+import { QueueError } from '../constants/queue-error';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
 import { IDiscoveryIngestionJob, IDiscoveryValidationJob, IScrapingJobQueueInterface } from '../interfaces';
@@ -33,7 +35,7 @@ export class QueueService implements OnModuleInit {
 
     getQueue(queueName: QUEUE_NAME): Queue | undefined {
         const queue = this.queues.get(queueName);
-        if (!queue) throw new NotFoundException(`Queue ${queueName} not found`);
+        if (!queue) throw new AppException(QueueError.QueueNotFound(queueName));
 
         return queue;
     }

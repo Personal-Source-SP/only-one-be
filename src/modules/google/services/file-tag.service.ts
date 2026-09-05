@@ -1,10 +1,12 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { AppException } from '../../../exceptions/app.exception';
+import { GoogleError } from '../constants/google-error';
 import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
@@ -34,13 +36,13 @@ export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
         const googleDriveFileExists = await this.googleFileService.exists({ id: fileId });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileId}`);
-            throw new NotFoundException('File not found');
+            throw new AppException(GoogleError.DriveFileNotFound);
         }
 
         const fileTagsExists = await this.exists({ id: In(fileTagIds) });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileTagIds?.join(', ')}`);
-            throw new NotFoundException('File tags not found');
+            throw new AppException(GoogleError.FileTagNotFound);
         }
 
         const existing = await this.googleDriveFileTagService.findListByFilter(
@@ -71,13 +73,13 @@ export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
         const googleDriveFileExists = await this.googleFileService.exists({ id: fileId });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileId}`);
-            throw new NotFoundException('File not found');
+            throw new AppException(GoogleError.DriveFileNotFound);
         }
 
         const fileTagsExists = await this.exists({ id: In(fileTagIds) });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileTagIds?.join(', ')}`);
-            throw new NotFoundException('File tags not found');
+            throw new AppException(GoogleError.FileTagNotFound);
         }
 
         const removed = await this.googleDriveFileTagService.deleteMany({ googleDriveFileId: fileId, fileTagId: In(fileTagIds) });
@@ -90,13 +92,13 @@ export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
         const googleDriveFileExists = await this.googleFileService.exists({ id: In(fileIds) });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileIds}`);
-            throw new NotFoundException('File not found');
+            throw new AppException(GoogleError.DriveFileNotFound);
         }
 
         const fileTagsExists = await this.exists({ id: fileTagId });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileIds}`);
-            throw new NotFoundException('File tags not found');
+            throw new AppException(GoogleError.FileTagNotFound);
         }
 
         const existing = await this.googleDriveFileTagService.findListByFilter(
@@ -127,13 +129,13 @@ export class FileTagService extends BaseService<FileTagEntity, FileTagDto> {
         const googleDriveFileExists = await this.googleFileService.exists({ id: In(fileIds) });
         if (!googleDriveFileExists) {
             this.loggerService.error(`File not found: ${fileIds?.join(', ')}`);
-            throw new NotFoundException('File not found');
+            throw new AppException(GoogleError.DriveFileNotFound);
         }
 
         const fileTagsExists = await this.exists({ id: fileTagId });
         if (!fileTagsExists) {
             this.loggerService.error(`File tags not found: ${fileIds}`);
-            throw new NotFoundException('File tags not found');
+            throw new AppException(GoogleError.FileTagNotFound);
         }
 
         const removed = await this.googleDriveFileTagService.deleteMany({ googleDriveFileId: In(fileIds), fileTagId: fileTagId });

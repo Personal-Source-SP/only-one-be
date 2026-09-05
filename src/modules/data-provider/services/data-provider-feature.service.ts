@@ -1,14 +1,16 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { AppException } from '../../../exceptions/app.exception';
 import { NOTIFICATION_EVENTS } from '../../notification/constants/notification.constant';
 import { NotificationType } from '../../notification/enum/notification.enum';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import { CreateDataProviderFeatureRequestDto, UpdateFeatureConfigRequestDto } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
@@ -25,10 +27,10 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         private readonly eventEmitter: EventEmitter2,
         private readonly configVersionService: ConfigVersionService,
         @InjectMapper() mapper: Mapper,
-        @InjectRepository(DataProviderFeatureEntity)
-        private readonly dataProviderFeatureRepository: Repository<DataProviderFeatureEntity>,
         @Inject(forwardRef(() => FeatureRunnerRegistry))
         private readonly runnerRegistry: FeatureRunnerRegistry,
+        @InjectRepository(DataProviderFeatureEntity)
+        private readonly dataProviderFeatureRepository: Repository<DataProviderFeatureEntity>,
     ) {
         super(dataProviderFeatureRepository, mapper, DataProviderFeatureDto, DataProviderFeatureService.name);
     }
@@ -36,16 +38,16 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
     async createFeature(dataProviderId: string, request: CreateDataProviderFeatureRequestDto): Promise<DataProviderFeatureDto> {
         const existing = await this.exists({ dataProviderId, type: request.type });
         if (existing) {
-            throw new BadRequestException(`Feature ${request.type} already exists for data provider ${dataProviderId}`);
+            throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
         }
 
         const entity = this.dataProviderFeatureRepository.create({
             dataProviderId,
             type: request.type,
-            service: request.service || ScraperServiceEnum.GENERIC,
             config: request.config,
             consecutiveFailures: 0,
             status: DataProviderFeatureStatus.UNCONFIGURED,
+            service: request.service || ScraperServiceEnum.GENERIC,
         });
 
         return await super.create(entity);
@@ -54,7 +56,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
     async updateFeatureConfig(id: string, request: UpdateFeatureConfigRequestDto, user?: PayloadDto): Promise<DataProviderFeatureDto> {
         const feature = await this.findById(id);
         if (!feature) {
-            throw new NotFoundException(`Feature with ID ${id} not found`);
+            throw new AppException(DataProviderError.FeatureNotFound(id));
         }
 
         // Create version snapshot
@@ -134,7 +136,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
     async switchStatus(id: string, status: DataProviderFeatureStatus): Promise<boolean> {
         if (status === DataProviderFeatureStatus.UNCONFIGURED) {
-            throw new BadRequestException('Not allowed to switch status to UNCONFIGURED');
+            throw new AppException(DataProviderError.InvalidStatusSwitchUnconfigured);
         }
 
         const feature = await this.dataProviderFeatureRepository.findOne({
@@ -143,12 +145,12 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         });
 
         if (!feature) {
-            throw new NotFoundException(`Feature with ID ${id} not found`);
+            throw new AppException(DataProviderError.FeatureNotFound(id));
         }
 
         if (status === DataProviderFeatureStatus.READY) {
             if (feature.status !== DataProviderFeatureStatus.TESTING && feature.status !== DataProviderFeatureStatus.ERROR) {
-                throw new BadRequestException('Not allowed to switch status to READY unless currently TESTING or ERROR');
+                throw new AppException(DataProviderError.InvalidStatusSwitchReady);
             }
 
             const runner = this.runnerRegistry.getRunner(feature.type);
@@ -166,7 +168,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
                 feature.status !== DataProviderFeatureStatus.DISABLED &&
                 feature.status !== DataProviderFeatureStatus.ERROR
             ) {
-                throw new BadRequestException('Not allowed to switch status to TESTING from current state');
+                throw new AppException(DataProviderError.InvalidStatusSwitchTesting);
             }
         }
 
@@ -180,7 +182,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         });
 
         if (!feature) {
-            throw new NotFoundException(`Feature with ID ${id} not found`);
+            throw new AppException(DataProviderError.FeatureNotFound(id));
         }
 
         const runner = this.runnerRegistry.getRunner(feature.type);
@@ -194,7 +196,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
     async getFeatureByProviderIdAndType(dataProviderId: string, type: DataProviderFeatureType): Promise<DataProviderFeatureDto> {
         const feature = await this.findOneByFilter({ dataProviderId, type });
         if (!feature) {
-            throw new NotFoundException(`Feature ${type} not found for data provider ${dataProviderId}`);
+            throw new AppException(DataProviderError.FeatureTypeNotFound(type, dataProviderId));
         }
         return feature;
     }

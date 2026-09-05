@@ -1,5 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderFeatureType } from '../enums';
 import { IFeatureRunner } from '../interfaces';
 import { ScrapingFeatureRunner } from './scraping-feature.runner';
@@ -15,7 +17,7 @@ export class FeatureRunnerRegistry {
     getRunner(type: DataProviderFeatureType): IFeatureRunner {
         const runner = this.runnerMap.get(type);
         if (!runner) {
-            throw new BadRequestException(`No feature runner registered for type: ${type}`);
+            throw new AppException(DataProviderError.RunnerNotFound(type));
         }
         return runner;
     }

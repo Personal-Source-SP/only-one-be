@@ -1,12 +1,14 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { AppException } from '../../../exceptions/app.exception';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { QueueService } from '../../queue/services/queue.service';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
@@ -37,7 +39,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
 
     async ingestDiscoveredUrl(urlId: string): Promise<IngestDiscoveredUrlResponseDto> {
         const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
-        if (!urlEntity) throw new NotFoundException(`Discovery URL not found with id: ${urlId}`);
+        if (!urlEntity) throw new AppException(DataProviderError.UrlNotFound(urlId));
 
         const code = this.extractCodeFromUrl(urlEntity.url, urlEntity.title);
         const name = urlEntity.title?.trim() || urlEntity.url;
@@ -88,7 +90,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
 
     async batchIngest(sessionId: string, urlIds?: string[]): Promise<IngestDiscoveryUrlResponseDto> {
         const session = await this.discoverySessionRepository.findOne({ where: { id: sessionId } });
-        if (!session) throw new NotFoundException(`Discovery session not found with id: ${sessionId}`);
+        if (!session) throw new AppException(DataProviderError.SessionNotFound(sessionId));
 
         const whereCondition: FindOptionsWhere<DiscoveryUrlEntity> = { sessionId };
         if (urlIds && urlIds.length > 0) {

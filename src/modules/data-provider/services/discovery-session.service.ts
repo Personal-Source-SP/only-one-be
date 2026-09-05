@@ -1,11 +1,13 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { CreateDiscoverySessionRequestDto } from '../dtos/requests/create-discovery-session-request.dto';
 import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
@@ -37,7 +39,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         });
 
         if (!dataProvider) {
-            throw new NotFoundException(`Data Provider not found with id: ${request.dataProviderId}`);
+            throw new AppException(DataProviderError.DataProviderWithIdNotFound(request.dataProviderId));
         }
 
         const entity = this.mapper.map(request, CreateDiscoverySessionRequestDto, DiscoverySessionEntity);
@@ -56,7 +58,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
     async getSessionSummary(sessionId: string): Promise<DiscoverySessionSummaryResponseDto> {
         const session = await this.findById(sessionId, { relations: { dataProvider: true } });
         if (!session) {
-            throw new NotFoundException(`Discovery session not found with id: ${sessionId}`);
+            throw new AppException(DataProviderError.SessionNotFound(sessionId));
         }
 
         const [exactMatches, partialMatches, noMatches] = await Promise.all([

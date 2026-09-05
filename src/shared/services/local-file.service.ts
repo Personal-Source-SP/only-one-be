@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { AppError } from '../../constant/error-code';
+import { AppException } from '../../exceptions/app.exception';
 import { LoggerService } from './logger.service';
 
 export interface ICreateFileOptions {
@@ -68,7 +70,7 @@ export class LocalFileService {
             return JSON.parse(content as string);
         } catch (error) {
             this.loggerService.error(`Error parsing JSON file ${filePath}: ${error?.message}`);
-            throw new Error(`Invalid JSON file: ${error?.message}`);
+            throw new AppException(AppError.InvalidJsonFile(error?.message));
         }
     }
 
@@ -76,7 +78,7 @@ export class LocalFileService {
         const resolvedPath = this.resolvePath(filePath);
 
         if (!(await this.fileExists(resolvedPath))) {
-            throw new Error(`File not found: ${resolvedPath}`);
+            throw new AppException(AppError.FileNotFound(resolvedPath));
         }
 
         await this.createFile(resolvedPath, content, options);

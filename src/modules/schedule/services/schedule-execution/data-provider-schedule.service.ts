@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Job } from 'bull';
 import { v4 as uuidv4 } from 'uuid';
 
+import { AppException } from '../../../../exceptions/app.exception';
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { ProcessScrapeDataRequestDto } from '../../../data-provider/dtos/requests';
 import { DataProviderFeatureStatus, DataProviderFeatureType } from '../../../data-provider/enums';
@@ -9,6 +10,7 @@ import { DataProviderService } from '../../../data-provider/services/data-provid
 import { QUEUE_NAME } from '../../../queue/enums/queue-name.enum';
 import { IScrapingJobQueueInterface } from '../../../queue/interfaces';
 import { QueueService } from '../../../queue/services/queue.service';
+import { ScheduleError } from '../../constants/schedule-error';
 import { PayloadScheduleDto } from '../../dtos/requests';
 import { ScheduleJobEventEntity } from '../../entities/schedule-job-event.entity';
 import { ScheduleJobEventType, ScheduleType } from '../../enums';
@@ -33,7 +35,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
         const queues = await this.queueService.addBulkJob(QUEUE_NAME.SCRAPING_JOB, jobs);
         if (!queues.length) {
             this.loggerService.error(`[DataProviderScheduleService] Error adding job to queue: ${scheduleJobId}`);
-            throw new BadRequestException('Error adding job to queue');
+            throw new AppException(ScheduleError.JobQueueAddFailed);
         }
 
         return true;
@@ -60,7 +62,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
 
                 if (!dataProviders.length) {
                     this.loggerService.error(`[ScheduleJobService] No data providers available to scrape: ${scheduleType}`);
-                    throw new NotFoundException('No data providers available to scrape');
+                    throw new AppException(ScheduleError.NoDataProvidersToScrape);
                 }
 
                 for (const dataProvider of dataProviders) {
@@ -83,7 +85,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
             case ScheduleType.DATA_PROVIDER: {
                 if (!jobPayload?.dataProviderIds?.length) {
                     this.loggerService.error(`[ScheduleJobService] No data providers available to scrape: ${scheduleType}`);
-                    throw new NotFoundException('No data providers available to scrape');
+                    throw new AppException(ScheduleError.NoDataProvidersToScrape);
                 }
 
                 const dataProviderIds = jobPayload?.dataProviderIds || [];
@@ -104,7 +106,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
             case ScheduleType.ITEM: {
                 if (!jobPayload?.itemIds?.length) {
                     this.loggerService.error(`[ScheduleJobService] No items available to scrape: ${scheduleType}`);
-                    throw new NotFoundException('No items available to scrape');
+                    throw new AppException(ScheduleError.NoItemsToScrape);
                 }
 
                 const itemIds = jobPayload?.itemIds || [];
@@ -124,7 +126,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
 
             default: {
                 this.loggerService.error(`[ScheduleJobService] Invalid schedule type: ${scheduleType}`);
-                throw new BadRequestException('Invalid schedule type');
+                throw new AppException(ScheduleError.InvalidScheduleType);
             }
         }
 
@@ -157,7 +159,7 @@ export class DataProviderScheduleService implements IScheduleExecutionInterface 
         const result = await this.scheduleJobEventService.createMany(scheduleJobEventEntities);
         if (!result.length) {
             this.loggerService.error(`[ScheduleJobService] Error creating schedule job events: ${scheduleJobId}`);
-            throw new InternalServerErrorException('Error creating schedule job events');
+            throw new AppException(ScheduleError.JobEventsCreateFailed);
         }
 
         return jobs;

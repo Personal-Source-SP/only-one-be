@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { type BrowserContext, type Page } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { PuppeteerService } from '../../../shared/services/puppeteer.service';
+import { SimulationError } from '../constants/simulation-error';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
 import { SimulationService } from '../enums';
 import { SimulationActionType } from '../enums/simulation-action.enum';
@@ -27,7 +29,7 @@ export class SimulationExecutionService {
 
     async execute<TPayload>(request: SimulationExecuteRequest<TPayload>): Promise<SimulateResponse<SimulationExecutionSummary>> {
         const serviceExecution = request?.serviceExecution;
-        if (!serviceExecution) throw new NotFoundException('Service execution is required');
+        if (!serviceExecution) throw new AppException(SimulationError.ServiceExecutionRequired);
 
         const pageId = uuidv4();
         const startedAt = new Date();
@@ -45,7 +47,7 @@ export class SimulationExecutionService {
                 }
 
                 default: {
-                    throw new NotFoundException(`Service execution ${serviceExecution} is not supported`);
+                    throw new AppException(SimulationError.ServiceExecutionNotSupported(serviceExecution));
                 }
             }
         } catch (error) {
@@ -397,7 +399,7 @@ export class SimulationExecutionService {
             return page;
         } catch (error) {
             this.loggerService.error(`Get current page failed: ${error?.message}`);
-            throw new NotFoundException('Get current page failed');
+            throw new AppException(SimulationError.GetCurrentPageFailed);
         }
     }
 
@@ -413,7 +415,7 @@ export class SimulationExecutionService {
             await this.puppeteerService.closePageSession(pageId);
         } catch (error) {
             this.loggerService.error(`Close browser failed: ${error?.message}`);
-            throw new NotFoundException('Close browser failed');
+            throw new AppException(SimulationError.CloseBrowserFailed);
         }
     }
 }

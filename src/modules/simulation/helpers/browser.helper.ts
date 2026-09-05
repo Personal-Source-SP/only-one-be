@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ElementHandle, type Page } from 'puppeteer';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
+import { SimulationError } from '../constants/simulation-error';
 import { SimulationActionType } from '../enums';
 import {
     ClickByTextActionRequest,
@@ -128,7 +130,7 @@ export class BrowserHelper {
                 await new Promise((resolve) => setTimeout(resolve, intervalInMs));
             }
 
-            throw new Error(`Element ${selector} did not appear within ${timeoutInMs}ms`);
+            throw new AppException(SimulationError.ElementTimeout(selector, timeoutInMs));
         } catch (error) {
             this.loggerService.error(`[${SimulationActionType.WAIT_FOR_SELECTOR}] failed on selector ${selector}: ${error?.message}`);
             throw error;
@@ -146,7 +148,7 @@ export class BrowserHelper {
 
             const element = await page.$(selector);
             if (!element) {
-                throw new Error(`Input ${selector} not found`);
+                throw new AppException(SimulationError.InputNotFound(selector));
             }
 
             if (clearBefore) {
@@ -179,13 +181,13 @@ export class BrowserHelper {
             }
 
             if (!optionValue && !optionLabel) {
-                throw new Error('Either optionValue or optionLabel must be provided');
+                throw new AppException(SimulationError.OptionParamRequired);
             }
 
             if (optionValue) {
                 const selected = await page.select(selector, optionValue);
                 if (!selected.includes(optionValue)) {
-                    throw new Error(`Option value ${optionValue} not found for selector ${selector}`);
+                    throw new AppException(SimulationError.OptionValueNotFound(optionValue, selector));
                 }
             } else if (optionLabel) {
                 const isSelected = await page.evaluate(
@@ -210,7 +212,7 @@ export class BrowserHelper {
                 );
 
                 if (!isSelected) {
-                    throw new Error(`Option label ${optionLabel} not found for selector ${selector}`);
+                    throw new AppException(SimulationError.OptionLabelNotFound(optionLabel, selector));
                 }
             }
         } catch (error) {

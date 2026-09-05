@@ -1,10 +1,12 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { ItemDto } from '../dtos/item.dto';
 import { CreateItemRequestDto, UpdateItemRequestDto } from '../dtos/requests';
 import { ItemEntity } from '../entities/item.entity';
@@ -20,7 +22,7 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
         if (request.code) {
             const existingItem = await this.count({ code: request.code });
             if (existingItem > 0) {
-                throw new ConflictException(`Item with code ${request.code} already exists`);
+                throw new AppException(DataProviderError.ItemWithCodeAlreadyExists(request.code));
             }
         }
 
@@ -33,7 +35,7 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
         const existingItem = await this.exists({ id });
         if (!existingItem) {
             this.loggerService.error(`No item found with id ${id}`);
-            throw new NotFoundException('No item found with id');
+            throw new AppException(DataProviderError.ItemNotFound(id));
         }
 
         // Check if code is being updated and if it already exists
@@ -41,7 +43,7 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
             const existing = await this.count({ code: request.code, id: Not(id) });
             if (existing > 0) {
                 this.loggerService.error(`Item with code ${request.code} already exists`);
-                throw new ConflictException(`Item with code ${request.code} already exists`);
+                throw new AppException(DataProviderError.ItemWithCodeAlreadyExists(request.code));
             }
         }
 

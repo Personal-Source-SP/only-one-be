@@ -1,10 +1,12 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { AppException } from '../../../exceptions/app.exception';
+import { SimulationError } from '../constants/simulation-error';
 import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
 import { SimulationItemEntity } from '../entities/simulation-item.entity';
@@ -30,7 +32,7 @@ export class SimulationItemService extends BaseService<SimulationItemEntity, Sim
         const simulationItemExists = await this.findOneByFilter({ id }, { relations: { simulationContext: true } });
         if (!simulationItemExists) {
             this.loggerService.error(`[SimulationItemService] Simulation item not found with id ${id}`);
-            throw new NotFoundException('Simulation item not found');
+            throw new AppException(SimulationError.ItemNotFound);
         }
 
         await super.update(id, { status: SimulationItemStatus.PROCESSING });

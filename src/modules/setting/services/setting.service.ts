@@ -1,10 +1,12 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
+import { AppException } from '../../../exceptions/app.exception';
+import { SettingError } from '../constants/setting-error';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
@@ -19,7 +21,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         const exists = await this.exists({ key: request.key });
         if (exists) {
             this.loggerService.error(`Setting key already exists: ${request.key}`);
-            throw new ConflictException('Setting key already exists');
+            throw new AppException(SettingError.KeyAlreadyExists);
         }
 
         const entity = this.mapper.map(request, CreateSettingRequestDto, SettingEntity);
@@ -31,7 +33,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         const existing = await this.findOneByFilter({ key });
         if (!existing) {
             this.loggerService.error(`Setting not found: ${key}`);
-            throw new NotFoundException('Setting not found');
+            throw new AppException(SettingError.SettingNotFound);
         }
 
         return await super.update(existing.id, request);
@@ -41,7 +43,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         const setting = await this.findOneByFilter({ key });
         if (!setting) {
             this.loggerService.error(`Setting not found: ${key}`);
-            throw new NotFoundException('Setting not found');
+            throw new AppException(SettingError.SettingNotFound);
         }
 
         return setting;
@@ -51,7 +53,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         const existing = await this.findOneByFilter({ key });
         if (!existing) {
             this.loggerService.error(`Setting not found: ${key}`);
-            throw new NotFoundException('Setting not found');
+            throw new AppException(SettingError.SettingNotFound);
         }
 
         return await super.delete(existing.id);

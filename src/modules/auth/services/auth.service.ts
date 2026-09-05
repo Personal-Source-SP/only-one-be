@@ -1,8 +1,9 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, Scope, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { AppConfigService } from '../../../shared/services/app-config.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
@@ -10,6 +11,7 @@ import { CreateUserRequestDto } from '../../user/dtos/requests';
 import { UserDto } from '../../user/dtos/user.dto';
 import { UserEntity } from '../../user/entities/user.entity';
 import { UserService } from '../../user/services/user.service';
+import { AuthError } from '../constants/auth-error';
 import { RefreshTokenRequestDto, SignInRequestDto } from '../dtos/requests/auth.request.dto';
 import { RefreshTokenResponseDto, SignInResponseDto } from '../dtos/responses/auth.response.dto';
 
@@ -31,12 +33,12 @@ export class AuthService {
 
     async login(dto: SignInRequestDto): Promise<SignInResponseDto> {
         const user = await this.userService.getUserLogin(dto.email);
-        if (!user) throw new UnauthorizedException('Invalid email or password');
+        if (!user) throw new AppException(AuthError.InvalidCredentials);
 
-        if (!user.isActive) throw new UnauthorizedException('User is not active');
+        if (!user.isActive) throw new AppException(AuthError.UserInactive);
 
         const isPasswordValid = await UtilsService.validateHash(dto.password, user.password);
-        if (!isPasswordValid) throw new UnauthorizedException('Invalid password');
+        if (!isPasswordValid) throw new AppException(AuthError.InvalidPassword);
 
         const response = this.mapper.map(user, UserEntity, SignInResponseDto);
 
@@ -55,14 +57,14 @@ export class AuthService {
             });
         } catch (error) {
             this.loggerService.error('Invalid refresh token');
-            throw new UnauthorizedException('Invalid refresh token');
+            throw new AppException(AuthError.InvalidRefreshToken);
         }
 
         const user = await this.userService.getUserRefreshToken(payload.userId);
 
-        if (!user) throw new UnauthorizedException('User not found');
+        if (!user) throw new AppException(AuthError.UserNotFound);
 
-        if (!user.isActive) throw new UnauthorizedException('Account is inactive');
+        if (!user.isActive) throw new AppException(AuthError.UserInactive);
 
         return await this.generateToken(user);
     }

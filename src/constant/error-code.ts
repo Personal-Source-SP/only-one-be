@@ -92,4 +92,19 @@ export class AppError {
         statusCode: HttpStatus.BAD_REQUEST,
         params: { field, reason },
     });
+
+    // ! 5. FILE & IO ERRORS
+    static FileNotFound = (path: string): IAppError => ({
+        code: 'file_not_found',
+        message: `Không tìm thấy file: ${path}`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { path },
+    });
+
+    static InvalidJsonFile = (reason?: string): IAppError => ({
+        code: 'invalid_json_file',
+        message: reason ? `File JSON không hợp lệ: ${reason}` : 'File JSON không hợp lệ.',
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { reason },
+    });
 }

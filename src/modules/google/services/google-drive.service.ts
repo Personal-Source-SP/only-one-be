@@ -1,13 +1,15 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 import { MimeType } from '../../../common/enums/mime-type';
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { MAX_RECORD_SAVE, NUMBER_RECORD_SAVE } from '../constants/google-api.constant';
+import { GoogleError } from '../constants/google-error';
 import { GoogleDrivePreviewRequest, GoogleDriveSyncRequest } from '../dtos/requests';
 import { GoogleDrivePreviewItem, GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveFileEntity } from '../entities/google-drive-file.entity';
@@ -32,13 +34,13 @@ export class GoogleDriveService {
     async saveDataSync(userId: string, request: GoogleDriveSyncRequest): Promise<boolean> {
         if (!userId) {
             this.loggerService.error(`User ID is required`);
-            throw new BadRequestException('User ID is required');
+            throw new AppException(GoogleError.UserIdRequired);
         }
 
         const googleAuth = await this.googleAuthService.findOneByFilter({ userId, id: request.googleAuthId });
         if (!googleAuth) {
             this.loggerService.error(`No Google auth found for user ${userId}`);
-            throw new NotFoundException('No Google auth found for user');
+            throw new AppException(GoogleError.AuthFailed);
         }
 
         switch (request.type) {
@@ -46,7 +48,7 @@ export class GoogleDriveService {
                 const googleDriveFolder = await this.googleDriveFolderRepository.findOneBy({ id: request.folderId });
                 if (!googleDriveFolder) {
                     this.loggerService.error(`No Google drive folder found for user ${userId}`);
-                    throw new NotFoundException('No Google drive folder found for user');
+                    throw new AppException(GoogleError.DriveFolderNotFound);
                 }
 
                 return await this.saveFiles(googleAuth.id, googleDriveFolder.id, request.data);
@@ -58,7 +60,7 @@ export class GoogleDriveService {
 
             default: {
                 this.loggerService.error(`Invalid type: ${request.type}`);
-                throw new BadRequestException('Invalid type');
+                throw new AppException(GoogleError.InvalidDriveType);
             }
         }
     }
@@ -66,7 +68,7 @@ export class GoogleDriveService {
     async previewDataSync(userId: string, request: GoogleDrivePreviewRequest): Promise<GoogleDrivePreviewResponse> {
         if (!userId) {
             this.loggerService.error(`User ID is required`);
-            throw new BadRequestException('User ID is required');
+            throw new AppException(GoogleError.UserIdRequired);
         }
 
         const { maxResults, type, customQuery, folderId, fileTypes, modifiedTimeFrom, modifiedTimeTo } = request;

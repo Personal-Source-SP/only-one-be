@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as cron from 'cron';
@@ -11,7 +11,9 @@ import { Repository } from 'typeorm';
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { SCHEDULE_JOB_NAME, SCHEDULE_TIMEZONE } from '../../../constant';
+import { AppException } from '../../../exceptions/app.exception';
 import { AppConfigService } from '../../../shared/services/app-config.service';
+import { ScheduleError } from '../constants/schedule-error';
 import { CreateScheduleJobRequestDto, CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
 import { ScheduleEntity } from '../entities/schedule.entity';
@@ -53,13 +55,13 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         const isValidCronExpression = this.isValidCronExpression(cronExpression);
         if (!isValidCronExpression) {
             this.loggerService.error(`Invalid cron expression: ${cronExpression}`);
-            throw new BadRequestException('Invalid cron expression');
+            throw new AppException(ScheduleError.InvalidCronExpression);
         }
 
         const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
         if (isDuplicate) {
             this.loggerService.error(`Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
-            throw new BadRequestException('Duplicate schedule');
+            throw new AppException(ScheduleError.DuplicateSchedule);
         }
 
         const entity = this.mapper.map(request, CreateScheduleRequestDto, ScheduleEntity);
@@ -75,7 +77,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         const existingSchedule = await this.findById(id);
         if (!existingSchedule) {
             this.loggerService.error(`Schedule with ID ${id} not found`);
-            throw new NotFoundException(`Schedule with ID ${id} not found`);
+            throw new AppException(ScheduleError.ScheduleNotFound(id));
         }
 
         const { cronExpression, type } = request;
@@ -84,7 +86,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             const isValidCronExpression = this.isValidCronExpression(cronExpression);
             if (!isValidCronExpression) {
                 this.loggerService.error(`Invalid cron expression: ${cronExpression}`);
-                throw new BadRequestException('Invalid cron expression');
+                throw new AppException(ScheduleError.InvalidCronExpression);
             }
         }
 
@@ -92,7 +94,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             const isDuplicate = await this.checkDuplicateSchedule(type, cronExpression);
             if (isDuplicate) {
                 this.loggerService.error(`Duplicate schedule with type ${type} and cron expression ${cronExpression}`);
-                throw new BadRequestException('Duplicate schedule');
+                throw new AppException(ScheduleError.DuplicateSchedule);
             }
         }
 
@@ -110,13 +112,13 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
 
     async switchStatus(id: string, enabled: boolean): Promise<boolean> {
         const schedule = await this.exists({ id });
-        if (!schedule) throw new NotFoundException('Schedule with ID not found');
+        if (!schedule) throw new AppException(ScheduleError.ScheduleNotFound(id));
 
         try {
             return await super.update(id, { enabled });
         } catch (error) {
             this.loggerService.error(`Error switching status for schedule ${id}: ${error.message}`);
-            throw new BadRequestException('Error switching status for schedule');
+            throw new AppException(ScheduleError.StatusSwitchFailed);
         }
     }
 
@@ -124,7 +126,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
         const schedule = await this.findById(id);
         if (!schedule) {
             this.loggerService.error(`Schedule with ID ${id} not found`);
-            throw new NotFoundException(`Schedule with ID ${id} not found`);
+            throw new AppException(ScheduleError.ScheduleNotFound(id));
         }
 
         try {
@@ -132,7 +134,7 @@ export class ScheduleService extends BaseService<ScheduleEntity, ScheduleDto> im
             return true;
         } catch (error) {
             this.loggerService.error(`Error triggering schedule ${id}: ${error.message}`);
-            throw new BadRequestException('Error triggering schedule');
+            throw new AppException(ScheduleError.TriggerScheduleFailed);
         }
     }
 

@@ -1,11 +1,13 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { AppException } from '../../../exceptions/app.exception';
+import { ScheduleError } from '../constants/schedule-error';
 import { SCHEDULE_EXECUTION_SERVICE_MAP } from '../constants/schedule-execution-service-map';
 import { CreateScheduleJobRequestDto } from '../dtos/requests';
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
@@ -33,7 +35,7 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
             const executionService = this.scheduleExecutionServiceMap[result.executionService];
             if (!executionService) {
                 this.loggerService.error(`[ScheduleJobService] Invalid execution service: ${result.executionService}`);
-                throw new BadRequestException('Invalid execution service');
+                throw new AppException(ScheduleError.InvalidExecutionService);
             }
 
             const addJobResult = await executionService.addJob({
@@ -44,7 +46,7 @@ export class ScheduleJobService extends BaseService<ScheduleJobEntity, ScheduleJ
 
             if (!addJobResult) {
                 this.loggerService.error(`[ScheduleJobService] Error adding job to execution service: ${result.id}`);
-                throw new BadRequestException('Error adding job to execution service');
+                throw new AppException(ScheduleError.JobQueueAddFailed);
             }
 
             return result;

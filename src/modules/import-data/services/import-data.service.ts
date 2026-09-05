@@ -1,11 +1,12 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { difference, keyBy } from 'lodash';
 import * as path from 'path';
 import { In } from 'typeorm';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { DataProviderItemDto } from '../../data-provider/dtos/data-provider-item.dto';
 import { ItemDto } from '../../data-provider/dtos/item.dto';
@@ -15,6 +16,7 @@ import { ExcelFileTypes, ProductMappingStatus } from '../../data-provider/enums'
 import { DataProviderService } from '../../data-provider/services/data-provider.service';
 import { DataProviderItemService } from '../../data-provider/services/data-provider-item.service';
 import { ItemService } from '../../data-provider/services/item.service';
+import { ImportDataError } from '../constants/import-data-error';
 import { ImportDataRequestDto } from '../dtos/requests/import-data-request.dto';
 import { ImportDataResponseDto, PreviewImportDataProviderItem, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ImportDataType } from '../enums';
@@ -57,7 +59,7 @@ export class ImportDataService {
                 case ImportDataType.DATA_PROVIDER_ITEM:
                     return this.previewDataProviderItem(worksheet);
                 default:
-                    throw new BadRequestException('Invalid import data type');
+                    throw new AppException(ImportDataError.InvalidImportFormat);
             }
         } catch (error) {
             this.loggerService.error(`Failed to preview import data: ${error.message}`);
@@ -78,7 +80,7 @@ export class ImportDataService {
                 case ImportDataType.DATA_PROVIDER_ITEM:
                     return this.importDataProviderItemData(request);
                 default:
-                    throw new BadRequestException('Invalid import data type');
+                    throw new AppException(ImportDataError.InvalidImportFormat);
             }
         } catch (error) {
             this.loggerService.error(`Failed to import items: ${error.message}`);
