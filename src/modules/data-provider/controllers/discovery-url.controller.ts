@@ -24,6 +24,15 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
         });
     }
 
+    @ApiOperation({ summary: 'Get validation audit logs for a discovered URL' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get(':id/validation-logs')
+    @BaseApiOkResponse(DiscoveryValidationLogDto, { isArray: true })
+    public async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
+        return await this.discoveryUrlService.getValidationLogsByUrl(id);
+    }
+
     @ApiOperation({ summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
@@ -34,14 +43,5 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
         @Body() request?: { urlIds?: string[] },
     ): Promise<IngestDiscoveryUrlResponseDto> {
         return await this.discoveryUrlService.batchIngest(sessionId, request?.urlIds);
-    }
-
-    @ApiOperation({ summary: 'Get validation audit logs for a discovered URL' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':id/validation-logs')
-    @BaseApiOkResponse(DiscoveryValidationLogDto, { isArray: true })
-    public async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
-        return await this.discoveryUrlService.getValidationLogsByUrl(id);
     }
 }

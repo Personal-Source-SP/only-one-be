@@ -25,15 +25,6 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         });
     }
 
-    @ApiOperation({ summary: 'Create a new discovery session' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post()
-    @BaseApiOkResponse(DiscoverySessionDto)
-    public async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
-        return await this.sessionService.createSession(request, user);
-    }
-
     @ApiOperation({ summary: 'Get session summary metrics' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
@@ -41,5 +32,14 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
     @BaseApiOkResponse(DiscoverySessionSummaryResponseDto)
     public async getSummary(@UUIDParam('id') id: string): Promise<DiscoverySessionSummaryResponseDto> {
         return await this.sessionService.getSessionSummary(id);
+    }
+
+    @ApiOperation({ summary: 'Create a new discovery session' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Post()
+    @BaseApiOkResponse(DiscoverySessionDto)
+    public async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
+        return await this.sessionService.createSession(request, user);
     }
 }

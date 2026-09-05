@@ -18,6 +18,15 @@ import { DiscoveryValidationService } from '../services/discovery-validation.ser
 export class DiscoveryValidationController {
     constructor(private readonly validationService: DiscoveryValidationService) {}
 
+    @ApiOperation({ summary: 'Get latest validation batch progress for a session' })
+    @HttpCode(HttpStatus.OK)
+    @Version('1')
+    @Get('sessions/:sessionId/latest-batch')
+    @BaseApiOkResponse(DiscoveryValidationBatchDto)
+    public async getLatestBatch(@UUIDParam('sessionId') sessionId: string): Promise<DiscoveryValidationBatchDto> {
+        return await this.validationService.getLatestValidationBatch(sessionId);
+    }
+
     @ApiOperation({ summary: 'Trigger batch validation on discovery session URLs' })
     @HttpCode(HttpStatus.OK)
     @Version('1')
@@ -28,15 +37,6 @@ export class DiscoveryValidationController {
         @Body() request?: TriggerValidationRequestDto,
     ): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.startBatchValidation(sessionId, request?.targetKeyword);
-    }
-
-    @ApiOperation({ summary: 'Get latest validation batch progress for a session' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get('sessions/:sessionId/latest-batch')
-    @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async getLatestBatch(@UUIDParam('sessionId') sessionId: string): Promise<DiscoveryValidationBatchDto> {
-        return await this.validationService.getLatestValidationBatch(sessionId);
     }
 
     @ApiOperation({ summary: 'Submit bulk user actions for discovered URLs' })
