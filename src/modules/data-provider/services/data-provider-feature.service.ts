@@ -63,26 +63,25 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         await this.configVersionService.create(
             {
                 featureId: id,
-                config: request.config,
                 isActive: true,
+                config: request.config,
                 changeType: ConfigVersionType.MANUAL_EDIT,
                 changeDescription: request.changeDescription || 'Updated feature configuration',
             },
             user,
         );
 
-        const newStatus =
-            feature.status === DataProviderFeatureStatus.UNCONFIGURED || feature.status === DataProviderFeatureStatus.ERROR
-                ? DataProviderFeatureStatus.TESTING
-                : feature.status;
+        const newStatus = [DataProviderFeatureStatus.UNCONFIGURED, DataProviderFeatureStatus.ERROR].includes(feature.status)
+            ? DataProviderFeatureStatus.TESTING
+            : feature.status;
 
         await super.update(id, {
-            config: request.config,
-            service: request.service ?? feature.service,
             status: newStatus,
+            lastErrorType: null,
             consecutiveFailures: 0,
             lastErrorMessage: null,
-            lastErrorType: null,
+            config: request.config,
+            service: request.service ?? feature.service,
         });
 
         return await this.findById(id);
@@ -97,6 +96,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             where: { id },
             relations: { dataProvider: true },
         });
+
         if (!feature) return;
 
         const consecutiveFailures = (feature.consecutiveFailures || 0) + 1;
@@ -105,9 +105,9 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
         const updatePayload: Partial<DataProviderFeatureEntity> = {
             consecutiveFailures,
-            lastErrorMessage: errorMessage,
             lastErrorType: errorType,
             lastFailedRunAt: new Date(),
+            lastErrorMessage: errorMessage,
         };
 
         if (shouldTripCircuit && feature.status !== DataProviderFeatureStatus.ERROR) {
@@ -116,9 +116,9 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
             // Emit Notification Event
             this.eventEmitter.emit(NOTIFICATION_EVENTS.CREATED, {
+                type: NotificationType.ERROR,
                 title: `[DataProvider Error] Feature ${feature.type} disabled`,
                 description: `Provider '${feature.dataProvider?.name || feature.dataProviderId}' feature ${feature.type} failed: ${errorMessage}`,
-                type: NotificationType.ERROR,
             });
         }
 
@@ -127,9 +127,9 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
     async recordFeatureSuccess(id: string): Promise<void> {
         await this.dataProviderFeatureRepository.update(id, {
+            lastErrorType: null,
             consecutiveFailures: 0,
             lastErrorMessage: null,
-            lastErrorType: null,
             lastSuccessfulRunAt: new Date(),
         });
     }
@@ -144,32 +144,39 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             relations: { dataProvider: true },
         });
 
-        if (!feature) {
-            throw new AppException(DataProviderError.FeatureNotFound(id));
-        }
+        if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
-        if (status === DataProviderFeatureStatus.READY) {
-            if (feature.status !== DataProviderFeatureStatus.TESTING && feature.status !== DataProviderFeatureStatus.ERROR) {
-                throw new AppException(DataProviderError.InvalidStatusSwitchReady);
+        switch (status) {
+            case DataProviderFeatureStatus.READY: {
+                if (![DataProviderFeatureStatus.TESTING, DataProviderFeatureStatus.ERROR].includes(feature.status)) {
+                    throw new AppException(DataProviderError.InvalidStatusSwitchReady);
+                }
+
+                const runner = this.runnerRegistry.getRunner(feature.type);
+                await runner.testContextual(feature);
+
+                return await super.update(id, {
+                    status,
+                    lastErrorType: null,
+                    lastErrorMessage: null,
+                    consecutiveFailures: 0,
+                });
             }
 
-            const runner = this.runnerRegistry.getRunner(feature.type);
-            await runner.testContextual(feature);
+            case DataProviderFeatureStatus.TESTING: {
+                if (
+                    ![DataProviderFeatureStatus.READY, DataProviderFeatureStatus.DISABLED, DataProviderFeatureStatus.ERROR].includes(
+                        feature.status,
+                    )
+                ) {
+                    throw new AppException(DataProviderError.InvalidStatusSwitchTesting);
+                }
 
-            return await super.update(id, {
-                status,
-                consecutiveFailures: 0,
-                lastErrorMessage: null,
-                lastErrorType: null,
-            });
-        } else if (status === DataProviderFeatureStatus.TESTING) {
-            if (
-                feature.status !== DataProviderFeatureStatus.READY &&
-                feature.status !== DataProviderFeatureStatus.DISABLED &&
-                feature.status !== DataProviderFeatureStatus.ERROR
-            ) {
-                throw new AppException(DataProviderError.InvalidStatusSwitchTesting);
+                break;
             }
+
+            default:
+                break;
         }
 
         return await super.update(id, { status });
@@ -181,9 +188,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             relations: { dataProvider: true },
         });
 
-        if (!feature) {
-            throw new AppException(DataProviderError.FeatureNotFound(id));
-        }
+        if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
         const runner = this.runnerRegistry.getRunner(feature.type);
         return await runner.testContextual(feature, input);
@@ -195,9 +200,8 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
     async getFeatureByProviderIdAndType(dataProviderId: string, type: DataProviderFeatureType): Promise<DataProviderFeatureDto> {
         const feature = await this.findOneByFilter({ dataProviderId, type });
-        if (!feature) {
-            throw new AppException(DataProviderError.FeatureTypeNotFound(type, dataProviderId));
-        }
+        if (!feature) throw new AppException(DataProviderError.FeatureTypeNotFound(type, dataProviderId));
+
         return feature;
     }
 }
