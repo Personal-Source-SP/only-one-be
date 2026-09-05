@@ -30,6 +30,7 @@ import { ScrapingDataListener } from './listeners/scraping-data.listener';
 import { DiscoveryRunner } from './runners/discovery.runner';
 import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
 import { ScrapingFeatureRunner } from './runners/scraping-feature.runner';
+import { SearchFeatureRunner } from './runners/search-feature.runner';
 import { ConfigVersionService } from './services/config-version.service';
 import { DataProviderService } from './services/data-provider.service';
 import { DataProviderFeatureService } from './services/data-provider-feature.service';
@@ -69,7 +70,7 @@ const controllers = [
     DiscoveryUrlController,
     DiscoveryValidationController,
 ];
-const runners = [ScrapingFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
+const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
 const services = [
     ItemService,
     ScraperService,
