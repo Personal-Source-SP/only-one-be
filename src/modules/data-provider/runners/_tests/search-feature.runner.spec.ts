@@ -6,17 +6,16 @@ import { SearchFeatureRunner } from '../search-feature.runner';
 
 describe('SearchFeatureRunner', () => {
     let runner: SearchFeatureRunner;
-    let mockScraperService: any;
+    let mockSearchService: any;
 
     beforeEach(() => {
-        mockScraperService = {
-            getExtractData: jest.fn(),
-            scrapeItemData: jest.fn(),
-            validateParserFunction: jest.fn(),
+        mockSearchService = {
+            getExtractSearchData: jest.fn(),
         };
 
         runner = new SearchFeatureRunner({
-            generic: mockScraperService,
+            generic: mockSearchService,
+            api: mockSearchService,
         });
         jest.clearAllMocks();
     });
@@ -57,23 +56,26 @@ describe('SearchFeatureRunner', () => {
             await expect(runner.testStateless('generic', {} as any, {})).rejects.toThrow(BadRequestException);
         });
 
-        it('should throw BadRequestException when scraper service is not found', async () => {
+        it('should throw BadRequestException when search service is not found', async () => {
             await expect(
                 runner.testStateless('unknown', { searchUrlPattern: 'https://example.com' } as any, { query: 'test' }),
             ).rejects.toThrow(BadRequestException);
         });
 
-        it('should call getExtractData on valid scraper service', async () => {
-            mockScraperService.getExtractData.mockResolvedValue({ data: [{ title: 'Item 1' }] });
+        it('should call getExtractSearchData on valid search service', async () => {
+            mockSearchService.getExtractSearchData.mockResolvedValue({
+                data: [{ title: 'Item 1', url: '/p1' }],
+                html: '<div>Search</div>',
+            });
 
             const config: ISearchTargetConfig = {
-                functionGenerator: '',
+                functionGenerator: 'const searchData = () => []',
                 searchUrlPattern: 'https://example.com/search?q={query}',
             };
 
             const result = await runner.testStateless('generic', config, { query: 'test' });
-            expect(result).toEqual({ data: [{ title: 'Item 1' }] });
-            expect(mockScraperService.getExtractData).toHaveBeenCalledWith({
+            expect(result).toEqual({ data: [{ title: 'Item 1', url: '/p1' }], html: '<div>Search</div>' });
+            expect(mockSearchService.getExtractSearchData).toHaveBeenCalledWith({
                 url: 'https://example.com/search?q=test',
                 dataContent: undefined,
                 targetConfig: config,
@@ -83,8 +85,8 @@ describe('SearchFeatureRunner', () => {
     });
 
     describe('testContextual', () => {
-        it('should throw BadRequestException if scraper service returns error', async () => {
-            mockScraperService.getExtractData.mockResolvedValue({ error: 'Failed to fetch html' });
+        it('should throw BadRequestException if search service returns error', async () => {
+            mockSearchService.getExtractSearchData.mockResolvedValue({ error: 'Search scraping validation failed' });
 
             const feature = {
                 service: 'generic',
@@ -95,7 +97,10 @@ describe('SearchFeatureRunner', () => {
         });
 
         it('should return extract result on success', async () => {
-            mockScraperService.getExtractData.mockResolvedValue({ data: [{ title: 'Item Context' }] });
+            mockSearchService.getExtractSearchData.mockResolvedValue({
+                data: [{ title: 'Item Context', url: '/ctx' }],
+                html: '<html></html>',
+            });
 
             const feature = {
                 service: 'generic',
@@ -103,7 +108,7 @@ describe('SearchFeatureRunner', () => {
             } as DataProviderFeatureEntity;
 
             const result = await runner.testContextual(feature, { query: 'test' });
-            expect(result).toEqual({ data: [{ title: 'Item Context' }] });
+            expect(result).toEqual({ data: [{ title: 'Item Context', url: '/ctx' }], html: '<html></html>' });
         });
     });
 });

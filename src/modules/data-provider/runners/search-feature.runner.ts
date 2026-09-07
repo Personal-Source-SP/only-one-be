@@ -1,14 +1,14 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
+import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { IDataProviderScraperService, IExtractDataResponse, IFeatureRunner, ISearchTargetConfig } from '../interfaces';
+import { IDataProviderSearchService, IFeatureRunner, ISearchExtractDataResponse, ISearchTargetConfig } from '../interfaces';
 
 @Injectable()
-export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, any, IExtractDataResponse | any> {
+export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, any, ISearchExtractDataResponse> {
     constructor(
-        @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
-        private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
+        @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
+        private readonly dataProviderSearchServiceMap: Record<string, IDataProviderSearchService>,
     ) {}
 
     buildSearchUrl(config: ISearchTargetConfig, input?: any): string {
@@ -45,7 +45,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         return `${pattern}${separator}q=${encodedQuery}`;
     }
 
-    async testStateless(service: string, config: ISearchTargetConfig, input: any): Promise<IExtractDataResponse> {
+    async testStateless(service: string, config: ISearchTargetConfig, input: any): Promise<ISearchExtractDataResponse> {
         const { htmlContentString, dataContent } = input || {};
         const url = this.buildSearchUrl(config, input);
 
@@ -53,12 +53,12 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
             throw new BadRequestException('Search query, searchUrlPattern, URL or Html content is required');
         }
 
-        const scraperService = this.dataProviderScraperServiceMap[service];
-        if (!scraperService) {
-            throw new BadRequestException(`Scraper service '${service}' not found`);
+        const searchService = this.dataProviderSearchServiceMap[service];
+        if (!searchService) {
+            throw new BadRequestException(`Search service '${service}' not found`);
         }
 
-        return await scraperService.getExtractData({
+        return await searchService.getExtractSearchData({
             url,
             dataContent,
             targetConfig: config,
@@ -66,7 +66,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         });
     }
 
-    async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<any> {
+    async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<ISearchExtractDataResponse> {
         const config = (feature.config || {}) as ISearchTargetConfig;
         const { htmlContentString, dataContent } = input || {};
         const url = this.buildSearchUrl(config, input);
@@ -75,12 +75,12 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
             throw new BadRequestException('Search query, searchUrlPattern, or item URL is required to test contextual search');
         }
 
-        const scraperService = this.dataProviderScraperServiceMap[feature.service];
-        if (!scraperService) {
-            throw new BadRequestException(`Scraper service '${feature.service}' not found`);
+        const searchService = this.dataProviderSearchServiceMap[feature.service];
+        if (!searchService) {
+            throw new BadRequestException(`Search service '${feature.service}' not found`);
         }
 
-        const result = await scraperService.getExtractData({
+        const result = await searchService.getExtractSearchData({
             url,
             dataContent,
             targetConfig: config,
@@ -88,7 +88,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         });
 
         if (result.error) {
-            throw new BadRequestException(result.error || 'Search scraping validation failed');
+            throw new BadRequestException(result.error || 'Search validation failed');
         }
 
         return result;

@@ -1,3 +1,5 @@
+import { SearchResultItemDto } from '../dtos/responses/search-extract-data-response.dto';
+
 export interface ITargetConfig {
     functionGenerator: string; //  Hàm xử lý dữ liệu
 
@@ -48,4 +50,23 @@ export interface IRunFunctionExtractData {
 export interface IRunApiFunctionExtractData {
     data: Record<string, any>;
     functionGenerator: string;
+}
+
+export interface IRunSearchFunctionExtractData {
+    htmlContent: string;
+    functionGenerator: string;
+    resultSelector?: string;
+    maxResults?: number;
+}
+
+export interface IRunApiSearchFunctionExtractData {
+    data: Record<string, any>;
+    functionGenerator: string;
+    maxResults?: number;
+}
+
+export interface ISearchExtractDataResponse {
+    html?: string;
+    error?: string;
+    data?: SearchResultItemDto[];
 }
