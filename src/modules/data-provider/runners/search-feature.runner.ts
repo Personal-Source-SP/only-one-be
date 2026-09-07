@@ -23,26 +23,29 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
             return '';
         }
 
-        if (!query) {
-            return pattern;
-        }
+        const placeholder = config?.queryPlaceholder?.trim() || '{query}';
+        let targetPattern = pattern;
 
-        const placeholder = config?.queryPlaceholder || '{query}';
-        const encodedQuery = encodeURIComponent(query);
-
-        if (pattern.includes(placeholder)) {
-            return pattern.split(placeholder).join(encodedQuery);
-        }
-
-        const commonPlaceholders = ['${query}', '{keyword}', '${keyword}', '{q}', '${q}'];
-        for (const ph of commonPlaceholders) {
-            if (pattern.includes(ph)) {
-                return pattern.split(ph).join(encodedQuery);
+        if (!targetPattern.includes(placeholder)) {
+            const hasAnyPlaceholder = /\{[a-zA-Z0-9_-]+\}/.test(targetPattern);
+            if (!hasAnyPlaceholder) {
+                const cleanPlaceholder = placeholder.startsWith('/') ? placeholder.slice(1) : placeholder;
+                targetPattern = targetPattern.endsWith('/')
+                    ? `${targetPattern}${cleanPlaceholder}`
+                    : `${targetPattern}/${cleanPlaceholder}`;
             }
         }
 
-        const separator = pattern.includes('?') ? '&' : '?';
-        return `${pattern}${separator}q=${encodedQuery}`;
+        if (!query) {
+            return targetPattern;
+        }
+
+        const encodedQuery = encodeURIComponent(query);
+        if (targetPattern.includes(placeholder)) {
+            return targetPattern.split(placeholder).join(encodedQuery);
+        }
+
+        return targetPattern.replace(/\{[a-zA-Z0-9_-]+\}/g, encodedQuery);
     }
 
     async testStateless(service: string, config: ISearchTargetConfig, input: any): Promise<ISearchExtractDataResponse> {

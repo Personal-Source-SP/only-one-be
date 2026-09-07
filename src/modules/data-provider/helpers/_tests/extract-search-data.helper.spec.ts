@@ -73,6 +73,52 @@ describe('ExtractSearchDataHelper', () => {
                 }),
             ).rejects.toThrow('Search extraction function must return an array of items');
         });
+
+        it('should filter HTML by mainContentSelector before running searchData', async () => {
+            const functionGenerator = `
+                const searchData = (html) => {
+                    const $ = cheerio.load(html);
+                    const items = [];
+                    $('a.item').each((_, el) => {
+                        items.push({ url: $(el).attr('href') });
+                    });
+                    return items;
+                };
+            `;
+            const htmlContent =
+                '<html><body><header><a class="item" href="/header-link">Nav</a></header><div id="results"><a class="item" href="/p1">Product 1</a></div></body></html>';
+
+            const result = await helper.runFunctionExtractSearchData({
+                functionGenerator,
+                htmlContent,
+                mainContentSelector: '#results',
+            });
+
+            expect(result).toEqual([{ url: '/p1' }]);
+        });
+
+        it('should extract parent element when isGetParentElement is true', async () => {
+            const functionGenerator = `
+                const searchData = (html) => {
+                    const $ = cheerio.load(html);
+                    const items = [];
+                    $('a.item').each((_, el) => {
+                        items.push({ url: $(el).attr('href') });
+                    });
+                    return items;
+                };
+            `;
+            const htmlContent = '<div class="wrapper"><div class="inner"><a class="item" href="/p1">Product 1</a></div></div>';
+
+            const result = await helper.runFunctionExtractSearchData({
+                functionGenerator,
+                htmlContent,
+                mainContentSelector: '.inner',
+                isGetParentElement: true,
+            });
+
+            expect(result).toEqual([{ url: '/p1' }]);
+        });
     });
 
     describe('runApiFunctionExtractSearchData', () => {

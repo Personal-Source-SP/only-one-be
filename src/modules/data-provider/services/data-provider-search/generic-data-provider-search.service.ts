@@ -14,7 +14,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
 
     async getExtractSearchData(request: IGetExtractSearchDataRequest): Promise<ISearchExtractDataResponse> {
         const { targetConfig, url, htmlContentString } = request;
-        const { functionGenerator, resultSelector, maxResults } = targetConfig;
+        const { functionGenerator, resultSelector, maxResults, mainContentSelector, isGetParentElement } = targetConfig;
 
         try {
             let html = htmlContentString;
@@ -31,6 +31,8 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
                 functionGenerator,
                 resultSelector,
                 maxResults,
+                mainContentSelector,
+                isGetParentElement,
             });
 
             if (isEmpty(extractData)) {

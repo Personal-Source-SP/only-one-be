@@ -36,13 +36,33 @@ describe('SearchFeatureRunner', () => {
             expect(url).toBe('https://example.com/search?keyword=%C3%A1o%20thun');
         });
 
-        it('should fallback to appending ?q= when pattern has no placeholder', () => {
+        it('should append placeholder to path when pattern has no placeholder and query is provided', () => {
             const config: ISearchTargetConfig = {
                 functionGenerator: '',
                 searchUrlPattern: 'https://example.com/search',
             };
             const url = runner.buildSearchUrl(config, { query: 'shoes' });
-            expect(url).toBe('https://example.com/search?q=shoes');
+            expect(url).toBe('https://example.com/search/shoes');
+        });
+
+        it('should return path with placeholder if pattern ends with slash and query is empty', () => {
+            const config: ISearchTargetConfig = {
+                functionGenerator: '',
+                searchUrlPattern: 'https://example.com/categories/',
+                queryPlaceholder: '{query}',
+            };
+            const url = runner.buildSearchUrl(config);
+            expect(url).toBe('https://example.com/categories/{query}');
+        });
+
+        it('should replace query into trailing path when pattern has trailing slash', () => {
+            const config: ISearchTargetConfig = {
+                functionGenerator: '',
+                searchUrlPattern: 'https://example.com/categories/',
+                queryPlaceholder: '{query}',
+            };
+            const url = runner.buildSearchUrl(config, { query: 'shoes' });
+            expect(url).toBe('https://example.com/categories/shoes');
         });
 
         it('should return empty string if no searchUrlPattern or url provided', () => {

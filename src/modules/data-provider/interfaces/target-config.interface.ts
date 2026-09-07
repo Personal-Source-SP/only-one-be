@@ -57,6 +57,8 @@ export interface IRunSearchFunctionExtractData {
     functionGenerator: string;
     resultSelector?: string;
     maxResults?: number;
+    mainContentSelector?: string;
+    isGetParentElement?: boolean;
 }
 
 export interface IRunApiSearchFunctionExtractData {
