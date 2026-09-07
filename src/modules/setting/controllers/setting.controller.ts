@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Version } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth } from '../../../decorators';
+import { Auth, GetRestApi, PostRestApi, PutRestApi } from '../../../decorators';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
@@ -16,32 +16,31 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
         super(settingService);
     }
 
-    @ApiOperation({ summary: 'Get setting by key' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':key')
-    @ApiOkResponse({ type: SettingDto })
-    public async getByKey(@Param('key') key: string): Promise<SettingDto> {
+    @GetRestApi({
+        path: ':key',
+        summary: 'Get setting by key',
+        responseDto: SettingDto,
+    })
+    async getByKey(@Param('key') key: string): Promise<SettingDto> {
         const result = await this.settingService.getByKey(key);
         return result as unknown as SettingDto;
     }
 
-    @ApiOperation({ summary: 'Create setting' })
-    @HttpCode(HttpStatus.CREATED)
-    @Version('1')
-    @Post()
-    @ApiOkResponse({ type: SettingDto })
-    public async create(@Body() request: CreateSettingRequestDto): Promise<SettingDto> {
+    @PostRestApi({
+        summary: 'Create setting',
+        responseDto: SettingDto,
+    })
+    async create(@Body() request: CreateSettingRequestDto): Promise<SettingDto> {
         const result = await this.settingService.create(request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Update setting by key' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Put(':key')
-    @ApiOkResponse({ type: Boolean })
-    public async update(@Param('key') key: string, @Body() request: UpdateSettingRequestDto): Promise<boolean> {
+    @PutRestApi({
+        path: ':key',
+        summary: 'Update setting by key',
+        responseDto: Boolean,
+    })
+    async update(@Param('key') key: string, @Body() request: UpdateSettingRequestDto): Promise<boolean> {
         const result = await this.settingService.update(key, request);
         return result;
     }

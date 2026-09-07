@@ -1,9 +1,8 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Post, UploadedFile, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, UploadedFile } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { ApiFile, Auth, UUIDParam } from '../../../decorators';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { ApiFile, Auth, GetRestApi, PostRestApi, UUIDParam } from '../../../decorators';
 import { CloudDataItemDto } from '../dtos/cloud-data-item.dto';
 import { CloudDataUploadFileRequest } from '../dtos/requests';
 import { UploadFileResponse } from '../dtos/responses';
@@ -18,22 +17,22 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         super(cloudDataItemService);
     }
 
-    @ApiOperation({ summary: 'Download file by cloud data item id' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Get(':id/download')
-    @BaseApiOkResponse(String)
+    @GetRestApi({
+        path: ':id/download',
+        summary: 'Download file by cloud data item id',
+        responseDto: String,
+    })
     async downloadFile(@UUIDParam('id') id: string): Promise<string> {
         const fileResponse = await this.cloudDataItemService.getFileUrl(id);
         return fileResponse;
     }
 
-    @ApiOperation({ summary: 'Upload file to cloud data' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post('upload')
+    @PostRestApi({
+        path: 'upload',
+        summary: 'Upload file to cloud data',
+        responseDto: UploadFileResponse,
+    })
     @ApiFile({ description: 'File to upload' })
-    @BaseApiOkResponse(UploadFileResponse)
     async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
         if (!file) throw new BadRequestException('No file uploaded');
 
@@ -41,11 +40,11 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         return response;
     }
 
-    @ApiOperation({ summary: 'Upload file to cloud data from URL' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post('upload-from-url')
-    @BaseApiOkResponse(UploadFileResponse)
+    @PostRestApi({
+        path: 'upload-from-url',
+        summary: 'Upload file to cloud data from URL',
+        responseDto: UploadFileResponse,
+    })
     async uploadFileFromUrl(@Body() request: CloudDataUploadFileRequest): Promise<UploadFileResponse> {
         const response = await this.cloudDataItemService.uploadFileFromUrl(request);
         return response;

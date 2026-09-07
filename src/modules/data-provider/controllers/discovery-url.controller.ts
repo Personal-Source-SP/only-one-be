@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
+import { Auth, GetRestApi, PostRestApi, UUIDParam } from '../../../decorators';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
@@ -24,21 +24,22 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
         });
     }
 
-    @ApiOperation({ summary: 'Get validation audit logs for a discovered URL' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':id/validation-logs')
-    @BaseApiOkResponse(DiscoveryValidationLogDto, { isArray: true })
-    public async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
+    @GetRestApi({
+        path: ':id/validation-logs',
+        summary: 'Get validation audit logs for a discovered URL',
+        responseDto: DiscoveryValidationLogDto,
+        isArray: true,
+    })
+    async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryUrlService.getValidationLogsByUrl(id);
     }
 
-    @ApiOperation({ summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('sessions/:sessionId/batch-ingest')
-    @BaseApiOkResponse(IngestDiscoveryUrlResponseDto)
-    public async batchIngestUrls(
+    @PostRestApi({
+        path: 'sessions/:sessionId/batch-ingest',
+        summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog',
+        responseDto: IngestDiscoveryUrlResponseDto,
+    })
+    async batchIngestUrls(
         @UUIDParam('sessionId') sessionId: string,
         @Body() request?: { urlIds?: string[] },
     ): Promise<IngestDiscoveryUrlResponseDto> {

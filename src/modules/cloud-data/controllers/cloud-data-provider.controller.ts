@@ -1,9 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Put, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, UUIDParam } from '../../../decorators';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { Auth, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
 import { CloudDataProviderDto } from '../dtos/cloud-data-provider.dto';
 import { CreateCloudDataProviderRequest, UpdateCloudDataProviderRequest } from '../dtos/requests';
 import { CloudDataProviderEntity } from '../entities/cloud-data-provider.entity';
@@ -17,21 +16,20 @@ export class CloudDataProviderController extends BaseController<CloudDataProvide
         super(cloudDataProviderService);
     }
 
-    @ApiOperation({ summary: 'Create cloud data provider' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Post()
-    @BaseApiOkResponse(CloudDataProviderDto)
+    @PostRestApi({
+        summary: 'Create cloud data provider',
+        responseDto: CloudDataProviderDto,
+    })
     async create(@Body() request: CreateCloudDataProviderRequest): Promise<CloudDataProviderDto> {
         const result = await this.cloudDataProviderService.create(request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Update cloud data provider' })
-    @Version('1')
-    @HttpCode(HttpStatus.OK)
-    @Put(':id')
-    @BaseApiOkResponse(Boolean)
+    @PutRestApi({
+        path: ':id',
+        summary: 'Update cloud data provider',
+        responseDto: Boolean,
+    })
     async update(@UUIDParam('id') id: string, @Body() request: UpdateCloudDataProviderRequest): Promise<boolean> {
         const result = await this.cloudDataProviderService.update(id, request);
         return result;

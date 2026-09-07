@@ -1,7 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { Auth, BaseApiOkResponse, UUIDParam } from '../../../decorators';
+import { Auth, GetRestApi, PostRestApi, UUIDParam } from '../../../decorators';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
 import {
@@ -18,51 +18,51 @@ import { DiscoveryValidationService } from '../services/discovery-validation.ser
 export class DiscoveryValidationController {
     constructor(private readonly validationService: DiscoveryValidationService) {}
 
-    @ApiOperation({ summary: 'Get latest validation batch progress for a session' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get('sessions/:sessionId/latest-batch')
-    @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async getLatestBatch(@UUIDParam('sessionId') sessionId: string): Promise<DiscoveryValidationBatchDto> {
+    @GetRestApi({
+        path: 'sessions/:sessionId/latest-batch',
+        summary: 'Get latest validation batch progress for a session',
+        responseDto: DiscoveryValidationBatchDto,
+    })
+    async getLatestBatch(@UUIDParam('sessionId') sessionId: string): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.getLatestValidationBatch(sessionId);
     }
 
-    @ApiOperation({ summary: 'Trigger batch validation on discovery session URLs' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('sessions/:sessionId/validate')
-    @BaseApiOkResponse(DiscoveryValidationBatchDto)
-    public async triggerValidation(
+    @PostRestApi({
+        path: 'sessions/:sessionId/validate',
+        summary: 'Trigger batch validation on discovery session URLs',
+        responseDto: DiscoveryValidationBatchDto,
+    })
+    async triggerValidation(
         @UUIDParam('sessionId') sessionId: string,
         @Body() request?: TriggerValidationRequestDto,
     ): Promise<DiscoveryValidationBatchDto> {
         return await this.validationService.startBatchValidation(sessionId, request?.targetKeyword);
     }
 
-    @ApiOperation({ summary: 'Submit bulk user actions for discovered URLs' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('bulk-user-actions')
-    @BaseApiOkResponse(Boolean)
-    public async submitBulkUserActions(@Body() request: SubmitBulkUserActionRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'bulk-user-actions',
+        summary: 'Submit bulk user actions for discovered URLs',
+        responseDto: Boolean,
+    })
+    async submitBulkUserActions(@Body() request: SubmitBulkUserActionRequestDto): Promise<boolean> {
         return await this.validationService.submitBulkUserActions(request.urlIds, request.action, request.reason);
     }
 
-    @ApiOperation({ summary: 'Submit user review action for a single discovered URL' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('urls/:id/user-action')
-    @BaseApiOkResponse(Boolean)
-    public async submitUserAction(@UUIDParam('id') id: string, @Body() request: SubmitUserActionRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'urls/:id/user-action',
+        summary: 'Submit user review action for a single discovered URL',
+        responseDto: Boolean,
+    })
+    async submitUserAction(@UUIDParam('id') id: string, @Body() request: SubmitUserActionRequestDto): Promise<boolean> {
         return await this.validationService.submitUserAction(id, request.action, request.reason);
     }
 
-    @ApiOperation({ summary: 'Revalidate a single discovered URL' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('urls/:id/re-validate')
-    @BaseApiOkResponse(DiscoveryUrlDto)
-    public async revalidate(@UUIDParam('id') id: string, @Body() request?: RevalidateUrlRequestDto): Promise<DiscoveryUrlDto> {
+    @PostRestApi({
+        path: 'urls/:id/re-validate',
+        summary: 'Revalidate a single discovered URL',
+        responseDto: DiscoveryUrlDto,
+    })
+    async revalidate(@UUIDParam('id') id: string, @Body() request?: RevalidateUrlRequestDto): Promise<DiscoveryUrlDto> {
         return await this.validationService.revalidateDiscoveredUrl(id, request?.targetKeyword);
     }
 }

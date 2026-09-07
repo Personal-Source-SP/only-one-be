@@ -6,6 +6,7 @@ export * from './http.decorators';
 export * from './permissions.decorator';
 export * from './property.decorators';
 export * from './public-route.decorator';
+export * from './rest-api.decorator';
 export * from './roles.decorator';
 export * from './transform.decorators';
 export * from './user.decorator';

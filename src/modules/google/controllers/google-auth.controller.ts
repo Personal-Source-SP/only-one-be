@@ -1,9 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Put, Version } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, User } from '../../../decorators';
+import { Auth, PutRestApi, User } from '../../../decorators';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
@@ -17,12 +17,11 @@ export class GoogleAuthController extends BaseController<GoogleAuthEntity, Googl
         super(googleAuthService);
     }
 
-    @ApiOperation({ summary: 'Update Google auth' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Put()
-    @ApiOkResponse({ type: String })
-    public async updateGoogleAuth(@User() user: PayloadDto, @Body() request: UpdateGoogleAuthRequestDto): Promise<boolean> {
+    @PutRestApi({
+        summary: 'Update Google auth',
+        responseDto: Boolean,
+    })
+    async updateGoogleAuth(@User() user: PayloadDto, @Body() request: UpdateGoogleAuthRequestDto): Promise<boolean> {
         const result = await this.googleAuthService.update(user.id, request);
         return result;
     }

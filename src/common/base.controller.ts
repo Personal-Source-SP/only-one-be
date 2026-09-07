@@ -1,25 +1,11 @@
-import {
-    Body,
-    Delete,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Inject,
-    NotFoundException,
-    Param,
-    ParseUUIDPipe,
-    Query,
-    Type,
-    Version,
-} from '@nestjs/common';
+import { Body, Inject, NotFoundException, Param, ParseUUIDPipe, Query, Type } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { ApiOperation } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 import { isEmpty } from 'lodash';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In } from 'typeorm';
 
-import { BaseApiOkResponse } from '../decorators/base-response.decorator';
+import { DeleteRestApi, GetRestApi } from '../decorators';
 import { DeleteManyRequestDto } from './dto/base-request.dto.';
 import { BasePaginationRequestDto } from './dto/pagination-request.dto';
 import { PayloadDto } from './dto/payload.dto';
@@ -73,11 +59,12 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return query as PaginateQuery;
     }
 
-    @ApiOperation({ summary: 'Get all entities' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get('all')
-    @BaseApiOkResponse(Object as unknown as Type<D>, { isArray: true })
+    @GetRestApi({
+        path: 'all',
+        summary: 'Get all entities',
+        responseDto: Object as unknown as Type<D>,
+        isArray: true,
+    })
     async getAll(): Promise<D[]> {
         if (!this.options.enableGetAll) {
             throw new NotFoundException('Endpoint not supported');
@@ -87,11 +74,11 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @ApiOperation({ summary: 'Get entity by id' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':id')
-    @BaseApiOkResponse(Object as unknown as Type<D>)
+    @GetRestApi({
+        path: ':id',
+        summary: 'Get entity by id',
+        responseDto: Object as unknown as Type<D>,
+    })
     async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<D> {
         if (!this.options.enableGetById) {
             throw new NotFoundException('Endpoint not supported');
@@ -101,11 +88,10 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @ApiOperation({ summary: 'Get pagination of entities' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get()
-    @BaseApiOkResponse(Object as unknown as Type<Paginated<D>>)
+    @GetRestApi({
+        summary: 'Get pagination of entities',
+        responseDto: Object as unknown as Type<Paginated<D>>,
+    })
     async getPagination(@Query() query: BasePaginationRequestDto): Promise<Paginated<D>> {
         if (!this.options.enablePagination) {
             throw new NotFoundException('Endpoint not supported');
@@ -115,11 +101,11 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @ApiOperation({ summary: 'Delete entity by id' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Delete(':id')
-    @BaseApiOkResponse(Boolean)
+    @DeleteRestApi({
+        path: ':id',
+        summary: 'Delete entity by id',
+        responseDto: Boolean,
+    })
     async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<boolean> {
         if (!this.options.enableDelete) {
             throw new NotFoundException('Endpoint not supported');
@@ -129,11 +115,10 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @ApiOperation({ summary: 'Delete many entities' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Delete()
-    @BaseApiOkResponse(Boolean)
+    @DeleteRestApi({
+        summary: 'Delete many entities',
+        responseDto: Boolean,
+    })
     async deleteMany(@Body() request: DeleteManyRequestDto): Promise<boolean> {
         if (!this.options.enableDeleteMany) {
             throw new NotFoundException('Endpoint not supported');

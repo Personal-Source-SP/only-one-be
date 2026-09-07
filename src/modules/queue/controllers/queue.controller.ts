@@ -1,8 +1,7 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Post, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { Auth } from '../../../decorators';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { Auth, GetRestApi, PostRestApi } from '../../../decorators';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
 import { QueueService } from '../services/queue.service';
@@ -13,31 +12,31 @@ import { QueueService } from '../services/queue.service';
 export class QueueController {
     constructor(private readonly queueService: QueueService) {}
 
-    @ApiOperation({ summary: 'Get status queue' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':queueName/status')
-    @BaseApiOkResponse(String)
+    @GetRestApi({
+        path: ':queueName/status',
+        summary: 'Get status queue',
+        responseDto: String,
+    })
     async getQueueStatus(@Param('queueName') queueName: QUEUE_NAME): Promise<QueueStatusEnum> {
         const result = await this.queueService.getQueueStatus(queueName);
         return result;
     }
 
-    @ApiOperation({ summary: 'Pause queue' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':queueName/pause')
-    @BaseApiOkResponse(Boolean)
+    @PostRestApi({
+        path: ':queueName/pause',
+        summary: 'Pause queue',
+        responseDto: Boolean,
+    })
     async pauseQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<boolean> {
         const result = await this.queueService.pauseQueue(queueName);
         return result;
     }
 
-    @ApiOperation({ summary: 'Resume queue' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':queueName/resume')
-    @BaseApiOkResponse(Boolean)
+    @PostRestApi({
+        path: ':queueName/resume',
+        summary: 'Resume queue',
+        responseDto: Boolean,
+    })
     async resumeQueue(@Param('queueName') queueName: QUEUE_NAME): Promise<boolean> {
         const result = await this.queueService.resumeQueue(queueName);
         return result;

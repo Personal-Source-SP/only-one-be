@@ -1,23 +1,11 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    HttpCode,
-    HttpStatus,
-    Param,
-    Post,
-    UploadedFile,
-    UseInterceptors,
-    Version,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Param, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
-import { Auth } from '../../../decorators';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { Auth, PostRestApi } from '../../../decorators';
 import { ImportDataRequestDto } from '../dtos/requests';
 import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ExcelFileTypes, ImportDataType } from '../enums';
@@ -29,13 +17,12 @@ import { ImportDataService } from '../services/import-data.service';
 export class ImportDataController {
     constructor(private readonly importDataService: ImportDataService) {}
 
-    @ApiOperation({
+    @PostRestApi({
+        path: 'preview-import-data/:dataType',
         summary: 'Preview import data from file',
         description: 'Preview import data based on data type from file upload',
+        responseDto: PreviewImportDataResponseDto,
     })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('preview-import-data/:dataType')
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(
         FileInterceptor('file', {
@@ -65,7 +52,6 @@ export class ImportDataController {
             },
         }),
     )
-    @BaseApiOkResponse(PreviewImportDataResponseDto)
     async previewImportData(
         @UploadedFile() file: Express.Multer.File,
         @Param('dataType') dataType: ImportDataType,
@@ -89,15 +75,13 @@ export class ImportDataController {
         }
     }
 
-    @ApiOperation({
+    @PostRestApi({
+        path: 'import-data',
         summary: 'Import data from request',
         description: 'Import data based on data type from request',
+        responseDto: ImportDataResponseDto,
     })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('import-data')
-    @BaseApiOkResponse(ImportDataResponseDto)
-    public async importData(@Body() request: ImportDataRequestDto): Promise<ImportDataResponseDto> {
+    async importData(@Body() request: ImportDataRequestDto): Promise<ImportDataResponseDto> {
         const result = await this.importDataService.importData(request);
         return result;
     }

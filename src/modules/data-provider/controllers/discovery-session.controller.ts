@@ -1,9 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, BaseApiOkResponse, User, UUIDParam } from '../../../decorators';
+import { Auth, GetRestApi, PostRestApi, User, UUIDParam } from '../../../decorators';
 import { DISCOVERY_SESSION_PAGINATION_CONFIG } from '../constants/discovery-session-pagination.config';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { CreateDiscoverySessionRequestDto } from '../dtos/requests';
@@ -25,21 +25,20 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         });
     }
 
-    @ApiOperation({ summary: 'Get session summary metrics' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Get(':id/summary')
-    @BaseApiOkResponse(DiscoverySessionSummaryResponseDto)
-    public async getSummary(@UUIDParam('id') id: string): Promise<DiscoverySessionSummaryResponseDto> {
+    @GetRestApi({
+        path: ':id/summary',
+        summary: 'Get session summary metrics',
+        responseDto: DiscoverySessionSummaryResponseDto,
+    })
+    async getSummary(@UUIDParam('id') id: string): Promise<DiscoverySessionSummaryResponseDto> {
         return await this.sessionService.getSessionSummary(id);
     }
 
-    @ApiOperation({ summary: 'Create a new discovery session' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post()
-    @BaseApiOkResponse(DiscoverySessionDto)
-    public async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
+    @PostRestApi({
+        summary: 'Create a new discovery session',
+        responseDto: DiscoverySessionDto,
+    })
+    async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
         return await this.sessionService.createSession(request, user);
     }
 }

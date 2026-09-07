@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Param, ParseIntPipe } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, BaseApiOkResponse, User, UUIDParam } from '../../../decorators';
+import { Auth, DeleteRestApi, GetRestApi, PostRestApi, PutRestApi, User, UUIDParam } from '../../../decorators';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
@@ -26,74 +26,82 @@ export class DataProviderFeatureController {
         private readonly configVersionService: ConfigVersionService,
     ) {}
 
-    @ApiOperation({ summary: 'Get all features by provider ID' })
-    @Version('1')
-    @Get('data-providers/:dataProviderId')
-    @BaseApiOkResponse(DataProviderFeatureDto, { isArray: true })
-    public async findByProvider(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderFeatureDto[]> {
+    @GetRestApi({
+        path: 'data-providers/:dataProviderId',
+        summary: 'Get all features by provider ID',
+        responseDto: DataProviderFeatureDto,
+        isArray: true,
+    })
+    async findByProvider(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return await this.featureService.getFeaturesByProviderId(dataProviderId);
     }
 
-    @ApiOperation({ summary: 'Get feature by provider ID and type' })
-    @Version('1')
-    @Get('data-providers/:dataProviderId/:type')
-    @BaseApiOkResponse(DataProviderFeatureDto)
-    public async findByProviderAndType(
+    @GetRestApi({
+        path: 'data-providers/:dataProviderId/:type',
+        summary: 'Get feature by provider ID and type',
+        responseDto: DataProviderFeatureDto,
+    })
+    async findByProviderAndType(
         @UUIDParam('dataProviderId') dataProviderId: string,
         @Param('type') type: DataProviderFeatureType,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.getFeatureByProviderIdAndType(dataProviderId, type);
     }
 
-    @ApiOperation({ summary: 'Get version history for feature' })
-    @Version('1')
-    @Get(':id/versions')
-    @BaseApiOkResponse(ConfigVersionDto)
-    public async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
+    @GetRestApi({
+        path: ':id/versions',
+        summary: 'Get version history for feature',
+        responseDto: ConfigVersionDto,
+        isArray: true,
+    })
+    async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
         return await this.configVersionService.getConfigVersionOptionsByFeature(id);
     }
 
-    @ApiOperation({ summary: 'Get feature by ID' })
-    @Version('1')
-    @Get(':id')
-    @BaseApiOkResponse(DataProviderFeatureDto)
-    public async findById(@UUIDParam('id') id: string): Promise<DataProviderFeatureDto> {
+    @GetRestApi({
+        path: ':id',
+        summary: 'Get feature by ID',
+        responseDto: DataProviderFeatureDto,
+    })
+    async findById(@UUIDParam('id') id: string): Promise<DataProviderFeatureDto> {
         return await this.featureService.findById(id);
     }
 
-    @ApiOperation({ summary: 'Test feature stateless (sandbox)' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('test')
-    public async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<any> {
+    @PostRestApi({
+        path: 'test',
+        summary: 'Test feature stateless (sandbox)',
+    })
+    async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<any> {
         const runner = this.runnerRegistry.getRunner(request.type);
         return await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
     }
 
-    @ApiOperation({ summary: 'Create feature for a data provider' })
-    @Version('1')
-    @Post('data-providers/:dataProviderId')
-    @BaseApiOkResponse(DataProviderFeatureDto)
-    public async createFeature(
+    @PostRestApi({
+        path: 'data-providers/:dataProviderId',
+        summary: 'Create feature for a data provider',
+        responseDto: DataProviderFeatureDto,
+    })
+    async createFeature(
         @UUIDParam('dataProviderId') dataProviderId: string,
         @Body() request: CreateDataProviderFeatureRequestDto,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.createFeature(dataProviderId, request);
     }
 
-    @ApiOperation({ summary: 'Test saved feature contextual' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post(':id/test')
-    public async testContextual(@UUIDParam('id') id: string, @Body() request?: TestFeatureContextualRequestDto): Promise<any> {
+    @PostRestApi({
+        path: ':id/test',
+        summary: 'Test saved feature contextual',
+    })
+    async testContextual(@UUIDParam('id') id: string, @Body() request?: TestFeatureContextualRequestDto): Promise<any> {
         return await this.featureService.testFeature(id, request?.input);
     }
 
-    @ApiOperation({ summary: 'Rollback feature version' })
-    @Version('1')
-    @Post(':id/versions/:versionId/rollback')
-    @BaseApiOkResponse(Boolean)
-    public async rollbackVersion(
+    @PostRestApi({
+        path: ':id/versions/:versionId/rollback',
+        summary: 'Rollback feature version',
+        responseDto: Boolean,
+    })
+    async rollbackVersion(
         @UUIDParam('id') id: string,
         @Param('versionId', ParseIntPipe) versionId: number,
         @User() user: PayloadDto,
@@ -101,19 +109,21 @@ export class DataProviderFeatureController {
         return await this.configVersionService.rollbackToVersionIdByFeature(id, versionId, user);
     }
 
-    @ApiOperation({ summary: 'Switch feature status' })
-    @Version('1')
-    @Put(':id/switch-status/:status')
-    @BaseApiOkResponse(Boolean)
-    public async switchStatus(@UUIDParam('id') id: string, @Param('status') status: DataProviderFeatureStatus): Promise<boolean> {
+    @PutRestApi({
+        path: ':id/switch-status/:status',
+        summary: 'Switch feature status',
+        responseDto: Boolean,
+    })
+    async switchStatus(@UUIDParam('id') id: string, @Param('status') status: DataProviderFeatureStatus): Promise<boolean> {
         return await this.featureService.switchStatus(id, status);
     }
 
-    @ApiOperation({ summary: 'Update feature configuration' })
-    @Version('1')
-    @Put(':id')
-    @BaseApiOkResponse(DataProviderFeatureDto)
-    public async updateConfig(
+    @PutRestApi({
+        path: ':id',
+        summary: 'Update feature configuration',
+        responseDto: DataProviderFeatureDto,
+    })
+    async updateConfig(
         @UUIDParam('id') id: string,
         @Body() request: UpdateFeatureConfigRequestDto,
         @User() user: PayloadDto,
@@ -121,11 +131,12 @@ export class DataProviderFeatureController {
         return await this.featureService.updateFeatureConfig(id, request, user);
     }
 
-    @ApiOperation({ summary: 'Delete inactive feature version' })
-    @Version('1')
-    @Delete(':id/versions/:versionId')
-    @BaseApiOkResponse(Boolean)
-    public async deleteVersion(@UUIDParam('id') id: string, @Param('versionId', ParseIntPipe) versionId: number): Promise<boolean> {
+    @DeleteRestApi({
+        path: ':id/versions/:versionId',
+        summary: 'Delete inactive feature version',
+        responseDto: Boolean,
+    })
+    async deleteVersion(@UUIDParam('id') id: string, @Param('versionId', ParseIntPipe) versionId: number): Promise<boolean> {
         return await this.configVersionService.deleteConfigVersionByFeature(id, versionId);
     }
 }

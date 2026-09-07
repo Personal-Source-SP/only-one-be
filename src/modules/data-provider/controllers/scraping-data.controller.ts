@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { BaseApiOkResponse } from '../../../decorators/base-response.decorator';
+import { PostRestApi } from '../../../decorators';
 import { SCRAPING_DATA_PAGINATION_CONFIG } from '../constants/scraping-data.config';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessScrapeDataResponse } from '../dtos/responses';
@@ -17,12 +17,12 @@ export class ScrapingDataController extends BaseController<ScrapingDataEntity, S
         super(scrapingDataService, SCRAPING_DATA_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
-    @ApiOperation({ summary: 'Process scrape data' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('process-scrape-data')
-    @BaseApiOkResponse(ProcessScrapeDataResponse)
-    public async processScrapeData(@Body() request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
+    @PostRestApi({
+        path: 'process-scrape-data',
+        summary: 'Process scrape data',
+        responseDto: ProcessScrapeDataResponse,
+    })
+    async processScrapeData(@Body() request: ProcessScrapeDataRequestDto): Promise<ProcessScrapeDataResponse> {
         const result = await this.scrapingDataService.processScrapeData(request);
         return result;
     }

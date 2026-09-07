@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Version } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth } from '../../../decorators';
+import { Auth, PostRestApi } from '../../../decorators';
 import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
@@ -21,42 +21,42 @@ export class FileTagController extends BaseController<FileTagEntity, FileTagDto>
         super(fileTagService);
     }
 
-    @ApiOperation({ summary: 'Assign tags to file (by ids)' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('assign-tags-to-file')
-    @ApiOkResponse({ type: Boolean })
-    public async assignTagsToFile(@Body() request: AssignTagsToFileByIdsRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'assign-tags-to-file',
+        summary: 'Assign tags to file (by ids)',
+        responseDto: Boolean,
+    })
+    async assignTagsToFile(@Body() request: AssignTagsToFileByIdsRequestDto): Promise<boolean> {
         const result = await this.fileTagService.assignTagsToFile(request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Remove tags from file (by ids)' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('remove-tags-from-file')
-    @ApiOkResponse({ type: Boolean })
-    public async removeTagsFromFile(@Body() request: RemoveTagsFromFileByIdsRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'remove-tags-from-file',
+        summary: 'Remove tags from file (by ids)',
+        responseDto: Boolean,
+    })
+    async removeTagsFromFile(@Body() request: RemoveTagsFromFileByIdsRequestDto): Promise<boolean> {
         const result = await this.fileTagService.removeTagsFromFile(request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Assign files to tag (by ids)' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('assign-files-to-tag')
-    @ApiOkResponse({ type: Boolean })
-    public async assignFilesToTag(@Body() request: AssignFilesToTagByIdsRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'assign-files-to-tag',
+        summary: 'Assign files to tag (by ids)',
+        responseDto: Boolean,
+    })
+    async assignFilesToTag(@Body() request: AssignFilesToTagByIdsRequestDto): Promise<boolean> {
         const result = await this.fileTagService.assignFilesToTag(request);
         return result;
     }
 
-    @ApiOperation({ summary: 'Remove files from tag (by ids)' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Post('remove-files-from-tag')
-    @ApiOkResponse({ type: Boolean })
-    public async removeFilesFromTag(@Body() request: RemoveFilesFromTagByIdsRequestDto): Promise<boolean> {
+    @PostRestApi({
+        path: 'remove-files-from-tag',
+        summary: 'Remove files from tag (by ids)',
+        responseDto: Boolean,
+    })
+    async removeFilesFromTag(@Body() request: RemoveFilesFromTagByIdsRequestDto): Promise<boolean> {
         const result = await this.fileTagService.removeFilesFromTag(request);
         return result;
     }

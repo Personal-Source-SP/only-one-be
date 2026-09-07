@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Put, Version } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, UUIDParam } from '../../../decorators';
+import { Auth, PutRestApi, UUIDParam } from '../../../decorators';
 import { GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG } from '../constants/google-drive-pagination.config';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
 import { UpdateGoogleDriveFolderRequest } from '../dtos/requests';
@@ -17,12 +17,12 @@ export class GoogleFolderController extends BaseController<GoogleDriveFolderEnti
         super(googleFolderService, GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG);
     }
 
-    @ApiOperation({ summary: 'Update Google folder' })
-    @HttpCode(HttpStatus.OK)
-    @Version('1')
-    @Put(':id')
-    @ApiOkResponse({ type: Boolean })
-    public async update(@UUIDParam('id') id: string, @Body() request: UpdateGoogleDriveFolderRequest): Promise<boolean> {
+    @PutRestApi({
+        path: ':id',
+        summary: 'Update Google folder',
+        responseDto: Boolean,
+    })
+    async update(@UUIDParam('id') id: string, @Body() request: UpdateGoogleDriveFolderRequest): Promise<boolean> {
         const result = await this.googleFolderService.update(id, request);
         return result;
     }

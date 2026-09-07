@@ -1,0 +1,91 @@
+import type { Type } from '@nestjs/common';
+import { applyDecorators, Delete, Get, HttpCode, HttpStatus, Patch, Post, Put, RequestMethod, Version } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
+
+import { BaseApiOkResponse } from './base-response.decorator';
+
+export interface IRestApiOptions {
+    path?: string | string[];
+    summary?: string;
+    description?: string;
+    responseDto?: Type<unknown>;
+    isArray?: boolean;
+    version?: string | string[];
+    httpCode?: HttpStatus;
+    deprecated?: boolean;
+}
+
+const createRestApiDecorator = (
+    method: RequestMethod,
+    defaultStatus: HttpStatus = HttpStatus.OK,
+    options: IRestApiOptions = {},
+): MethodDecorator => {
+    const decorators: Array<ClassDecorator | MethodDecorator | PropertyDecorator> = [];
+
+    // 1. API Versioning (default '1')
+    decorators.push(Version(options.version ?? '1'));
+
+    // 2. HTTP Method Routing
+    const path = options.path ?? '';
+    switch (method) {
+        case RequestMethod.GET:
+            decorators.push(Get(path));
+            break;
+        case RequestMethod.POST:
+            decorators.push(Post(path));
+            break;
+        case RequestMethod.PUT:
+            decorators.push(Put(path));
+            break;
+        case RequestMethod.DELETE:
+            decorators.push(Delete(path));
+            break;
+        case RequestMethod.PATCH:
+            decorators.push(Patch(path));
+            break;
+        default:
+            decorators.push(Get(path));
+            break;
+    }
+
+    // 3. HTTP Status Code (default to HttpStatus.OK unless specified otherwise)
+    decorators.push(HttpCode(options.httpCode ?? defaultStatus));
+
+    // 4. Swagger ApiOperation Documentation
+    if (options.summary || options.description || options.deprecated !== undefined) {
+        decorators.push(
+            ApiOperation({
+                summary: options.summary,
+                description: options.description,
+                deprecated: options.deprecated,
+            }),
+        );
+    }
+
+    // 5. Response Schema via BaseApiOkResponse
+    if (options.responseDto) {
+        decorators.push(BaseApiOkResponse(options.responseDto, { isArray: options.isArray ?? false }));
+    }
+
+    return applyDecorators(...decorators);
+};
+
+export function GetRestApi(options?: IRestApiOptions): MethodDecorator {
+    return createRestApiDecorator(RequestMethod.GET, HttpStatus.OK, options);
+}
+
+export function PostRestApi(options?: IRestApiOptions): MethodDecorator {
+    return createRestApiDecorator(RequestMethod.POST, HttpStatus.OK, options);
+}
+
+export function PutRestApi(options?: IRestApiOptions): MethodDecorator {
+    return createRestApiDecorator(RequestMethod.PUT, HttpStatus.OK, options);
+}
+
+export function DeleteRestApi(options?: IRestApiOptions): MethodDecorator {
+    return createRestApiDecorator(RequestMethod.DELETE, HttpStatus.OK, options);
+}
+
+export function PatchRestApi(options?: IRestApiOptions): MethodDecorator {
+    return createRestApiDecorator(RequestMethod.PATCH, HttpStatus.OK, options);
+}
