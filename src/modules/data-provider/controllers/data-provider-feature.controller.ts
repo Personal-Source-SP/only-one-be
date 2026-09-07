@@ -7,7 +7,6 @@ import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
     CreateDataProviderFeatureRequestDto,
-    TestFeatureContextualRequestDto,
     TestFeatureStatelessRequestDto,
     UpdateFeatureConfigRequestDto,
 } from '../dtos/requests/data-provider-feature-request.dto';
@@ -86,14 +85,6 @@ export class DataProviderFeatureController {
         @Body() request: CreateDataProviderFeatureRequestDto,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.createFeature(dataProviderId, request);
-    }
-
-    @PostRestApi({
-        path: ':id/test',
-        summary: 'Test saved feature contextual',
-    })
-    async testContextual(@UUIDParam('id') id: string, @Body() request?: TestFeatureContextualRequestDto): Promise<any> {
-        return await this.featureService.testFeature(id, request?.input);
     }
 
     @PostRestApi({

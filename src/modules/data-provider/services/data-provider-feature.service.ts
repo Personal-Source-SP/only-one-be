@@ -182,18 +182,6 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         return await super.update(id, { status });
     }
 
-    async testFeature(id: string, input?: any): Promise<any> {
-        const feature = await this.dataProviderFeatureRepository.findOne({
-            where: { id },
-            relations: { dataProvider: true },
-        });
-
-        if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
-
-        const runner = this.runnerRegistry.getRunner(feature.type);
-        return await runner.testContextual(feature, input);
-    }
-
     async getFeaturesByProviderId(dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return (await this.findListByFilter({ dataProviderId })) as DataProviderFeatureDto[];
     }

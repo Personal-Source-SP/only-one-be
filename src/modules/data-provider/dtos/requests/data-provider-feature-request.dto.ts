@@ -42,8 +42,3 @@ export class TestFeatureStatelessRequestDto {
     @ObjectFieldOptional({ description: 'Test input payload (e.g. url, htmlContentString, query)' })
     input?: Record<string, any>;
 }
-
-export class TestFeatureContextualRequestDto {
-    @ObjectFieldOptional({ description: 'Optional input payload override' })
-    input?: Record<string, any>;
-}
