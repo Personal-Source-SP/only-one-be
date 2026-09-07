@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-04T08:57:44.741Z",
+  "updatedAt": "2026-09-07T13:54:13.284Z",
   "installed": {
     "rules": {
       "nest-architecture-stack": {
@@ -113,19 +113,19 @@
     },
     "workflows": {
       "only-one-idea": {
-        "version": "0.0.3",
+        "version": "0.0.4",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-04T08:57:44.738Z"
+        "updatedAt": "2026-09-07T13:54:13.274Z"
       },
       "only-one-plan": {
-        "version": "0.0.3",
+        "version": "0.0.5",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-04T08:57:44.738Z"
+        "updatedAt": "2026-09-07T13:54:13.274Z"
       },
       "only-one-apply": {
-        "version": "0.0.2",
+        "version": "0.0.4",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-04T08:57:44.738Z"
+        "updatedAt": "2026-09-07T13:54:13.274Z"
       },
       "only-one-debug": {
         "version": "0.0.1",
@@ -147,15 +147,10 @@
         "installedAt": "2026-09-03T10:22:56.728Z",
         "updatedAt": "2026-09-03T10:22:56.728Z"
       },
-      "only-one-archive": {
-        "version": "0.0.2",
-        "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-04T08:57:44.738Z"
-      },
       "only-one-clean": {
-        "version": "0.0.2",
+        "version": "0.0.3",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-04T08:57:44.738Z"
+        "updatedAt": "2026-09-07T13:54:13.274Z"
       }
     }
   }

@@ -26,8 +26,9 @@ Activate and apply these skills throughout the clean workflow:
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
-| **`task-lifecycle-resolution`** | Step 0 (Pre-clean task auto-archive) | Scans `only-one/tasks/` for completed tasks with `status: done` and triggers `/only-one-archive` protocol before clean. |
-| **`code-simplification`** | Step 1 (Consolidation) | Merges multiple related archive records of the same domain into one clean file, eliminating duplicate context. |
+| **`task-lifecycle-resolution`** | Step 0 (Pre-clean task auto-archive) | Scans `only-one/tasks/` for completed tasks with `status: done` and triggers the auto-archiving protocol before clean. |
+| **`context-engineering`** | Step 0 (Distilling negative rules) | Formats negative constraints and lessons learned into high-signal `[NEVER]` / `[AVOID]` rules inside `only-one/rules.md`. |
+| **`code-simplification`** | Step 0 & Step 1 (Distillation & Consolidation) | Prunes raw task context into concise archive records and merges related domain archives into unified living documents. |
 | **`source-driven-development`** | Step 2 (Codebase Audit) | Inspects active source code to ground all documented logic against actual codebase truth. |
 | **`doubt-driven-development`** | Step 2 (Sanity Check & Purging) | Applies adversarial inquiry to identify stale logic and commands immediate deletion of dead documentation. |
 
@@ -35,17 +36,64 @@ Activate and apply these skills throughout the clean workflow:
 
 ## 2. Step-by-Step Execution Protocol
 
-### Step 0 — Pre-Clean Auto-Archive (`task-lifecycle-resolution`)
+### Step 0 — Pre-Clean Auto-Archive (`task-lifecycle-resolution` & `context-engineering`)
 
 1. Scan `only-one/tasks/` for task folders where `plan.md` has `status: done`.
 2. For each completed task folder found:
    - If `--dry-run` is active:
-     - Log: `[DRY-RUN] Found completed task: <slug> (would execute /only-one-archive)`.
+     - Log: `[DRY-RUN] Found completed task: <slug> (would distill rules, author archive, and purge raw directory)`.
    - Otherwise:
-     - Execute the full `/only-one-archive` protocol on that task:
-       1. Append negative rules to `only-one/rules.md`.
-       2. Author single distilled record `only-one/archives/<timestamp>-<slug>.md`.
-       3. Remove raw task directory `rm -rf only-one/tasks/<slug>`.
+     - Execute the full task archiving protocol:
+       1. **Extract User Feedback & Distill Negative Rules (`context-engineering`)**:
+          - Read `plan.md` (and `concept.md` if present).
+          - Extract any negative constraints, rules, anti-patterns, or user warnings communicated during the task.
+          - Append new negative rules to `only-one/rules.md` (prevent duplicate entries):
+            ```markdown
+            - **[NEVER]** <Action to avoid> — <Reason / Context>
+            - **[AVOID]** <Anti-pattern to avoid> — <Reason / Context>
+            ```
+       2. **Direct Reference Resolution**:
+          - Scan existing archive files in `only-one/archives/*.md`.
+          - Identify any historical archives related to the same modules touched by this task for the `references` field.
+       3. **Author Single Distilled Archive (`code-simplification`)**:
+          - Create directory `only-one/archives/` if it does not exist.
+          - Generate `only-one/archives/<timestamp>-<slug>.md` using the task's timestamp prefix (**Song ngữ Lai: Diễn giải bằng Tiếng Việt + thuật ngữ Tiếng Anh**):
+            ```markdown
+            ---
+            id: <timestamp>-<slug>
+            title: <Tên Task / Tính năng>
+            archived_at: <YYYY-MM-DD>
+            status: active
+            references:
+              - only-one/archives/<previous-related-archive>.md
+            affected_modules:
+              - <module-1>
+              - <module-2>
+            ---
+
+            # Archive: <Tên Task / Tính năng>
+
+            ## 1. Problem & Core Value (Bài toán & Giá trị Cốt lõi)
+            - **Vấn đề (Problem)**: <Tóm tắt ngắn gọn vấn đề đã được giải quyết>
+            - **Giá trị (Value)**: <Lợi ích cốt lõi mang lại cho hệ thống/người dùng>
+
+            ## 2. Key Architecture & Decisions (Kiến trúc & Quyết định Then chốt)
+            - **Hướng tiếp cận (Approach)**: <Giải pháp kỹ thuật tổng quan>
+            - **Sơ đồ (Diagram)**: <Sơ đồ Mermaid nếu có>
+
+            ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
+            - Danh sách các module và file đã sửa đổi (kèm liên kết clickable).
+
+            ## 4. Verification Evidence & PR (Bằng chứng Nghiệm thu & PR)
+            - **Trạng thái Test**: 100% Passed.
+            - **PR URL / Branch**: <Liên kết PR hoặc tên branch>
+            ```
+       4. **Purge Raw Task Directory**:
+          - Confirm that `only-one/archives/<timestamp>-<slug>.md` has been successfully created.
+          - Remove the raw task directory:
+            ```bash
+            rm -rf only-one/tasks/<timestamp>-<slug>
+            ```
 3. Check for tasks with `status: in-progress` or `status: planned`:
    - Log notice: `ℹ️ Preserved active/planned task: <slug>`.
    - Never archive or delete in-progress or planned tasks.

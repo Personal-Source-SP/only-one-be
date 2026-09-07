@@ -11,7 +11,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
     ) {}
 
-    public buildSearchUrl(config: ISearchTargetConfig, input?: any): string {
+    buildSearchUrl(config: ISearchTargetConfig, input?: any): string {
         if (input?.url) {
             return input.url;
         }

@@ -45,6 +45,7 @@ If input does not describe the idea or problem, ask a focused question before pr
 
 1. **One-Question-At-A-Time Problem Discovery**:
    - Ask focused questions to uncover the **Root Problem / Business Pain Point** (Why are we building this? Who is it for?).
+   - **Deconstruct Problem & Goal into Structured Bullet Points**: Never write monolithic paragraphs. Deconstruct the problem into *Context/Trigger*, *Defect/Symptom*, *Root Cause*, and *Impact*. Deconstruct goals into *Core Outcome* and *Detailed Acceptance Criteria*.
    - Extract and define strict **`In-Scope` vs `Explicit Out-of-Scope`** boundaries to eliminate scope creep.
    - Define **Measurable Success Metrics / Definition of Done** (e.g., latency < 200ms, zero data loss, 100% test pass).
    - Capture domain terminology into `only-one/CONTEXT.md` (`domain-modeling`).
@@ -77,8 +78,19 @@ If input does not describe the idea or problem, ask a focused question before pr
 # Concept: <Tên Ý tưởng / Bài toán Kỹ thuật>
 
 ## 1. Problem & Goal (Vấn đề & Mục tiêu)
-- **Problem**: <Mô tả ngắn gọn 1-2 câu về điểm nghẽn hoặc nhu cầu kỹ thuật thực tế>.
-- **Goal**: <Kết quả cốt lõi cần đạt được>.
+
+### Problem (Vấn đề & Điểm nghẽn Hiện tại)
+- **Bối cảnh & Điểm kích hoạt**: <Nơi xảy ra vấn đề hoặc hành động dẫn đến lỗi>.
+- **Hiện tượng & Khiếm khuyết kỹ thuật**: <Hành vi lỗi cụ thể hoặc điểm nghẽn kỹ thuật>.
+- **Nguyên nhân cốt lõi (Root Cause)**: <Lý do kỹ thuật (state bất đồng bộ, thiếu validation, race condition...)>.
+- **Tác động (Impact / Blast Radius)**: <Ảnh hưởng tới người dùng, hệ thống hoặc dữ liệu>.
+
+### Goal (Mục tiêu Kỹ thuật Cần đạt)
+- **Mục tiêu cốt lõi**: <Kết quả kỹ thuật chính bắt buộc đạt được>.
+- **Tiêu chí nghiệm thu (Acceptance Criteria)**:
+  - <Gạch đầu dòng 1: Xử lý trạng thái UI/State, reset giá trị, disabled state...>.
+  - <Gạch đầu dòng 2: Đồng bộ query params / payload API...>.
+  - <Gạch đầu dòng 3: Xử lý fallback, edge cases hoặc thông báo...>.
 
 ## 2. Scope Boundaries (Ranh giới Phạm vi)
 - **In-Scope**: <Các tính năng, hành vi và module bắt buộc triển khai>.
