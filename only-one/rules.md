@@ -10,7 +10,9 @@
 - **[AVOID]** Coupling price extraction or detection fields directly to Discovery URL entities — Keep URL discovery strictly focused on link discovery, validation, and product resolution lifecycles.
 
 ## Service & Controller Patterns
-- **[NEVER]** Scatter ad-hoc testing endpoints across different resource controllers — Route feature testing through standardized endpoints (`POST /data-provider-features/test` for stateless sandbox and `POST /data-provider-features/:id/test` for contextual test) handled dynamically by the `IFeatureRunner` strategy registry.
+- **[NEVER]** Scatter ad-hoc testing endpoints across different resource controllers — Route feature testing through the standardized stateless sandbox endpoint (`POST /data-provider-features/test`) handled dynamically by the `IFeatureRunner` strategy registry.
+- **[AVOID]** Declaring redundant boilerplate Swagger and HTTP method decorators separately across controllers — Standardize on composite REST API decorators (`@GetRestApi`, `@PostRestApi`, `@PutRestApi`, `@DeleteRestApi`, `@PatchRestApi`) for cohesive OpenAPI documentation and route declaration.
+- **[AVOID]** Nesting unrelated domain capabilities into a single god controller — Split distinct sub-resources (such as `ConfigVersionController` for version history and rollback) into dedicated single-responsibility controllers while preserving route compatibility.
 - **[NEVER]** Save task lifecycle documents outside of the active workspace's task directory — Always store `concept.md`, `plan.md`, and `walkthrough.md` directly under `<workspace>/only-one/tasks/<task-folder>`.
 - **[NEVER]** Ingest discovery items into catalog without hierarchical entity resolution (`code` -> `name` fallback) to prevent duplicate product records.
 - **[AVOID]** Non-idempotent item ingestion actions — Ensure approving or ingesting a `DiscoveryUrl` multiple times is safe and idempotent.
@@ -24,4 +26,6 @@
 - **[AVOID]** Wrapping try...catch manually and calling handleError() inside Service CRUD methods — Allow exceptions to naturally bubble up to `AllExceptionsFilter` for centralized call-site logging, classification, and HTTP Status mapping.
 - **[NEVER]** Leak internal stack traces, server file paths, or raw SQL queries to client responses — Log detailed context strictly on the server console/files via `LoggerService` and return standardized `ResponseDto` with sanitized `IAppError` codes and messages to clients.
 - **[AVOID]** Coercing all unhandled exceptions into `BadRequestException` (HTTP 400) — Classify exceptions accurately into proper RESTful status codes (400, 401, 403, 404, 409, 500) and use `AppException` with `AppError` dictionary.
+- **[AVOID]** Hardcoding arbitrary error string messages in controllers or services — Standardize domain exceptions through `AppError` enum constants with associated default HTTP statuses and localized error messages.
+
 

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserModule } from '../user/user.module';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from './constants/data-provider-scraper-service-map';
+import { ConfigVersionController } from './controllers/config-version.controller';
 import { DataProviderController } from './controllers/data-provider.controller';
 import { DataProviderFeatureController } from './controllers/data-provider-feature.controller';
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
@@ -64,6 +65,7 @@ const controllers = [
     ItemController,
     ScrapingDataController,
     DataProviderController,
+    ConfigVersionController,
     DataProviderFeatureController,
     DataProviderItemController,
     DiscoverySessionController,

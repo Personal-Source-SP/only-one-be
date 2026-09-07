@@ -45,8 +45,6 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             dataProviderId,
             type: request.type,
             config: request.config,
-            consecutiveFailures: 0,
-            status: DataProviderFeatureStatus.UNCONFIGURED,
             service: request.service || ScraperServiceEnum.GENERIC,
         });
 

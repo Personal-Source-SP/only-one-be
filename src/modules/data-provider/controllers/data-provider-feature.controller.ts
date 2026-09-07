@@ -1,9 +1,8 @@
-import { Body, Controller, Param, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, DeleteRestApi, GetRestApi, PostRestApi, PutRestApi, User, UUIDParam } from '../../../decorators';
-import { ConfigVersionDto } from '../dtos/config-version.dto';
+import { Auth, GetRestApi, PostRestApi, PutRestApi, User, UUIDParam } from '../../../decorators';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
     CreateDataProviderFeatureRequestDto,
@@ -12,7 +11,6 @@ import {
 } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
-import { ConfigVersionService } from '../services/config-version.service';
 import { DataProviderFeatureService } from '../services/data-provider-feature.service';
 
 @Controller('data-provider-features')
@@ -22,7 +20,6 @@ export class DataProviderFeatureController {
     constructor(
         private readonly runnerRegistry: FeatureRunnerRegistry,
         private readonly featureService: DataProviderFeatureService,
-        private readonly configVersionService: ConfigVersionService,
     ) {}
 
     @GetRestApi({
@@ -45,16 +42,6 @@ export class DataProviderFeatureController {
         @Param('type') type: DataProviderFeatureType,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.getFeatureByProviderIdAndType(dataProviderId, type);
-    }
-
-    @GetRestApi({
-        path: ':id/versions',
-        summary: 'Get version history for feature',
-        responseDto: ConfigVersionDto,
-        isArray: true,
-    })
-    async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
-        return await this.configVersionService.getConfigVersionOptionsByFeature(id);
     }
 
     @GetRestApi({
@@ -87,19 +74,6 @@ export class DataProviderFeatureController {
         return await this.featureService.createFeature(dataProviderId, request);
     }
 
-    @PostRestApi({
-        path: ':id/versions/:versionId/rollback',
-        summary: 'Rollback feature version',
-        responseDto: Boolean,
-    })
-    async rollbackVersion(
-        @UUIDParam('id') id: string,
-        @Param('versionId', ParseIntPipe) versionId: number,
-        @User() user: PayloadDto,
-    ): Promise<boolean> {
-        return await this.configVersionService.rollbackToVersionIdByFeature(id, versionId, user);
-    }
-
     @PutRestApi({
         path: ':id/switch-status/:status',
         summary: 'Switch feature status',
@@ -120,14 +94,5 @@ export class DataProviderFeatureController {
         @User() user: PayloadDto,
     ): Promise<DataProviderFeatureDto> {
         return await this.featureService.updateFeatureConfig(id, request, user);
-    }
-
-    @DeleteRestApi({
-        path: ':id/versions/:versionId',
-        summary: 'Delete inactive feature version',
-        responseDto: Boolean,
-    })
-    async deleteVersion(@UUIDParam('id') id: string, @Param('versionId', ParseIntPipe) versionId: number): Promise<boolean> {
-        return await this.configVersionService.deleteConfigVersionByFeature(id, versionId);
     }
 }
