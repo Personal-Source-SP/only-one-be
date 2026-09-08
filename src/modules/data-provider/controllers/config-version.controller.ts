@@ -6,14 +6,14 @@ import { Auth, DeleteRestApi, GetRestApi, PostRestApi, User, UUIDParam } from '.
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { ConfigVersionService } from '../services/config-version.service';
 
-@Controller('data-provider-features')
-@ApiTags('Config Versions')
+@Controller('config-version-features')
+@ApiTags('Config Version Features')
 @Auth()
 export class ConfigVersionController {
     constructor(private readonly configVersionService: ConfigVersionService) {}
 
     @GetRestApi({
-        path: ':id/versions',
+        path: ':id',
         summary: 'Get version history for feature',
         responseDto: ConfigVersionDto,
         isArray: true,
@@ -23,7 +23,7 @@ export class ConfigVersionController {
     }
 
     @PostRestApi({
-        path: ':id/versions/:versionId/rollback',
+        path: ':id/rollback/:versionId',
         summary: 'Rollback feature version',
         responseDto: Boolean,
     })
@@ -36,7 +36,7 @@ export class ConfigVersionController {
     }
 
     @DeleteRestApi({
-        path: ':id/versions/:versionId',
+        path: ':id/:versionId',
         summary: 'Delete inactive feature version',
         responseDto: Boolean,
     })
