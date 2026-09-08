@@ -21,6 +21,9 @@
 - **[AVOID]** Declaring redundant boilerplate validation and Swagger decorators manually on DTOs — Use consolidated composite decorators (`@StringField`, `@NumberField`, `@EnumField`, `@UUIDField`, `@EmailField`, `@PhoneField`, `@PasswordField`) with built-in auto-trimming and schema mapping.
 - **[AVOID]** Scattering `@UseGuards(JwtAuthGuard)` and `@ApiBearerAuth()` separately across controller endpoints — Use the unified `@Auth()` decorator for cohesive authentication and RBAC metadata enforcement.
 - **[AVOID]** Using manual `ParseUUIDPipe` on controller route params — Standardize on `@UUIDParam('id')` for route parameter validation.
+- **[AVOID]** Reusing generic scraping extraction helpers (`ExtractDataHelper`) or scraping DTOs for Search features — Maintain dedicated search extraction helpers (`ExtractSearchDataHelper`) and clean `SearchResultItemDto` to avoid schema mismatch and runtime script errors.
+- **[AVOID]** Automatically falling back to appending `?q=` in URL builders when search patterns omit query placeholders — Standardize on `{...}` path or query replacements and append clean placeholders when missing.
+- **[AVOID]** Passing raw unprocessed HTML directly into search or extraction script execution — Pre-process HTML to strip unnecessary style/link tags and scope the DOM to `mainContentSelector` (or its parent element) before running script generators.
 
 ## Error Handling & Exception Patterns
 - **[AVOID]** Wrapping try...catch manually and calling handleError() inside Service CRUD methods — Allow exceptions to naturally bubble up to `AllExceptionsFilter` for centralized call-site logging, classification, and HTTP Status mapping.
