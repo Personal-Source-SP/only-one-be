@@ -32,7 +32,7 @@ affected_modules:
   - `ConfigVersionEntity` gắn với `featureId`, cho phép rollback snapshot và theo dõi lịch sử chỉnh sửa nguyên tử.
 - **Dedicated Sub-Resource Controllers**:
   - `DataProviderFeatureController`: Chuyên trách CRUD feature, switch status và trigger stateless test sandbox.
-  - `ConfigVersionController`: Chuyên trách lấy danh sách phiên bản, rollback phiên bản và xóa phiên bản cũ không hoạt động (base route `@Controller('data-provider-features')`).
+  - `ConfigVersionController`: Chuyên trách lấy danh sách phiên bản, rollback phiên bản và xóa phiên bản cũ không hoạt động (base route `@Controller('config-version-features')`).
 - **Asynchronous Worker Pipelines (Thin Delegator Pattern)**:
   - **Validation Pipeline**: `DiscoveryValidationService.startBatchValidation` tạo batch và đẩy jobs vào Bull Queue `QUEUE_NAME.DISCOVERY_VALIDATION_JOB`. Worker `DiscoveryValidationWorkerProcessor` ủy quyền cho `DiscoveryValidationService.validateUrlForBatch()` thực thi `DiscoveryValidationHelper.evaluateUrl()`.
   - **Ingestion Pipeline**: `DiscoveryUrlService.batchIngest` đẩy jobs vào Bull Queue `QUEUE_NAME.DISCOVERY_INGESTION_JOB`. Worker `DiscoveryIngestionWorkerProcessor` ủy quyền cho `DiscoveryUrlService.ingestDiscoveredUrl()`, đối soát phân tầng (SKU/Code $\rightarrow$ Name $\rightarrow$ Tạo mới `ItemEntity`), liên kết `DataProviderItemEntity` và chuyển `DiscoveryUrlEntity.status = INGESTED`.
