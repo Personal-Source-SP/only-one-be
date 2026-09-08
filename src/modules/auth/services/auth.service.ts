@@ -60,7 +60,7 @@ export class AuthService {
             throw new AppException(AuthError.InvalidRefreshToken);
         }
 
-        const user = await this.userService.getUserRefreshToken(payload.userId);
+        const user = await this.userService.getUserRefreshToken(payload.id || payload.userId);
 
         if (!user) throw new AppException(AuthError.UserNotFound);
 

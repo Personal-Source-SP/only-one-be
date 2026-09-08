@@ -1,7 +1,7 @@
 import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { Auth, PostRestApi } from '../../../decorators';
+import { PostRestApi } from '../../../decorators';
 import { CreateUserRequestDto } from '../../user/dtos/requests';
 import { UserDto } from '../../user/dtos/user.dto';
 import { RefreshTokenRequestDto, SignInRequestDto } from '../dtos/requests/auth.request.dto';
@@ -33,7 +33,6 @@ export class AuthController {
         return result;
     }
 
-    @Auth()
     @PostRestApi({
         path: 'refresh-token',
         summary: 'Refresh token',
