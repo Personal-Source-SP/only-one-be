@@ -5,8 +5,10 @@ import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
 import { FileHelper } from './helpers/file-helper';
+import { ApiFetcherService } from './services/api-fetcher.service';
 import { AppConfigService } from './services/app-config.service';
 import { BaseHttpService } from './services/base-http.service';
+import { HtmlFetcherService } from './services/html-fetcher.service';
 import { LocalFileService } from './services/local-file.service';
 import { LoggerService } from './services/logger.service';
 import { PuppeteerService } from './services/puppeteer.service';
@@ -14,7 +16,17 @@ import { UtilsService } from './services/utils.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
 
 const helpers = [FileHelper];
-const providers = [AppConfigService, LoggerService, UtilsService, BaseHttpService, PuppeteerService, LocalFileService, JwtStrategy];
+const providers = [
+    AppConfigService,
+    LoggerService,
+    UtilsService,
+    BaseHttpService,
+    ApiFetcherService,
+    HtmlFetcherService,
+    PuppeteerService,
+    LocalFileService,
+    JwtStrategy,
+];
 
 @Global()
 @Module({

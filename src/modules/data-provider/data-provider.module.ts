@@ -49,7 +49,6 @@ import { DiscoverySessionService } from './services/discovery-session.service';
 import { DiscoveryUrlService } from './services/discovery-url.service';
 import { DiscoveryValidationService } from './services/discovery-validation.service';
 import { ItemService } from './services/item.service';
-import { ScraperService } from './services/scraper.service';
 import { ScrapingDataService } from './services/scraping-data.service';
 
 const helpers = [ExtractDataHelper, ExtractSearchDataHelper, UrlResolverHelper];
@@ -80,7 +79,6 @@ const controllers = [
 const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
 const services = [
     ItemService,
-    ScraperService,
     ScrapingDataService,
     ConfigVersionService,
     DataProviderService,

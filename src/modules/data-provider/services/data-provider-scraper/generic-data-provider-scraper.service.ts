@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
+import { HtmlFetcherService } from '../../../../shared/services/html-fetcher.service';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
 import { DataProviderFeatureType } from '../../enums';
 import { ExtractDataHelper } from '../../helpers/extract-data.helper';
@@ -12,12 +13,11 @@ import {
     ITargetConfig,
     IValidateParserFunctionRequest,
 } from '../../interfaces';
-import { ScraperService } from '../scraper.service';
 
 @Injectable()
 export class GenericDataProviderScraperService implements IDataProviderScraperService {
     constructor(
-        private readonly scraperService: ScraperService,
+        private readonly htmlFetcherService: HtmlFetcherService,
         private readonly extractDataHelper: ExtractDataHelper,
     ) {}
 
@@ -106,7 +106,7 @@ export class GenericDataProviderScraperService implements IDataProviderScraperSe
             // Get html content if not provided
             let html = htmlContentString;
             if (!html) {
-                const htmlContent = await this.scraperService.getHtmlContent(url, targetConfig);
+                const htmlContent = await this.htmlFetcherService.getHtmlContent(url, targetConfig);
                 if (htmlContent.status !== 'success') {
                     return { error: htmlContent.error_message || `Not found html content from ${url}` };
                 }

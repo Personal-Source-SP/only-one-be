@@ -3,7 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as cheerio from 'cheerio';
 import { Repository } from 'typeorm';
 
+import { AppException } from '../../../exceptions/app.exception';
+import { ApiFetcherService } from '../../../shared/services/api-fetcher.service';
 import { BaseHttpService } from '../../../shared/services/base-http.service';
+import { HtmlFetcherService } from '../../../shared/services/html-fetcher.service';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import {
@@ -15,56 +19,66 @@ import {
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { ExtractDataHelper } from '../helpers/extract-data.helper';
-import { IDiscoveryCrawlQueueItem, IDiscoveryExtractedItem, IDiscoveryFetchHtmlResult, ITargetConfig } from '../interfaces';
+import {
+    IDiscoveryCrawlQueueItem,
+    IDiscoveryExtractedItem,
+    IDiscoveryFetchHtmlResult,
+    IRunDiscoveryParams,
+    ITargetConfig,
+} from '../interfaces';
 import { DiscoveryValidationService } from '../services/discovery-validation.service';
-import { ScraperService } from '../services/scraper.service';
 
 @Injectable()
 export class DiscoveryRunner {
     private readonly logger = new Logger(DiscoveryRunner.name);
 
     constructor(
-        private readonly scraperService: ScraperService,
         private readonly baseHttpService: BaseHttpService,
         private readonly extractDataHelper: ExtractDataHelper,
+        private readonly apiFetcherService: ApiFetcherService,
+        private readonly htmlFetcherService: HtmlFetcherService,
         private readonly validationService: DiscoveryValidationService,
         @InjectRepository(DiscoverySessionEntity)
-        private readonly sessionRepo: Repository<DiscoverySessionEntity>,
+        private readonly discoverySessionRepository: Repository<DiscoverySessionEntity>,
         @InjectRepository(DiscoveryUrlEntity)
-        private readonly urlRepo: Repository<DiscoveryUrlEntity>,
+        private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
     ) {}
 
     async runDiscovery(sessionId: string, targetKeyword?: string): Promise<void> {
-        const session = await this.sessionRepo.findOne({
+        const session = await this.discoverySessionRepository.findOne({
             where: { id: sessionId },
             relations: ['dataProvider', 'dataProvider.features'],
         });
-        if (!session) return;
+        if (!session) throw new AppException(DataProviderError.SessionNotFound(sessionId));
 
-        const scrapingFeature = session.dataProvider?.features?.find(
-            (f) => f.type === DataProviderFeatureType.SCRAPING || f.type === DataProviderFeatureType.SEARCH,
-        );
-        const targetConfig = (scrapingFeature?.config as ITargetConfig) || undefined;
+        const searchFeature = session.dataProvider?.features?.find((f) => f.type === DataProviderFeatureType.SEARCH);
+        if (!searchFeature)
+            throw new AppException(DataProviderError.FeatureTypeNotFound(DataProviderFeatureType.SEARCH, session.dataProviderId));
 
         const startTime = Date.now();
-        await this.sessionRepo.update(sessionId, { status: DiscoverySessionStatus.IN_PROGRESS });
+
+        // Update session status to IN_PROGRESS when first job is processed
+        await this.discoverySessionRepository.update(sessionId, { status: DiscoverySessionStatus.IN_PROGRESS });
 
         try {
-            const discoveredRecords: DiscoveryUrlEntity[] = [];
-            const isApiProvider = scrapingFeature?.service === ScraperServiceEnum.API;
+            const targetConfig = searchFeature?.config as ITargetConfig;
+            const isApiProvider = searchFeature?.service === ScraperServiceEnum.API;
+            const params: IRunDiscoveryParams = {
+                session,
+                targetConfig,
+                targetKeyword,
+            };
 
-            if (isApiProvider) {
-                await this.runApiDiscovery(session, targetConfig, targetKeyword, discoveredRecords);
-            } else {
-                await this.runHtmlDiscovery(session, targetConfig, targetKeyword, discoveredRecords);
-            }
+            const discoveredRecords: DiscoveryUrlEntity[] = isApiProvider
+                ? await this.runApiDiscovery(params)
+                : await this.runHtmlDiscovery(params);
 
             if (discoveredRecords.length > 0) {
-                await this.urlRepo.save(discoveredRecords, { chunk: 100 });
+                await this.discoveryUrlRepository.save(discoveredRecords, { chunk: 100 });
             }
 
             const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
-            await this.sessionRepo.update(sessionId, {
+            await this.discoverySessionRepository.update(sessionId, {
                 durationSeconds,
                 status: DiscoverySessionStatus.COMPLETED,
                 totalValidated: discoveredRecords.length,
@@ -77,9 +91,9 @@ export class DiscoveryRunner {
                     .startBatchValidation(sessionId, targetKeyword)
                     .catch((err) => this.logger.error(`Auto-validation failed for session ${sessionId}: ${err.message}`));
             }
-        } catch (error: any) {
+        } catch (error) {
             const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
-            await this.sessionRepo.update(sessionId, {
+            await this.discoverySessionRepository.update(sessionId, {
                 durationSeconds,
                 errorMessage: error.message,
                 status: DiscoverySessionStatus.FAILED,
@@ -95,27 +109,21 @@ export class DiscoveryRunner {
         }
     }
 
-    private async runApiDiscovery(
-        session: DiscoverySessionEntity,
-        targetConfig: ITargetConfig | undefined,
-        targetKeyword: string | undefined,
-        discoveredRecords: DiscoveryUrlEntity[],
-    ): Promise<void> {
+    private async runApiDiscovery(params: IRunDiscoveryParams): Promise<DiscoveryUrlEntity[]> {
+        const { session, targetConfig, targetKeyword } = params;
+        const discoveredRecords: DiscoveryUrlEntity[] = [];
+
         if (!targetConfig?.functionGenerator) {
             throw new Error(`Data provider feature is missing 'functionGenerator' configuration for session ${session.id}`);
         }
 
-        const response = await this.baseHttpService.get<any>(session.targetUrl, {
-            timeout: targetConfig?.timeout || 10000,
-            headers: {
-                'User-Agent':
-                    targetConfig?.userAgent ||
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                ...(targetConfig?.headers || {}),
-            },
-        });
+        const apiRes = await this.apiFetcherService.getApiContent(session.targetUrl, targetConfig);
+        if (apiRes.status !== 'success' || !apiRes.data) {
+            this.logger.warn(`API fetch failed for session ${session.id}: ${apiRes.error_message}`);
+            return discoveredRecords;
+        }
 
-        const rawData = response.data;
+        const rawData = apiRes.data;
         const result = await this.extractDataHelper.runApiFunctionExtractData({
             data: rawData,
             functionGenerator: targetConfig.functionGenerator,
@@ -123,7 +131,7 @@ export class DiscoveryRunner {
 
         if (!Array.isArray(result) || result.length === 0) {
             this.logger.warn(`API functionGenerator returned 0 items for session ${session.id}`);
-            return;
+            return discoveredRecords;
         }
 
         const extractedItems: IDiscoveryExtractedItem[] = result.map((item: any) => ({
@@ -145,7 +153,7 @@ export class DiscoveryRunner {
                 title: item.title,
             });
 
-            const urlEntity = this.urlRepo.create({
+            const urlEntity = this.discoveryUrlRepository.create({
                 domain,
                 foundAtDepth: 1,
                 sessionId: session.id,
@@ -161,14 +169,13 @@ export class DiscoveryRunner {
 
             discoveredRecords.push(urlEntity);
         }
+
+        return discoveredRecords;
     }
 
-    private async runHtmlDiscovery(
-        session: DiscoverySessionEntity,
-        targetConfig: ITargetConfig | undefined,
-        targetKeyword: string | undefined,
-        discoveredRecords: DiscoveryUrlEntity[],
-    ): Promise<void> {
+    private async runHtmlDiscovery(params: IRunDiscoveryParams): Promise<DiscoveryUrlEntity[]> {
+        const { session, targetConfig, targetKeyword } = params;
+        const discoveredRecords: DiscoveryUrlEntity[] = [];
         const visited = new Set<string>();
         const queue: IDiscoveryCrawlQueueItem[] = [{ url: session.targetUrl, depth: 0 }];
 
@@ -197,7 +204,7 @@ export class DiscoveryRunner {
                         domain: parsedDomain,
                     });
 
-                    const urlEntity = this.urlRepo.create({
+                    const urlEntity = this.discoveryUrlRepository.create({
                         title,
                         description,
                         domain: parsedDomain,
@@ -236,6 +243,8 @@ export class DiscoveryRunner {
                 this.logger.warn(`Failed to crawl URL: ${current.url} - ${err.message}`);
             }
         }
+
+        return discoveredRecords;
     }
 
     private async fetchHtml(url: string, targetConfig?: ITargetConfig): Promise<IDiscoveryFetchHtmlResult> {
@@ -248,7 +257,7 @@ export class DiscoveryRunner {
 
         if (isDynamicOrProtected) {
             try {
-                const result = await this.scraperService.getHtmlContent(url, targetConfig);
+                const result = await this.htmlFetcherService.getHtmlContent(url, targetConfig);
                 if (result.status === 'success' && result.html) {
                     return { html: result.html, title: result.title };
                 }

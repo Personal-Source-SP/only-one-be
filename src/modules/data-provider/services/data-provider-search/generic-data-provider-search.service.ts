@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
+import { HtmlFetcherService } from '../../../../shared/services/html-fetcher.service';
 import { ExtractSearchDataHelper } from '../../helpers/extract-search-data.helper';
 import { IDataProviderSearchService, IGetExtractSearchDataRequest, ISearchExtractDataResponse } from '../../interfaces';
-import { ScraperService } from '../scraper.service';
 
 @Injectable()
 export class GenericDataProviderSearchService implements IDataProviderSearchService {
     constructor(
-        private readonly scraperService: ScraperService,
+        private readonly htmlFetcherService: HtmlFetcherService,
         private readonly extractSearchDataHelper: ExtractSearchDataHelper,
     ) {}
 
@@ -19,7 +19,7 @@ export class GenericDataProviderSearchService implements IDataProviderSearchServ
         try {
             let html = htmlContentString;
             if (!html) {
-                const htmlContent = await this.scraperService.getHtmlContent(url, targetConfig);
+                const htmlContent = await this.htmlFetcherService.getHtmlContent(url, targetConfig);
                 if (htmlContent.status !== 'success') {
                     return { error: htmlContent.error_message || `Not found html content from ${url}` };
                 }

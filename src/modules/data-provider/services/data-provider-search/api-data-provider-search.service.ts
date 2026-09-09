@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
+import { ApiFetcherService } from '../../../../shared/services/api-fetcher.service';
 import { ExtractSearchDataHelper } from '../../helpers/extract-search-data.helper';
 import { IDataProviderSearchService, IGetExtractSearchDataRequest, ISearchExtractDataResponse } from '../../interfaces';
-import { ScraperService } from '../scraper.service';
 
 @Injectable()
 export class ApiDataProviderSearchService implements IDataProviderSearchService {
     constructor(
-        private readonly scraperService: ScraperService,
+        private readonly apiFetcherService: ApiFetcherService,
         private readonly extractSearchDataHelper: ExtractSearchDataHelper,
     ) {}
 
@@ -19,7 +19,7 @@ export class ApiDataProviderSearchService implements IDataProviderSearchService 
         try {
             let data = dataContent;
             if (!data) {
-                const apiRes = await this.scraperService.getApiContent(url, targetConfig);
+                const apiRes = await this.apiFetcherService.getApiContent(url, targetConfig);
                 if (apiRes.status !== 'success') {
                     return { error: apiRes.error_message || `Not found data content from ${url}` };
                 }

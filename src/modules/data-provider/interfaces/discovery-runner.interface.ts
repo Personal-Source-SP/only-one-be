@@ -1,3 +1,6 @@
+import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
+import { ITargetConfig } from './target-config.interface';
+
 export interface IDiscoveryFetchHtmlResult {
     html: string;
     title?: string;
@@ -12,4 +15,10 @@ export interface IDiscoveryExtractedItem {
     url: string;
     title?: string;
     description?: string;
+}
+
+export interface IRunDiscoveryParams {
+    session: DiscoverySessionEntity;
+    targetConfig?: ITargetConfig;
+    targetKeyword?: string;
 }
