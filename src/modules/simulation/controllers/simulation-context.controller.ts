@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi } from '../../../decorators';
+import { Auth, Post } from '../../../decorators';
 import { SIMULATION_CONTEXT_PAGINATION_CONFIG } from '../constants/simulation-context.config';
 import { CreateSimulationContextRequest } from '../dtos/requests';
 import { SimulationContextDto } from '../dtos/simulation-context.dto';
@@ -17,7 +17,7 @@ export class SimulationContextController extends BaseController<SimulationContex
         super(simulationContextService, SIMULATION_CONTEXT_PAGINATION_CONFIG);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create simulation context',
         responseDto: SimulationContextDto,
     })

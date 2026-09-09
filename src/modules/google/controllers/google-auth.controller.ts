@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, PutRestApi, User } from '../../../decorators';
+import { Auth, Put, User } from '../../../decorators';
 import { GoogleAuthDto } from '../dtos/google-auth.dto';
 import { UpdateGoogleAuthRequestDto } from '../dtos/requests';
 import { GoogleAuthEntity } from '../entities/google-auth.entity';
@@ -17,7 +17,7 @@ export class GoogleAuthController extends BaseController<GoogleAuthEntity, Googl
         super(googleAuthService);
     }
 
-    @PutRestApi({
+    @Put({
         summary: 'Update Google auth',
         responseDto: Boolean,
     })

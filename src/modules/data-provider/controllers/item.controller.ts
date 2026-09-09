@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Post, Put, UUIDParam } from '../../../decorators';
 import { ITEM_PAGINATION_CONFIG } from '../constants/item-pagination.config';
 import { ItemDto } from '../dtos/item.dto';
 import { CreateItemRequestDto, UpdateItemRequestDto } from '../dtos/requests';
@@ -17,7 +17,7 @@ export class ItemController extends BaseController<ItemEntity, ItemDto> {
         super(itemService, ITEM_PAGINATION_CONFIG);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create item',
         responseDto: ItemDto,
     })
@@ -26,7 +26,7 @@ export class ItemController extends BaseController<ItemEntity, ItemDto> {
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update item',
         responseDto: Boolean,

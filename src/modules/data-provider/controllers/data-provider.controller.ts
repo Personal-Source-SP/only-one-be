@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Post, Put, UUIDParam } from '../../../decorators';
 import { DATA_PROVIDER_PAGINATION_CONFIG } from '../constants/data-provider-pagination.config';
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests/data-provider-request.dto';
@@ -17,7 +17,7 @@ export class DataProviderController extends BaseController<DataProviderEntity, D
         super(dataProviderService, DATA_PROVIDER_PAGINATION_CONFIG);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create data provider',
         responseDto: DataProviderDto,
     })
@@ -26,7 +26,7 @@ export class DataProviderController extends BaseController<DataProviderEntity, D
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update data provider',
         responseDto: Boolean,

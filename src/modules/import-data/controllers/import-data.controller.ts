@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
-import { Auth, PostRestApi } from '../../../decorators';
+import { Auth, Post } from '../../../decorators';
 import { ImportDataRequestDto } from '../dtos/requests';
 import { ImportDataResponseDto, PreviewImportDataResponseDto } from '../dtos/responses';
 import { ExcelFileTypes, ImportDataType } from '../enums';
@@ -17,7 +17,7 @@ import { ImportDataService } from '../services/import-data.service';
 export class ImportDataController {
     constructor(private readonly importDataService: ImportDataService) {}
 
-    @PostRestApi({
+    @Post({
         path: 'preview-import-data/:dataType',
         summary: 'Preview import data from file',
         description: 'Preview import data based on data type from file upload',
@@ -75,7 +75,7 @@ export class ImportDataController {
         }
     }
 
-    @PostRestApi({
+    @Post({
         path: 'import-data',
         summary: 'Import data from request',
         description: 'Import data based on data type from request',

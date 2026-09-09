@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Put, UUIDParam } from '../../../decorators';
 import { GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG } from '../constants/google-drive-pagination.config';
 import { GoogleDriveFolderDto } from '../dtos/google-drive-folder.dto';
 import { UpdateGoogleDriveFolderRequest } from '../dtos/requests';
@@ -17,7 +17,7 @@ export class GoogleFolderController extends BaseController<GoogleDriveFolderEnti
         super(googleFolderService, GOOGLE_DRIVE_FOLDER_PAGINATION_CONFIG);
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update Google folder',
         responseDto: Boolean,

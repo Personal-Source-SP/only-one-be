@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { GetRestApi, UUIDParam } from '../../../decorators';
+import { Get, UUIDParam } from '../../../decorators';
 import { ScheduleJobDto } from '../dtos/schedule-job.dto';
 import { ScheduleJobEntity } from '../entities/schedule-job.entity';
 import { ScheduleJobService } from '../services/schedule-job.service';
@@ -14,11 +14,10 @@ export class ScheduleJobController extends BaseController<ScheduleJobEntity, Sch
         super(scheduleJobService);
     }
 
-    @GetRestApi({
+    @Get({
         path: 'schedule/:scheduleId',
         summary: 'Get schedule jobs by schedule id',
-        responseDto: ScheduleJobDto,
-        isArray: true,
+        responseDto: [ScheduleJobDto],
     })
     async getByScheduleId(@UUIDParam('scheduleId') scheduleId: string): Promise<ScheduleJobDto[]> {
         const result = await this.scheduleJobService.findListByFilter({ scheduleId });

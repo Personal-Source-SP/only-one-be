@@ -11,7 +11,7 @@
 
 ## Service & Controller Patterns
 - **[NEVER]** Scatter ad-hoc testing endpoints across different resource controllers — Route feature testing through the standardized stateless sandbox endpoint (`POST /data-provider-features/test`) handled dynamically by the `IFeatureRunner` strategy registry.
-- **[AVOID]** Declaring redundant boilerplate Swagger and HTTP method decorators separately across controllers — Standardize on composite REST API decorators (`@GetRestApi`, `@PostRestApi`, `@PutRestApi`, `@DeleteRestApi`, `@PatchRestApi`) for cohesive OpenAPI documentation and route declaration.
+- **[AVOID]** Declaring redundant boilerplate Swagger and HTTP method decorators separately across controllers — Standardize on composite REST API decorators (`@Get`, `@Post`, `@Put`, `@Delete`, `@Patch` from `src/decorators`) supporting `responseDto: [Dto]` for cohesive OpenAPI documentation and route declaration.
 - **[AVOID]** Nesting unrelated domain capabilities into a single god controller — Split distinct sub-resources (such as `ConfigVersionController` for version history and rollback) into dedicated single-responsibility controllers while preserving route compatibility.
 - **[NEVER]** Save task lifecycle documents outside of the active workspace's task directory — Always store `concept.md`, `plan.md`, and `walkthrough.md` directly under `<workspace>/only-one/tasks/<task-folder>`.
 - **[NEVER]** Ingest discovery items into catalog without hierarchical entity resolution (`code` -> `name` fallback) to prevent duplicate product records.

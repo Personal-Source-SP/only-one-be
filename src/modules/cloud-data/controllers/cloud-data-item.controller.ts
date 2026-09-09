@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, UploadedFile } from '@nestjs/com
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { ApiFile, Auth, GetRestApi, PostRestApi, UUIDParam } from '../../../decorators';
+import { ApiFile, Auth, Get, Post, UUIDParam } from '../../../decorators';
 import { CloudDataItemDto } from '../dtos/cloud-data-item.dto';
 import { CloudDataUploadFileRequest } from '../dtos/requests';
 import { UploadFileResponse } from '../dtos/responses';
@@ -17,7 +17,7 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         super(cloudDataItemService);
     }
 
-    @GetRestApi({
+    @Get({
         path: ':id/download',
         summary: 'Download file by cloud data item id',
         responseDto: String,
@@ -27,7 +27,7 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         return fileResponse;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'upload',
         summary: 'Upload file to cloud data',
         responseDto: UploadFileResponse,
@@ -40,7 +40,7 @@ export class CloudDataItemController extends BaseController<CloudDataItemEntity,
         return response;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'upload-from-url',
         summary: 'Upload file to cloud data from URL',
         responseDto: UploadFileResponse,

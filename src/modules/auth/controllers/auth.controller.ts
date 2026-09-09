@@ -1,7 +1,7 @@
 import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { PostRestApi } from '../../../decorators';
+import { Post } from '../../../decorators';
 import { CreateUserRequestDto } from '../../user/dtos/requests';
 import { UserDto } from '../../user/dtos/user.dto';
 import { RefreshTokenRequestDto, SignInRequestDto } from '../dtos/requests/auth.request.dto';
@@ -13,7 +13,7 @@ import { AuthService } from '../services/auth.service';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
-    @PostRestApi({
+    @Post({
         path: 'signup',
         summary: 'Sign up',
         responseDto: UserDto,
@@ -23,7 +23,7 @@ export class AuthController {
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'login',
         summary: 'Sign in',
         responseDto: SignInResponseDto,
@@ -33,7 +33,7 @@ export class AuthController {
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'refresh-token',
         summary: 'Refresh token',
         responseDto: RefreshTokenResponseDto,

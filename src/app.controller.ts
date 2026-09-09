@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
 
 import { AppService } from './app.service';
-import { GetRestApi } from './decorators';
+import { Get } from './decorators';
 import { LoggerService } from './shared/services/logger.service';
 
 @Controller('/')
@@ -17,12 +17,12 @@ export class AppController {
         private readonly db: TypeOrmHealthIndicator,
     ) {}
 
-    @GetRestApi({ path: 'health/live', summary: 'Health check live' })
+    @Get({ path: 'health/live', summary: 'Health check live' })
     live(): { status: string } {
         return { status: 'ok' };
     }
 
-    @GetRestApi({ path: 'health', summary: 'Health check full' })
+    @Get({ path: 'health', summary: 'Health check full' })
     @HealthCheck()
     check() {
         return this.health.check([
@@ -38,7 +38,7 @@ export class AppController {
         ]);
     }
 
-    @GetRestApi({ summary: 'Get Hello' })
+    @Get({ summary: 'Get Hello' })
     getHello(): string {
         this.loggerService.info('Hello World!');
         return this.appService.getHello();

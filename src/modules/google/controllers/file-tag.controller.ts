@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi } from '../../../decorators';
+import { Auth, Post } from '../../../decorators';
 import { FileTagDto } from '../dtos/file-tag.dto';
 import {
     AssignFilesToTagByIdsRequestDto,
@@ -21,7 +21,7 @@ export class FileTagController extends BaseController<FileTagEntity, FileTagDto>
         super(fileTagService);
     }
 
-    @PostRestApi({
+    @Post({
         path: 'assign-tags-to-file',
         summary: 'Assign tags to file (by ids)',
         responseDto: Boolean,
@@ -31,7 +31,7 @@ export class FileTagController extends BaseController<FileTagEntity, FileTagDto>
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'remove-tags-from-file',
         summary: 'Remove tags from file (by ids)',
         responseDto: Boolean,
@@ -41,7 +41,7 @@ export class FileTagController extends BaseController<FileTagEntity, FileTagDto>
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'assign-files-to-tag',
         summary: 'Assign files to tag (by ids)',
         responseDto: Boolean,
@@ -51,7 +51,7 @@ export class FileTagController extends BaseController<FileTagEntity, FileTagDto>
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: 'remove-files-from-tag',
         summary: 'Remove files from tag (by ids)',
         responseDto: Boolean,

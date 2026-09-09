@@ -2,7 +2,7 @@ import { Body, Controller, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, GetRestApi, PostRestApi, PutRestApi, User, UUIDParam } from '../../../decorators';
+import { Auth, Get, Post, Put, User, UUIDParam } from '../../../decorators';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
     CreateDataProviderFeatureRequestDto,
@@ -22,17 +22,16 @@ export class DataProviderFeatureController {
         private readonly featureService: DataProviderFeatureService,
     ) {}
 
-    @GetRestApi({
+    @Get({
         path: 'data-providers/:dataProviderId',
         summary: 'Get all features by provider ID',
-        responseDto: DataProviderFeatureDto,
-        isArray: true,
+        responseDto: [DataProviderFeatureDto],
     })
     async findByProvider(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return await this.featureService.getFeaturesByProviderId(dataProviderId);
     }
 
-    @GetRestApi({
+    @Get({
         path: 'data-providers/:dataProviderId/:type',
         summary: 'Get feature by provider ID and type',
         responseDto: DataProviderFeatureDto,
@@ -44,7 +43,7 @@ export class DataProviderFeatureController {
         return await this.featureService.getFeatureByProviderIdAndType(dataProviderId, type);
     }
 
-    @GetRestApi({
+    @Get({
         path: ':id',
         summary: 'Get feature by ID',
         responseDto: DataProviderFeatureDto,
@@ -53,7 +52,7 @@ export class DataProviderFeatureController {
         return await this.featureService.findById(id);
     }
 
-    @PostRestApi({
+    @Post({
         path: 'test',
         summary: 'Test feature stateless (sandbox)',
     })
@@ -62,7 +61,7 @@ export class DataProviderFeatureController {
         return await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
     }
 
-    @PostRestApi({
+    @Post({
         path: 'data-providers/:dataProviderId',
         summary: 'Create feature for a data provider',
         responseDto: DataProviderFeatureDto,
@@ -74,7 +73,7 @@ export class DataProviderFeatureController {
         return await this.featureService.createFeature(dataProviderId, request);
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id/switch-status/:status',
         summary: 'Switch feature status',
         responseDto: Boolean,
@@ -83,7 +82,7 @@ export class DataProviderFeatureController {
         return await this.featureService.switchStatus(id, status);
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update feature configuration',
         responseDto: DataProviderFeatureDto,

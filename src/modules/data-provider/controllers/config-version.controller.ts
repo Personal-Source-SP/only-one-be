@@ -2,7 +2,7 @@ import { Controller, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, DeleteRestApi, GetRestApi, PostRestApi, User, UUIDParam } from '../../../decorators';
+import { Auth, Delete, Get, Post, User, UUIDParam } from '../../../decorators';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { ConfigVersionService } from '../services/config-version.service';
 
@@ -12,17 +12,16 @@ import { ConfigVersionService } from '../services/config-version.service';
 export class ConfigVersionController {
     constructor(private readonly configVersionService: ConfigVersionService) {}
 
-    @GetRestApi({
+    @Get({
         path: ':id',
         summary: 'Get version history for feature',
-        responseDto: ConfigVersionDto,
-        isArray: true,
+        responseDto: [ConfigVersionDto],
     })
     async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
         return await this.configVersionService.getConfigVersionOptionsByFeature(id);
     }
 
-    @PostRestApi({
+    @Post({
         path: ':id/rollback/:versionId',
         summary: 'Rollback feature version',
         responseDto: Boolean,
@@ -35,7 +34,7 @@ export class ConfigVersionController {
         return await this.configVersionService.rollbackToVersionIdByFeature(id, versionId, user);
     }
 
-    @DeleteRestApi({
+    @Delete({
         path: ':id/:versionId',
         summary: 'Delete inactive feature version',
         responseDto: Boolean,

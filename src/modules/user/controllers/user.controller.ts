@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Post, Put, UUIDParam } from '../../../decorators';
 import { USER_PAGINATION_CONFIG } from '../constants/user-pagination.config';
 import { ChangePasswordRequestDto, UpdateUserRequestDto } from '../dtos/requests';
 import { UserDto } from '../dtos/user.dto';
@@ -17,7 +17,7 @@ export class UserController extends BaseController<UserEntity, UserDto> {
         super(userService, USER_PAGINATION_CONFIG);
     }
 
-    @PostRestApi({
+    @Post({
         path: 'change-password',
         summary: 'Change password',
         responseDto: Boolean,
@@ -27,7 +27,7 @@ export class UserController extends BaseController<UserEntity, UserDto> {
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update user',
         responseDto: Boolean,

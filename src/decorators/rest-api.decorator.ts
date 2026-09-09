@@ -1,25 +1,46 @@
 import type { Type } from '@nestjs/common';
-import { applyDecorators, Delete, Get, HttpCode, HttpStatus, Patch, Post, Put, RequestMethod, Version } from '@nestjs/common';
+import {
+    applyDecorators,
+    Delete as NestDelete,
+    Get as NestGet,
+    HttpCode,
+    HttpStatus,
+    Patch as NestPatch,
+    Post as NestPost,
+    Put as NestPut,
+    RequestMethod,
+    Version,
+} from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 
-import { BaseApiOkResponse } from './base-response.decorator';
+import { BaseApiOkResponse, ResponseDtoType } from './base-response.decorator';
 
 export interface IRestApiOptions {
     path?: string | string[];
     summary?: string;
     description?: string;
-    responseDto?: Type<unknown>;
-    isArray?: boolean;
+    responseDto?: ResponseDtoType;
     version?: string | string[];
     httpCode?: HttpStatus;
     deprecated?: boolean;
 }
 
+export type RestApiInput = string | string[] | IRestApiOptions;
+
+const normalizeOptions = (input?: RestApiInput): IRestApiOptions => {
+    if (!input) return {};
+    if (typeof input === 'string' || Array.isArray(input)) {
+        return { path: input };
+    }
+    return input;
+};
+
 const createRestApiDecorator = (
     method: RequestMethod,
     defaultStatus: HttpStatus = HttpStatus.OK,
-    options: IRestApiOptions = {},
+    input?: RestApiInput,
 ): MethodDecorator => {
+    const options = normalizeOptions(input);
     const decorators: Array<ClassDecorator | MethodDecorator | PropertyDecorator> = [];
 
     // 1. API Versioning (default '1')
@@ -29,22 +50,22 @@ const createRestApiDecorator = (
     const path = options.path ?? '';
     switch (method) {
         case RequestMethod.GET:
-            decorators.push(Get(path));
+            decorators.push(NestGet(path));
             break;
         case RequestMethod.POST:
-            decorators.push(Post(path));
+            decorators.push(NestPost(path));
             break;
         case RequestMethod.PUT:
-            decorators.push(Put(path));
+            decorators.push(NestPut(path));
             break;
         case RequestMethod.DELETE:
-            decorators.push(Delete(path));
+            decorators.push(NestDelete(path));
             break;
         case RequestMethod.PATCH:
-            decorators.push(Patch(path));
+            decorators.push(NestPatch(path));
             break;
         default:
-            decorators.push(Get(path));
+            decorators.push(NestGet(path));
             break;
     }
 
@@ -64,28 +85,28 @@ const createRestApiDecorator = (
 
     // 5. Response Schema via BaseApiOkResponse
     if (options.responseDto) {
-        decorators.push(BaseApiOkResponse(options.responseDto, { isArray: options.isArray ?? false }));
+        decorators.push(BaseApiOkResponse(options.responseDto));
     }
 
     return applyDecorators(...decorators);
 };
 
-export function GetRestApi(options?: IRestApiOptions): MethodDecorator {
+export function Get(options?: RestApiInput): MethodDecorator {
     return createRestApiDecorator(RequestMethod.GET, HttpStatus.OK, options);
 }
 
-export function PostRestApi(options?: IRestApiOptions): MethodDecorator {
+export function Post(options?: RestApiInput): MethodDecorator {
     return createRestApiDecorator(RequestMethod.POST, HttpStatus.OK, options);
 }
 
-export function PutRestApi(options?: IRestApiOptions): MethodDecorator {
+export function Put(options?: RestApiInput): MethodDecorator {
     return createRestApiDecorator(RequestMethod.PUT, HttpStatus.OK, options);
 }
 
-export function DeleteRestApi(options?: IRestApiOptions): MethodDecorator {
+export function Delete(options?: RestApiInput): MethodDecorator {
     return createRestApiDecorator(RequestMethod.DELETE, HttpStatus.OK, options);
 }
 
-export function PatchRestApi(options?: IRestApiOptions): MethodDecorator {
+export function Patch(options?: RestApiInput): MethodDecorator {
     return createRestApiDecorator(RequestMethod.PATCH, HttpStatus.OK, options);
 }

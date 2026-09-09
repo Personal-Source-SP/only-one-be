@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Post, Put, UUIDParam } from '../../../decorators';
 import { CloudDataProviderDto } from '../dtos/cloud-data-provider.dto';
 import { CreateCloudDataProviderRequest, UpdateCloudDataProviderRequest } from '../dtos/requests';
 import { CloudDataProviderEntity } from '../entities/cloud-data-provider.entity';
@@ -16,7 +16,7 @@ export class CloudDataProviderController extends BaseController<CloudDataProvide
         super(cloudDataProviderService);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create cloud data provider',
         responseDto: CloudDataProviderDto,
     })
@@ -25,7 +25,7 @@ export class CloudDataProviderController extends BaseController<CloudDataProvide
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update cloud data provider',
         responseDto: Boolean,

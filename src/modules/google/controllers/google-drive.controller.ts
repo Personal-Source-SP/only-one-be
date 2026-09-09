@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, PostRestApi, PutRestApi, User } from '../../../decorators';
+import { Auth, Post, Put, User } from '../../../decorators';
 import { GoogleDrivePreviewRequest, GoogleDriveSyncRequest } from '../dtos/requests';
 import { GoogleDrivePreviewResponse } from '../dtos/responses/google-drive-preview-response.dto';
 import { GoogleDriveService } from '../services/google-drive.service';
@@ -13,7 +13,7 @@ import { GoogleDriveService } from '../services/google-drive.service';
 export class GoogleDriveController {
     constructor(private readonly googleDriveService: GoogleDriveService) {}
 
-    @PostRestApi({
+    @Post({
         path: 'preview-data-sync',
         summary: 'Preview data sync',
         responseDto: GoogleDrivePreviewResponse,
@@ -23,7 +23,7 @@ export class GoogleDriveController {
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: 'save-data-sync',
         summary: 'Save data sync',
         responseDto: Boolean,

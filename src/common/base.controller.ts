@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash';
 import { PaginateConfig, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { In } from 'typeorm';
 
-import { DeleteRestApi, GetRestApi } from '../decorators';
+import { Delete, Get } from '../decorators';
 import { DeleteManyRequestDto } from './dto/base-request.dto.';
 import { BasePaginationRequestDto } from './dto/pagination-request.dto';
 import { PayloadDto } from './dto/payload.dto';
@@ -59,11 +59,10 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return query as PaginateQuery;
     }
 
-    @GetRestApi({
+    @Get({
         path: 'all',
         summary: 'Get all entities',
-        responseDto: Object as unknown as Type<D>,
-        isArray: true,
+        responseDto: [Object as unknown as Type<D>],
     })
     async getAll(): Promise<D[]> {
         if (!this.options.enableGetAll) {
@@ -74,7 +73,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @GetRestApi({
+    @Get({
         path: ':id',
         summary: 'Get entity by id',
         responseDto: Object as unknown as Type<D>,
@@ -88,7 +87,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @GetRestApi({
+    @Get({
         summary: 'Get pagination of entities',
         responseDto: Object as unknown as Type<Paginated<D>>,
     })
@@ -101,7 +100,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @DeleteRestApi({
+    @Delete({
         path: ':id',
         summary: 'Delete entity by id',
         responseDto: Boolean,
@@ -115,7 +114,7 @@ export class BaseController<T, D> implements IBaseController<T, D> {
         return result;
     }
 
-    @DeleteRestApi({
+    @Delete({
         summary: 'Delete many entities',
         responseDto: Boolean,
     })

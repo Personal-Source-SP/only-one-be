@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, GetRestApi, PostRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Get, Post, UUIDParam } from '../../../decorators';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
@@ -24,17 +24,16 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
         });
     }
 
-    @GetRestApi({
+    @Get({
         path: ':id/validation-logs',
         summary: 'Get validation audit logs for a discovered URL',
-        responseDto: DiscoveryValidationLogDto,
-        isArray: true,
+        responseDto: [DiscoveryValidationLogDto],
     })
     async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryUrlService.getValidationLogsByUrl(id);
     }
 
-    @PostRestApi({
+    @Post({
         path: 'sessions/:sessionId/batch-ingest',
         summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog',
         responseDto: IngestDiscoveryUrlResponseDto,

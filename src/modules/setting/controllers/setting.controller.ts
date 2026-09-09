@@ -2,7 +2,7 @@ import { Body, Controller, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, GetRestApi, PostRestApi, PutRestApi } from '../../../decorators';
+import { Auth, Get, Post, Put } from '../../../decorators';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
@@ -16,7 +16,7 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
         super(settingService);
     }
 
-    @GetRestApi({
+    @Get({
         path: ':key',
         summary: 'Get setting by key',
         responseDto: SettingDto,
@@ -26,7 +26,7 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
         return result as unknown as SettingDto;
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create setting',
         responseDto: SettingDto,
     })
@@ -35,7 +35,7 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':key',
         summary: 'Update setting by key',
         responseDto: Boolean,

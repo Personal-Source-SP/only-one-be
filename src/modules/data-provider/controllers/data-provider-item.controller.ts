@@ -2,7 +2,7 @@ import { Body, Controller, Param, ParseBoolPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, GetRestApi, PostRestApi, PutRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Get, Post, Put, UUIDParam } from '../../../decorators';
 import { DATA_PROVIDER_ITEM_PAGINATION_CONFIG } from '../constants/data-provider-item-pagination.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
@@ -17,29 +17,27 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
         super(dataProviderItemService, DATA_PROVIDER_ITEM_PAGINATION_CONFIG);
     }
 
-    @GetRestApi({
+    @Get({
         path: 'data-provider/:dataProviderId',
         summary: 'Get data provider items by data provider id',
-        responseDto: DataProviderItemDto,
-        isArray: true,
+        responseDto: [DataProviderItemDto],
     })
     async getByDataProviderId(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderItemDto[]> {
         const result = await this.dataProviderItemService.findListByFilter({ dataProviderId }, { relations: { dataProvider: true } });
         return result;
     }
 
-    @GetRestApi({
+    @Get({
         path: 'item/:itemId',
         summary: 'Get data provider items by item id',
-        responseDto: DataProviderItemDto,
-        isArray: true,
+        responseDto: [DataProviderItemDto],
     })
     async getByItemId(@UUIDParam('itemId') itemId: string): Promise<DataProviderItemDto[]> {
         const result = await this.dataProviderItemService.findListByFilter({ itemId }, { relations: { item: true } });
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create data provider item',
         responseDto: DataProviderItemDto,
     })
@@ -48,7 +46,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id/switch-status/:activeStatus',
         summary: 'Switch active status data provider item',
         responseDto: Boolean,
@@ -61,7 +59,7 @@ export class DataProviderItemController extends BaseController<DataProviderItemE
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update data provider item',
         responseDto: Boolean,

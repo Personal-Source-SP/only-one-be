@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, PostRestApi, UUIDParam } from '../../../decorators';
+import { Auth, Post, UUIDParam } from '../../../decorators';
 import { SIMULATION_ITEM_PAGINATION_CONFIG } from '../constants/simulation-item.config';
 import { CreateSimulationItemRequest } from '../dtos/requests';
 import { SimulationItemDto } from '../dtos/simulation-item.dto';
@@ -17,7 +17,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
         super(simulationItemService, SIMULATION_ITEM_PAGINATION_CONFIG);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create simulation item',
         responseDto: SimulationItemDto,
     })
@@ -26,7 +26,7 @@ export class SimulationItemController extends BaseController<SimulationItemEntit
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: ':id/run',
         summary: 'Run simulation item',
         responseDto: Boolean,

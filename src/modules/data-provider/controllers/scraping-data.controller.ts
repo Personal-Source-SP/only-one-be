@@ -2,7 +2,7 @@ import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { PostRestApi } from '../../../decorators';
+import { Post } from '../../../decorators';
 import { SCRAPING_DATA_PAGINATION_CONFIG } from '../constants/scraping-data.config';
 import { ProcessScrapeDataRequestDto } from '../dtos/requests';
 import { ProcessScrapeDataResponse } from '../dtos/responses';
@@ -17,7 +17,7 @@ export class ScrapingDataController extends BaseController<ScrapingDataEntity, S
         super(scrapingDataService, SCRAPING_DATA_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
-    @PostRestApi({
+    @Post({
         path: 'process-scrape-data',
         summary: 'Process scrape data',
         responseDto: ProcessScrapeDataResponse,

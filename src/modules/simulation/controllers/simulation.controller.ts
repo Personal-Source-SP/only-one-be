@@ -1,7 +1,7 @@
 import { Body, Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { PostRestApi } from '../../../decorators';
+import { Post } from '../../../decorators';
 import { SimulateResponse } from '../dtos/responses/simulate.response';
 import { SimulationService } from '../enums';
 import { SimulationExecutionSummary } from '../interfaces';
@@ -13,7 +13,7 @@ import { SimulateUnlucidAiRequest } from './../dtos/requests/simulate-unlucid-ai
 export class SimulationController {
     constructor(private readonly simulationExecutionService: SimulationExecutionService) {}
 
-    @PostRestApi({
+    @Post({
         path: 'simulate-unlucid-ai',
         summary: 'Simulate Unlucid AI',
         responseDto: SimulateResponse<SimulationExecutionSummary>,

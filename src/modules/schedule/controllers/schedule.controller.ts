@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { PostRestApi, PutRestApi, User, UUIDParam } from '../../../decorators';
+import { Post, Put, User, UUIDParam } from '../../../decorators';
 import { SCHEDULE_PAGINATION_CONFIG } from '../constants/schedule.config';
 import { CreateScheduleRequestDto, UpdateScheduleRequestDto } from '../dtos/requests';
 import { ScheduleDto } from '../dtos/schedule.dto';
@@ -17,7 +17,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         super(scheduleService, SCHEDULE_PAGINATION_CONFIG, { enableDeleteMany: true });
     }
 
-    @PostRestApi({
+    @Post({
         path: ':id/manual-trigger',
         summary: 'Manual trigger schedule',
         responseDto: Boolean,
@@ -27,7 +27,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create schedule',
         responseDto: ScheduleDto,
     })
@@ -36,7 +36,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id/switch-status/:status',
         summary: 'Switch schedule status',
         responseDto: Boolean,
@@ -46,7 +46,7 @@ export class ScheduleController extends BaseController<ScheduleEntity, ScheduleD
         return result;
     }
 
-    @PutRestApi({
+    @Put({
         path: ':id',
         summary: 'Update schedule',
         responseDto: Boolean,

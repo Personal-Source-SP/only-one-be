@@ -3,13 +3,10 @@ import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 
 import { ResponseDto } from '../common/dto/response.dto';
 
-type DataDto = Type<unknown>;
-type BaseApiOkResponseOptions = {
-    isArray: boolean;
-};
+export type ResponseDtoType = Type<unknown> | [Type<unknown>];
 
-const getSchemaProperty = (dataDto: DataDto, options?: BaseApiOkResponseOptions) => {
-    if (options?.isArray) {
+const getSchemaProperty = (dataDto: Type<unknown>, isArray: boolean) => {
+    if (isArray) {
         return {
             type: 'array',
             items: {
@@ -30,19 +27,23 @@ const getSchemaProperty = (dataDto: DataDto, options?: BaseApiOkResponseOptions)
     };
 };
 
-export const BaseApiOkResponse = <DataDto extends Type<unknown>>(dataDto: DataDto, options?: BaseApiOkResponseOptions) =>
-    applyDecorators(
-        ApiExtraModels(ResponseDto, dataDto),
+export const BaseApiOkResponse = (dataDto: ResponseDtoType) => {
+    const isArray = Array.isArray(dataDto);
+    const targetDto = isArray ? dataDto[0] : dataDto;
+
+    return applyDecorators(
+        ApiExtraModels(ResponseDto, targetDto),
         ApiOkResponse({
             schema: {
                 allOf: [
                     { $ref: getSchemaPath(ResponseDto) },
                     {
                         properties: {
-                            data: getSchemaProperty(dataDto, options),
+                            data: getSchemaProperty(targetDto, isArray),
                         },
                     },
                 ],
             },
         }),
     );
+};

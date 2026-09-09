@@ -1,7 +1,7 @@
 import { Controller, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { Auth, GetRestApi, PostRestApi } from '../../../decorators';
+import { Auth, Get, Post } from '../../../decorators';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
 import { QueueService } from '../services/queue.service';
@@ -12,7 +12,7 @@ import { QueueService } from '../services/queue.service';
 export class QueueController {
     constructor(private readonly queueService: QueueService) {}
 
-    @GetRestApi({
+    @Get({
         path: ':queueName/status',
         summary: 'Get status queue',
         responseDto: String,
@@ -22,7 +22,7 @@ export class QueueController {
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: ':queueName/pause',
         summary: 'Pause queue',
         responseDto: Boolean,
@@ -32,7 +32,7 @@ export class QueueController {
         return result;
     }
 
-    @PostRestApi({
+    @Post({
         path: ':queueName/resume',
         summary: 'Resume queue',
         responseDto: Boolean,

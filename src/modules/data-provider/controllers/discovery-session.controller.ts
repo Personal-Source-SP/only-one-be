@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
-import { Auth, GetRestApi, PostRestApi, User, UUIDParam } from '../../../decorators';
+import { Auth, Get, Post, User, UUIDParam } from '../../../decorators';
 import { DISCOVERY_SESSION_PAGINATION_CONFIG } from '../constants/discovery-session-pagination.config';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { CreateDiscoverySessionRequestDto } from '../dtos/requests';
@@ -25,7 +25,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         });
     }
 
-    @GetRestApi({
+    @Get({
         path: ':id/summary',
         summary: 'Get session summary metrics',
         responseDto: DiscoverySessionSummaryResponseDto,
@@ -34,7 +34,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         return await this.sessionService.getSessionSummary(id);
     }
 
-    @PostRestApi({
+    @Post({
         summary: 'Create a new discovery session',
         responseDto: DiscoverySessionDto,
     })
