@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
-
+import { AppException } from '../../../../exceptions/app.exception';
+import { DataProviderError } from '../../constants/data-provider-error';
 import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.entity';
 import { ISearchTargetConfig } from '../../interfaces';
 import { SearchFeatureRunner } from '../search-feature.runner';
@@ -72,14 +72,27 @@ describe('SearchFeatureRunner', () => {
     });
 
     describe('testStateless', () => {
-        it('should throw BadRequestException when no URL or content is resolvable', async () => {
-            await expect(runner.testStateless('generic', {} as any, {})).rejects.toThrow(BadRequestException);
+        it('should throw AppException when no URL or content is resolvable', async () => {
+            await expect(runner.testStateless('generic', {} as any, {})).rejects.toThrow(AppException);
         });
 
-        it('should throw BadRequestException when search service is not found', async () => {
+        it('should throw AppException when search service is not found', async () => {
             await expect(
                 runner.testStateless('unknown', { searchUrlPattern: 'https://example.com' } as any, { query: 'test' }),
-            ).rejects.toThrow(BadRequestException);
+            ).rejects.toThrow(AppException);
+        });
+
+        it('should throw AppException when search service returns error', async () => {
+            mockSearchService.getExtractSearchData.mockResolvedValue({
+                error: 'Invalid search pattern or selector',
+            });
+
+            const config: ISearchTargetConfig = {
+                functionGenerator: 'const searchData = () => []',
+                searchUrlPattern: 'https://example.com/search?q={query}',
+            };
+
+            await expect(runner.testStateless('generic', config, { query: 'test' })).rejects.toThrow(AppException);
         });
 
         it('should call getExtractSearchData on valid search service', async () => {
@@ -105,7 +118,7 @@ describe('SearchFeatureRunner', () => {
     });
 
     describe('testContextual', () => {
-        it('should throw BadRequestException if search service returns error', async () => {
+        it('should throw AppException if search service returns error', async () => {
             mockSearchService.getExtractSearchData.mockResolvedValue({ error: 'Search scraping validation failed' });
 
             const feature = {
@@ -113,7 +126,7 @@ describe('SearchFeatureRunner', () => {
                 config: { searchUrlPattern: 'https://example.com/search?q={query}' },
             } as DataProviderFeatureEntity;
 
-            await expect(runner.testContextual(feature, { query: 'test' })).rejects.toThrow(BadRequestException);
+            await expect(runner.testContextual(feature, { query: 'test' })).rejects.toThrow(AppException);
         });
 
         it('should return extract result on success', async () => {

@@ -121,4 +121,50 @@ export class DataProviderError {
         message: 'Trích xuất dữ liệu không thành công.',
         statusCode: HttpStatus.BAD_REQUEST,
     };
+
+    static readonly MissingTestInput: IAppError = {
+        code: 'data_provider_missing_test_input',
+        message: 'Yêu cầu URL, nội dung dữ liệu hoặc nội dung HTML để kiểm tra.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static readonly MissingSearchTestInput: IAppError = {
+        code: 'data_provider_missing_search_test_input',
+        message: 'Yêu cầu từ khóa tìm kiếm, mẫu URL tìm kiếm, URL hoặc nội dung HTML để kiểm tra.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static readonly NoSampleItemFound: IAppError = {
+        code: 'data_provider_no_sample_item_found',
+        message: 'Không tìm thấy sản phẩm mẫu nào để kiểm tra tính năng.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static ScraperServiceNotFound = (service: string): IAppError => ({
+        code: 'data_provider_scraper_service_not_found',
+        message: `Không tìm thấy scraper service '${service}'.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { service },
+    });
+
+    static SearchServiceNotFound = (service: string): IAppError => ({
+        code: 'data_provider_search_service_not_found',
+        message: `Không tìm thấy search service '${service}'.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { service },
+    });
+
+    static FeatureTestFailed = (error: string): IAppError => ({
+        code: 'data_provider_feature_test_failed',
+        message: `Kiểm tra cấu hình tính năng thất bại: ${error}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { error },
+    });
+
+    static FeatureValidationFailed = (error: string): IAppError => ({
+        code: 'data_provider_feature_validation_failed',
+        message: `Xác thực tính năng thất bại: ${error}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { error },
+    });
 }

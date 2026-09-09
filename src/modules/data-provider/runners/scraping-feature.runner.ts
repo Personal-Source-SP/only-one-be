@@ -1,5 +1,7 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { IDataProviderScraperService, IExtractDataResponse, IFeatureRunner, ITargetConfig } from '../interfaces';
@@ -16,21 +18,20 @@ export class ScrapingFeatureRunner implements IFeatureRunner<ITargetConfig, any,
 
     async testStateless(service: string, config: ITargetConfig, input: any): Promise<IExtractDataResponse> {
         const { url, dataContent, htmlContentString } = input || {};
-        if (!url && !dataContent && !htmlContentString) {
-            throw new BadRequestException('URL, Data content or Html content is required');
-        }
+        if (!url && !dataContent && !htmlContentString) throw new AppException(DataProviderError.MissingTestInput);
 
         const scraperService = this.dataProviderScraperServiceMap[service];
-        if (!scraperService) {
-            throw new BadRequestException(`Scraper service '${service}' not found`);
-        }
+        if (!scraperService) throw new AppException(DataProviderError.ScraperServiceNotFound(service));
 
-        return await scraperService.getExtractData({
+        const result = await scraperService.getExtractData({
             url,
             dataContent,
-            targetConfig: config,
             htmlContentString,
+            targetConfig: config,
         });
+        if (result.error) throw new AppException(DataProviderError.FeatureTestFailed(result.error));
+
+        return result;
     }
 
     async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<any> {
@@ -40,24 +41,21 @@ export class ScrapingFeatureRunner implements IFeatureRunner<ITargetConfig, any,
                 { dataProviderId: feature.dataProviderId },
                 { isRandom: true },
             );
-            if (!randomItem) {
-                throw new BadRequestException('No sample data provider item found to test contextual scraping');
-            }
+            if (!randomItem) throw new AppException(DataProviderError.NoSampleItemFound);
+
             itemUrl = randomItem.itemUrl;
         }
 
         const scraperService = this.dataProviderScraperServiceMap[feature.service];
-        if (!scraperService) {
-            throw new BadRequestException(`Scraper service '${feature.service}' not found`);
-        }
+        if (!scraperService) throw new AppException(DataProviderError.ScraperServiceNotFound(feature.service));
 
         const result = await scraperService.validateParserFunction({
-            targetConfig: feature.config as ITargetConfig,
             productUrl: itemUrl,
+            targetConfig: feature.config as ITargetConfig,
         });
 
         if (result.status !== 'success') {
-            throw new BadRequestException(result.error || 'Scraping validation failed');
+            throw new AppException(DataProviderError.FeatureValidationFailed(result.error || 'Scraping validation failed'));
         }
 
         return result;

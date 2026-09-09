@@ -62,6 +62,7 @@ export class DataProviderFeatureController {
         if (result && Array.isArray(result.data)) {
             result.data = result.data.slice(0, 3);
         }
+
         return result;
     }
 

@@ -1,15 +1,14 @@
-import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringFieldOptional } from '../../../../decorators';
+import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField, StringFieldOptional } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
 
 export class CreateDataProviderFeatureRequestDto {
     @EnumField(() => DataProviderFeatureType, { description: 'Type of feature' })
     type: DataProviderFeatureType;
 
-    @EnumFieldOptional(() => ScraperServiceEnum, {
-        default: ScraperServiceEnum.GENERIC,
+    @EnumField(() => ScraperServiceEnum, {
         description: 'Service runtime identifier',
     })
-    service?: ScraperServiceEnum;
+    service: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
     config?: Record<string, unknown>;
@@ -19,14 +18,14 @@ export class CreateDataProviderFeatureRequestDto {
 }
 
 export class UpdateFeatureConfigRequestDto {
+    @StringField({ description: 'Description of changes for version history' })
+    changeDescription: string;
+
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
-    config: Record<string, unknown>;
+    config?: Record<string, unknown>;
 
-    @EnumFieldOptional(() => ScraperServiceEnum, { description: 'Service runtime identifier' })
-    service?: ScraperServiceEnum;
-
-    @StringFieldOptional({ description: 'Description of changes for version history' })
-    changeDescription?: string;
+    @ObjectFieldOptional({ description: 'Test input payload to verify feature before updating' })
+    input?: Record<string, unknown>;
 }
 
 export class TestFeatureStatelessRequestDto {

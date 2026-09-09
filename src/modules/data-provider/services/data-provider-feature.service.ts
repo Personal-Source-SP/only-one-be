@@ -37,30 +37,33 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
     async createFeature(dataProviderId: string, request: CreateDataProviderFeatureRequestDto): Promise<DataProviderFeatureDto> {
         const existing = await this.exists({ dataProviderId, type: request.type });
-        if (existing) {
-            throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
-        }
+        if (existing) throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
 
         if (request.input) {
             const runner = this.runnerRegistry.getRunner(request.type);
-            await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
+            await runner.testStateless(request.service, request.config, request.input);
         }
 
+        const status = request.input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED;
         const entity = this.dataProviderFeatureRepository.create({
+            status,
             dataProviderId,
             type: request.type,
             config: request.config,
-            service: request.service || ScraperServiceEnum.GENERIC,
-            status: request.input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED,
+            service: request.service,
         });
 
-        return await super.create(entity);
+        const created = await super.create(entity);
+        return created;
     }
 
     async updateFeatureConfig(id: string, request: UpdateFeatureConfigRequestDto, user?: PayloadDto): Promise<DataProviderFeatureDto> {
         const feature = await this.findById(id);
-        if (!feature) {
-            throw new AppException(DataProviderError.FeatureNotFound(id));
+        if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
+
+        if (request.input) {
+            const runner = this.runnerRegistry.getRunner(feature.type);
+            await runner.testStateless(feature.service, request.config, request.input);
         }
 
         // Create version snapshot
@@ -70,7 +73,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
                 isActive: true,
                 config: request.config,
                 changeType: ConfigVersionType.MANUAL_EDIT,
-                changeDescription: request.changeDescription || 'Updated feature configuration',
+                changeDescription: request.changeDescription,
             },
             user,
         );
@@ -85,10 +88,10 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             consecutiveFailures: 0,
             lastErrorMessage: null,
             config: request.config,
-            service: request.service ?? feature.service,
         });
 
-        return await this.findById(id);
+        const updated = await this.findById(id);
+        return updated;
     }
 
     async recordFeatureFailure(
@@ -151,12 +154,14 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
                 const runner = this.runnerRegistry.getRunner(feature.type);
                 await runner.testContextual(feature as DataProviderFeatureEntity);
 
-                return await super.update(id, {
+                const result = await super.update(id, {
                     status,
                     lastErrorType: null,
                     lastErrorMessage: null,
                     consecutiveFailures: 0,
                 });
+
+                return result;
             }
 
             case DataProviderFeatureStatus.TESTING: {

@@ -1,5 +1,7 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { IDataProviderSearchService, IFeatureRunner, ISearchExtractDataResponse, ISearchTargetConfig } from '../interfaces';
@@ -50,48 +52,43 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
 
     async testStateless(service: string, config: ISearchTargetConfig, input: any): Promise<ISearchExtractDataResponse> {
         const { htmlContentString, dataContent } = input || {};
-        const url = this.buildSearchUrl(config, input);
 
-        if (!url && !dataContent && !htmlContentString) {
-            throw new BadRequestException('Search query, searchUrlPattern, URL or Html content is required');
-        }
+        const url = this.buildSearchUrl(config, input);
+        if (!url && !dataContent && !htmlContentString) throw new AppException(DataProviderError.MissingSearchTestInput);
 
         const searchService = this.dataProviderSearchServiceMap[service];
-        if (!searchService) {
-            throw new BadRequestException(`Search service '${service}' not found`);
-        }
-
-        return await searchService.getExtractSearchData({
-            url,
-            dataContent,
-            targetConfig: config,
-            htmlContentString,
-        });
-    }
-
-    async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<ISearchExtractDataResponse> {
-        const config = (feature.config || {}) as ISearchTargetConfig;
-        const { htmlContentString, dataContent } = input || {};
-        const url = this.buildSearchUrl(config, input);
-
-        if (!url && !dataContent && !htmlContentString) {
-            throw new BadRequestException('Search query, searchUrlPattern, or item URL is required to test contextual search');
-        }
-
-        const searchService = this.dataProviderSearchServiceMap[feature.service];
-        if (!searchService) {
-            throw new BadRequestException(`Search service '${feature.service}' not found`);
-        }
+        if (!searchService) throw new AppException(DataProviderError.SearchServiceNotFound(service));
 
         const result = await searchService.getExtractSearchData({
             url,
             dataContent,
-            targetConfig: config,
             htmlContentString,
+            targetConfig: config,
+        });
+        if (result.error) throw new AppException(DataProviderError.FeatureTestFailed(result.error));
+
+        return result;
+    }
+
+    async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<ISearchExtractDataResponse> {
+        const { htmlContentString, dataContent } = input || {};
+
+        const config = (feature.config || {}) as ISearchTargetConfig;
+        const url = this.buildSearchUrl(config, input);
+        if (!url && !dataContent && !htmlContentString) throw new AppException(DataProviderError.MissingSearchTestInput);
+
+        const searchService = this.dataProviderSearchServiceMap[feature.service];
+        if (!searchService) throw new AppException(DataProviderError.SearchServiceNotFound(feature.service));
+
+        const result = await searchService.getExtractSearchData({
+            url,
+            dataContent,
+            htmlContentString,
+            targetConfig: config,
         });
 
         if (result.error) {
-            throw new BadRequestException(result.error || 'Search validation failed');
+            throw new AppException(DataProviderError.FeatureValidationFailed(result.error || 'Search validation failed'));
         }
 
         return result;
