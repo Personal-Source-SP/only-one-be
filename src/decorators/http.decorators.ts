@@ -9,9 +9,9 @@ import { PublicRoute } from './public-route.decorator';
 import { Roles } from './roles.decorator';
 
 export interface IAuthOptions {
+    public?: boolean;
     roles?: string[];
     permissions?: string[];
-    public?: boolean;
 }
 
 export function Auth(options: IAuthOptions = {}): MethodDecorator & ClassDecorator {
@@ -20,7 +20,7 @@ export function Auth(options: IAuthOptions = {}): MethodDecorator & ClassDecorat
     const decorators: Array<ClassDecorator | MethodDecorator | PropertyDecorator> = [
         UseGuards(JwtAuthGuard),
         ApiBearerAuth(),
-        ApiUnauthorizedResponse({ description: 'Unauthorized' }),
+        ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' }),
         PublicRoute(isPublic),
     ];
 
