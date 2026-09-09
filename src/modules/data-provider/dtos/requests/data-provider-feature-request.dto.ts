@@ -12,12 +12,12 @@ export class CreateDataProviderFeatureRequestDto {
     service?: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
-    config?: Record<string, any>;
+    config?: Record<string, unknown>;
 }
 
 export class UpdateFeatureConfigRequestDto {
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
-    config: Record<string, any>;
+    config: Record<string, unknown>;
 
     @EnumFieldOptional(() => ScraperServiceEnum, { description: 'Service runtime identifier' })
     service?: ScraperServiceEnum;
@@ -37,8 +37,8 @@ export class TestFeatureStatelessRequestDto {
     service?: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Raw draft configuration payload' })
-    config: Record<string, any>;
+    config: Record<string, unknown>;
 
     @ObjectFieldOptional({ description: 'Test input payload (e.g. url, htmlContentString, query)' })
-    input?: Record<string, any>;
+    input?: Record<string, unknown>;
 }

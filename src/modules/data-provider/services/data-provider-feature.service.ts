@@ -90,11 +90,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         errorMessage: string,
         errorType: DataProviderFeatureErrorType = DataProviderFeatureErrorType.TRANSIENT,
     ): Promise<void> {
-        const feature = await this.dataProviderFeatureRepository.findOne({
-            where: { id },
-            relations: { dataProvider: true },
-        });
-
+        const feature = await this.findOneByFilter({ id }, { relations: { dataProvider: true } });
         if (!feature) return;
 
         const consecutiveFailures = (feature.consecutiveFailures || 0) + 1;
@@ -120,11 +116,11 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             });
         }
 
-        await this.dataProviderFeatureRepository.update(id, updatePayload);
+        await super.update(id, updatePayload);
     }
 
     async recordFeatureSuccess(id: string): Promise<void> {
-        await this.dataProviderFeatureRepository.update(id, {
+        await super.update(id, {
             lastErrorType: null,
             consecutiveFailures: 0,
             lastErrorMessage: null,
@@ -137,11 +133,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             throw new AppException(DataProviderError.InvalidStatusSwitchUnconfigured);
         }
 
-        const feature = await this.dataProviderFeatureRepository.findOne({
-            where: { id },
-            relations: { dataProvider: true },
-        });
-
+        const feature = await this.findOneByFilter({ id }, { relations: { dataProvider: true } });
         if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
         switch (status) {
@@ -151,7 +143,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
                 }
 
                 const runner = this.runnerRegistry.getRunner(feature.type);
-                await runner.testContextual(feature);
+                await runner.testContextual(feature as DataProviderFeatureEntity);
 
                 return await super.update(id, {
                     status,
@@ -181,7 +173,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
     }
 
     async getFeaturesByProviderId(dataProviderId: string): Promise<DataProviderFeatureDto[]> {
-        return (await this.findListByFilter({ dataProviderId })) as DataProviderFeatureDto[];
+        return await this.findListByFilter({ dataProviderId });
     }
 
     async getFeatureByProviderIdAndType(dataProviderId: string, type: DataProviderFeatureType): Promise<DataProviderFeatureDto> {
