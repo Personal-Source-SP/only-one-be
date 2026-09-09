@@ -167,4 +167,72 @@ export class DataProviderError {
         statusCode: HttpStatus.BAD_REQUEST,
         params: { error },
     });
+
+    static ConfigVersionNotFound = (versionId: number | string, featureId?: string): IAppError => ({
+        code: 'data_provider_config_version_not_found',
+        message: featureId
+            ? `Không tìm thấy phiên bản cấu hình ${versionId} cho tính năng ${featureId}.`
+            : `Không tìm thấy phiên bản cấu hình ${versionId}.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { versionId: String(versionId), featureId },
+    });
+
+    static readonly CannotDeleteActiveConfigVersion: IAppError = {
+        code: 'data_provider_cannot_delete_active_config_version',
+        message: 'Không thể xóa phiên bản cấu hình đang hoạt động.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static DataProviderItemNotFound = (id: string): IAppError => ({
+        code: 'data_provider_item_not_found',
+        message: `Không tìm thấy liên kết sản phẩm của nhà cung cấp với ID ${id}.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { id },
+    });
+
+    static DataProviderItemNotFoundByProviderId = (dataProviderId: string): IAppError => ({
+        code: 'data_provider_item_not_found_by_provider',
+        message: `Không tìm thấy sản phẩm nào thuộc nhà cung cấp với ID ${dataProviderId}.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { dataProviderId },
+    });
+
+    static readonly DataProviderItemAlreadyExists: IAppError = {
+        code: 'data_provider_item_already_exists',
+        message: 'Sản phẩm của nhà cung cấp dữ liệu đã tồn tại.',
+        statusCode: HttpStatus.CONFLICT,
+    };
+
+    static InvalidItemUrl = (expectedBaseUrl: string, gotUrl: string): IAppError => ({
+        code: 'data_provider_invalid_item_url',
+        message: `Đường dẫn sản phẩm phải bắt đầu bằng URL gốc '${expectedBaseUrl}'. Nhận được: '${gotUrl}'.`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { expectedBaseUrl, gotUrl },
+    });
+
+    static NoDiscoveredUrlsFound = (sessionId: string): IAppError => ({
+        code: 'discovery_no_urls_for_validation',
+        message: `Không tìm thấy URL nào trong phiên discovery ID ${sessionId} để xác thực.`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { sessionId },
+    });
+
+    static ValidationBatchNotFound = (batchId: string): IAppError => ({
+        code: 'discovery_validation_batch_not_found',
+        message: `Không tìm thấy đợt xác thực với ID ${batchId}.`,
+        statusCode: HttpStatus.NOT_FOUND,
+        params: { batchId },
+    });
+
+    static readonly BatchAlreadyFinishedOrCancelled: IAppError = {
+        code: 'discovery_validation_batch_already_finished',
+        message: 'Đợt xác thực đã hoàn thành hoặc đã bị hủy trước đó.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static readonly FailedToQueueValidationJobs: IAppError = {
+        code: 'discovery_validation_queue_failed',
+        message: 'Không thể thêm tác vụ xác thực vào hàng đợi xử lý.',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    };
 }

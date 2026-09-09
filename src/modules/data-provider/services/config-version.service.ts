@@ -1,11 +1,13 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { CreateConfigVersionRequestDto } from '../dtos/requests';
 import { ConfigVersionEntity } from '../entities/config-version.entity';
@@ -24,29 +26,26 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
 
     async create(request: CreateConfigVersionRequestDto, user?: PayloadDto): Promise<ConfigVersionDto> {
         const latestVersion = await this.repository
-            .createQueryBuilder('dataProviderConfigVersions')
-            .where('dataProviderConfigVersions.featureId = :featureId', { featureId: request.featureId })
-            .orderBy('dataProviderConfigVersions.versionId', 'DESC')
-            .select(['dataProviderConfigVersions.versionId'])
+            .createQueryBuilder('v')
+            .where('v.featureId = :featureId', { featureId: request.featureId })
+            .orderBy('v.versionId', 'DESC')
+            .select(['v.versionId'])
             .getOne();
 
-        const dataProviderConfigVersionEntity = this.mapper.map(request, CreateConfigVersionRequestDto, ConfigVersionEntity);
-        dataProviderConfigVersionEntity.createdBy = user?.id;
-        dataProviderConfigVersionEntity.versionId = (latestVersion?.versionId ?? 0) + 1;
+        const entity = this.mapper.map(request, CreateConfigVersionRequestDto, ConfigVersionEntity);
+        entity.versionId = (latestVersion?.versionId ?? 0) + 1;
+        entity.createdBy = user?.id;
 
-        const result = await this.dataSource.transaction(async (manager) => {
-            const dataProviderConfigVersionsRepository = manager.getRepository(ConfigVersionEntity);
+        return await this.dataSource.transaction(async (manager) => {
+            const configVersionRepo = manager.getRepository(ConfigVersionEntity);
 
             if (request.isActive) {
-                await dataProviderConfigVersionsRepository.update({ featureId: request.featureId, isActive: true }, { isActive: false });
+                await configVersionRepo.update({ featureId: request.featureId, isActive: true }, { isActive: false });
             }
 
-            await dataProviderConfigVersionsRepository.save(dataProviderConfigVersionEntity);
-
-            return this.mapEntityToDto(dataProviderConfigVersionEntity) as ConfigVersionDto;
+            const saved = await configVersionRepo.save(entity);
+            return this.mapEntityToDto(saved) as ConfigVersionDto;
         });
-
-        return result;
     }
 
     async getConfigVersionOptionsByFeature(featureId: string): Promise<ConfigVersionDto[]> {
@@ -87,7 +86,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         });
 
         if (!dataProviderConfigVersion) {
-            throw new NotFoundException(`Config version ${versionId} not found for feature ID ${featureId}`);
+            throw new AppException(DataProviderError.ConfigVersionNotFound(versionId, featureId));
         }
 
         if (dataProviderConfigVersion.isActive) return true;
@@ -141,12 +140,12 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
 
         if (!dataProviderConfigVersion) {
             this.loggerService.warn(`No config version found for feature ID: ${featureId} and version id: ${versionId}`);
-            throw new NotFoundException('No data provider config version found');
+            throw new AppException(DataProviderError.ConfigVersionNotFound(versionId, featureId));
         }
 
         if (dataProviderConfigVersion.isActive) {
             this.loggerService.warn(`Cannot delete active config version for feature ID: ${featureId} and version id: ${versionId}`);
-            throw new BadRequestException('Cannot delete active data provider config version');
+            throw new AppException(DataProviderError.CannotDeleteActiveConfigVersion);
         }
 
         const result = await super.delete(dataProviderConfigVersion.id);

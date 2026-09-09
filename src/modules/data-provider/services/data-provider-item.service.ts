@@ -1,12 +1,14 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { IFindOptions } from '../../../common/interfaces/base-service.interface';
+import { AppException } from '../../../exceptions/app.exception';
+import { DataProviderError } from '../constants/data-provider-error';
 import { SCRAPING_DATA_EVENTS } from '../constants/scraping-data-event.config';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { CreateDataProviderItemRequestDto, UpdateDataProviderItemRequestDto } from '../dtos/requests';
@@ -56,7 +58,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         // Verify that product exists
         const item = await this.itemService.exists({ id: request.itemId });
         if (!item) {
-            throw new NotFoundException(`Item with ID ${request.itemId} not found`);
+            throw new AppException(DataProviderError.ItemNotFound(request.itemId));
         }
 
         // Verify that data provider exists and get its details for validation
@@ -68,9 +70,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
         // Validate that product URL matches data provider base URL
         const isValidUrl = await this.validateItemUrlMatchesBaseUrl(request.itemUrl, dataProvider.baseUrl);
         if (!isValidUrl) {
-            throw new BadRequestException(
-                `Product URL must start with data provider base URL. Expected: ${dataProvider.baseUrl}, Got: ${request.itemUrl}`,
-            );
+            throw new AppException(DataProviderError.InvalidItemUrl(dataProvider.baseUrl, request.itemUrl));
         }
 
         const entity = this.mapper.map(request, CreateDataProviderItemRequestDto, DataProviderItemEntity);
@@ -89,12 +89,12 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
 
     async update(id: string, request: UpdateDataProviderItemRequestDto): Promise<boolean> {
         const existing = await this.findOneByFilter({ id }, { relations: { dataProvider: true } });
-        if (!existing) throw new NotFoundException('DataProviderItem with ID not found');
+        if (!existing) throw new AppException(DataProviderError.DataProviderItemNotFound(id));
 
         // Verify product exists if updating
         if (request.itemId) {
             const itemExists = await this.itemService.exists({ id: request.itemId });
-            if (!itemExists) throw new NotFoundException(`Item with ID ${request.itemId} not found`);
+            if (!itemExists) throw new AppException(DataProviderError.ItemNotFound(request.itemId));
         }
 
         let dataProvider = existing.dataProvider;
@@ -104,15 +104,13 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
                 { select: { id: true, baseUrl: true } },
             );
 
-            if (!dataProvider) throw new NotFoundException(`Data Provider with ID ${request.dataProviderId} not found`);
+            if (!dataProvider) throw new AppException(DataProviderError.DataProviderWithIdNotFound(request.dataProviderId));
         }
 
         if (request.itemUrl) {
             const isValidUrl = this.validateItemUrlMatchesBaseUrl(request.itemUrl, dataProvider.baseUrl);
             if (!isValidUrl) {
-                throw new BadRequestException(
-                    `Item URL must start with data provider base URL. Expected: ${dataProvider.baseUrl}, Got: ${request.itemUrl}`,
-                );
+                throw new AppException(DataProviderError.InvalidItemUrl(dataProvider.baseUrl, request.itemUrl));
             }
         }
 
@@ -125,10 +123,10 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
             { select: { id: true, baseUrl: true } },
         );
 
-        if (!dataProvider) throw new NotFoundException(`Data Provider with ID ${dataProviderId} not found`);
+        if (!dataProvider) throw new AppException(DataProviderError.DataProviderWithIdNotFound(dataProviderId));
 
         const dataProviderItems = await this.findListByFilter({ dataProviderId }, { relations: { item: true } });
-        if (!dataProviderItems.length) throw new NotFoundException(`Data Provider Item with Data Provider ID ${dataProviderId} not found`);
+        if (!dataProviderItems.length) throw new AppException(DataProviderError.DataProviderItemNotFoundByProviderId(dataProviderId));
 
         for (const dataProviderItem of dataProviderItems) {
             dataProviderItem.itemUrl = this.updateItemUrlWithBaseUrl(dataProviderItem.itemUrl, dataProvider.baseUrl, newBaseUrl);
@@ -144,7 +142,7 @@ export class DataProviderItemService extends BaseService<DataProviderItemEntity,
 
     async switchActiveStatus(id: string, activeStatus: boolean): Promise<boolean> {
         const existing = await this.findOneByFilter({ id });
-        if (!existing) throw new NotFoundException('DataProviderItem with ID not found');
+        if (!existing) throw new AppException(DataProviderError.DataProviderItemNotFound(id));
 
         return await super.update(id, { isActive: activeStatus });
     }

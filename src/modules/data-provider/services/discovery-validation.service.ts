@@ -1,13 +1,15 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 
+import { AppException } from '../../../exceptions/app.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IDiscoveryValidationJob } from '../../queue/interfaces';
 import { QueueService } from '../../queue/services/queue.service';
+import { DataProviderError } from '../constants/data-provider-error';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationBatchDto } from '../dtos/discovery-validation-batch.dto';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
@@ -48,10 +50,10 @@ export class DiscoveryValidationService {
             where: { id: sessionId },
             relations: ['dataProvider'],
         });
-        if (!session) throw new NotFoundException('Discovery session not found');
+        if (!session) throw new AppException(DataProviderError.SessionNotFound(sessionId));
 
         const urls = await this.discoveryUrlRepository.find({ where: { sessionId } });
-        if (!urls.length) throw new BadRequestException('No discovered URLs found for session');
+        if (!urls.length) throw new AppException(DataProviderError.NoDiscoveredUrlsFound(sessionId));
 
         const batchNumber = `BATCH-${Date.now()}`;
         const batch = this.discoveryValidationBatchRepository.create({
@@ -87,7 +89,7 @@ export class DiscoveryValidationService {
         const result = await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_VALIDATION_JOB, jobs);
         if (!result) {
             this.loggerService.warn('[startBatchValidation] Failed to add jobs to queue');
-            throw new InternalServerErrorException('Failed to add jobs to queue');
+            throw new AppException(DataProviderError.FailedToQueueValidationJobs);
         }
 
         return this.mapper.map(batch, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
@@ -95,10 +97,10 @@ export class DiscoveryValidationService {
 
     async cancelValidationBatch(batchId: string, reason?: string): Promise<boolean> {
         const batch = await this.discoveryValidationBatchRepository.findOne({ where: { id: batchId } });
-        if (!batch) throw new NotFoundException('Validation batch not found');
+        if (!batch) throw new AppException(DataProviderError.ValidationBatchNotFound(batchId));
 
         if ([ValidationBatchStatus.COMPLETED, ValidationBatchStatus.CANCELLED].includes(batch.status)) {
-            throw new BadRequestException('Batch is already finished or cancelled');
+            throw new AppException(DataProviderError.BatchAlreadyFinishedOrCancelled);
         }
 
         const result = await this.discoveryValidationBatchRepository.update(batchId, {
@@ -111,7 +113,7 @@ export class DiscoveryValidationService {
 
     async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlDto> {
         const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
-        if (!urlEntity) throw new NotFoundException('Discovered URL not found');
+        if (!urlEntity) throw new AppException(DataProviderError.UrlNotFound(urlId));
 
         const startTime = Date.now();
         const evalResult = DiscoveryValidationHelper.evaluateUrl({
