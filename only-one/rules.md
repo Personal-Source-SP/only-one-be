@@ -29,6 +29,8 @@
 - **[AVOID]** Wrapping try...catch manually and calling handleError() inside Service CRUD methods — Allow exceptions to naturally bubble up to `AllExceptionsFilter` for centralized call-site logging, classification, and HTTP Status mapping.
 - **[NEVER]** Leak internal stack traces, server file paths, or raw SQL queries to client responses — Log detailed context strictly on the server console/files via `LoggerService` and return standardized `ResponseDto` with sanitized `IAppError` codes and messages to clients.
 - **[AVOID]** Coercing all unhandled exceptions into `BadRequestException` (HTTP 400) — Classify exceptions accurately into proper RESTful status codes (400, 401, 403, 404, 409, 500) and use `AppException` with `AppError` dictionary.
-- **[AVOID]** Hardcoding arbitrary error string messages in controllers or services — Standardize domain exceptions through `AppError` enum constants with associated default HTTP statuses and localized error messages.
+- **[AVOID]** Persisting DataProvider feature configurations without optional sandbox pre-testing — When client provides test `input`, execute `testStateless` before creating DB records to catch faulty configurations immediately (fail-fast).
+- **[AVOID]** Returning unbounded data arrays from test/sandbox endpoints — Slice preview extraction results to top items (e.g. $\le 3$) to prevent UI freezing and payload bloat.
+- **[AVOID]** Prefixing sub-resource route paths with redundant plural entity identifiers (e.g., `/data-provider-features/data-providers/:id`) — Standardize route paths with clean, singular resource descriptors (`/data-provider-features/provider/:dataProviderId`).
 
 
