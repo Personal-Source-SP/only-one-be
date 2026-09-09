@@ -41,11 +41,17 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
         }
 
+        if (request.input) {
+            const runner = this.runnerRegistry.getRunner(request.type);
+            await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
+        }
+
         const entity = this.dataProviderFeatureRepository.create({
             dataProviderId,
             type: request.type,
             config: request.config,
             service: request.service || ScraperServiceEnum.GENERIC,
+            status: request.input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED,
         });
 
         return await super.create(entity);

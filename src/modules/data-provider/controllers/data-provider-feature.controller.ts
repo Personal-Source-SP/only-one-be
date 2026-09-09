@@ -23,7 +23,7 @@ export class DataProviderFeatureController {
     ) {}
 
     @Get({
-        path: 'data-providers/:dataProviderId',
+        path: 'provider/:dataProviderId',
         summary: 'Get all features by provider ID',
         responseDto: [DataProviderFeatureDto],
     })
@@ -32,7 +32,7 @@ export class DataProviderFeatureController {
     }
 
     @Get({
-        path: 'data-providers/:dataProviderId/:type',
+        path: 'provider/:dataProviderId/:type',
         summary: 'Get feature by provider ID and type',
         responseDto: DataProviderFeatureDto,
     })
@@ -58,11 +58,15 @@ export class DataProviderFeatureController {
     })
     async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<any> {
         const runner = this.runnerRegistry.getRunner(request.type);
-        return await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
+        const result = await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
+        if (result && Array.isArray(result.data)) {
+            result.data = result.data.slice(0, 3);
+        }
+        return result;
     }
 
     @Post({
-        path: 'data-providers/:dataProviderId',
+        path: 'provider/:dataProviderId',
         summary: 'Create feature for a data provider',
         responseDto: DataProviderFeatureDto,
     })

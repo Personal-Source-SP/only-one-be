@@ -13,6 +13,9 @@ export class CreateDataProviderFeatureRequestDto {
 
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
     config?: Record<string, unknown>;
+
+    @ObjectFieldOptional({ description: 'Test input payload to verify feature before creating' })
+    input?: Record<string, unknown>;
 }
 
 export class UpdateFeatureConfigRequestDto {
