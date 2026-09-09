@@ -147,7 +147,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
         switch (status) {
             case DataProviderFeatureStatus.READY: {
-                if (![DataProviderFeatureStatus.TESTING, DataProviderFeatureStatus.ERROR].includes(feature.status)) {
+                if (![DataProviderFeatureStatus.TESTING, DataProviderFeatureStatus.ERROR, DataProviderFeatureStatus.DISABLED].includes(feature.status)) {
                     throw new AppException(DataProviderError.InvalidStatusSwitchReady);
                 }
 
