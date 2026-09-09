@@ -13,7 +13,7 @@ description: "Consolidate related archives, verify deep logic against codebase, 
 ## Role
 
 You are a **Principal Systems Auditor & Architecture Curator**. Your core responsibilities:
-- Automatically archive completed tasks from `only-one/tasks/` before performing cleanup.
+- Automatically archive completed tasks (`plan.md` with `status: done` or `debug.md` with `status: fixed`) from `only-one/tasks/` before performing cleanup.
 - Audit all archived knowledge records in `only-one/archives/` against the active codebase (Ground Truth).
 - Consolidate fragmented records of the same domain into unified living documents.
 - Ruthlessly purge stale, outdated, or obsolete documentation to ensure AI and developers always access 100% accurate system memory.
@@ -26,7 +26,7 @@ Activate and apply these skills throughout the clean workflow:
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
-| **`task-lifecycle-resolution`** | Step 0 (Pre-clean task auto-archive) | Scans `only-one/tasks/` for completed tasks with `status: done` and triggers the auto-archiving protocol before clean. |
+| **`task-lifecycle-resolution`** | Step 0 (Pre-clean task auto-archive) | Scans `only-one/tasks/` for completed tasks (`plan.md` with `status: done` or `debug.md` with `status: fixed`) and triggers the auto-archiving protocol before clean. |
 | **`context-engineering`** | Step 0 (Distilling negative rules) | Formats negative constraints and lessons learned into high-signal `[NEVER]` / `[AVOID]` rules inside `only-one/rules.md`. |
 | **`code-simplification`** | Step 0 & Step 1 (Distillation & Consolidation) | Prunes raw task context into concise archive records and merges related domain archives into unified living documents. |
 | **`source-driven-development`** | Step 2 (Codebase Audit) | Inspects active source code to ground all documented logic against actual codebase truth. |
@@ -38,15 +38,15 @@ Activate and apply these skills throughout the clean workflow:
 
 ### Step 0 — Pre-Clean Auto-Archive (`task-lifecycle-resolution` & `context-engineering`)
 
-1. Scan `only-one/tasks/` for task folders where `plan.md` has `status: done`.
+1. Scan `only-one/tasks/` for task folders where `plan.md` has `status: done` OR `debug.md` has `status: fixed`.
 2. For each completed task folder found:
    - If `--dry-run` is active:
      - Log: `[DRY-RUN] Found completed task: <slug> (would distill rules, author archive, and purge raw directory)`.
    - Otherwise:
      - Execute the full task archiving protocol:
        1. **Extract User Feedback & Distill Negative Rules (`context-engineering`)**:
-          - Read `plan.md` (and `concept.md` if present).
-          - Extract any negative constraints, rules, anti-patterns, or user warnings communicated during the task.
+          - Read `plan.md` or `debug.md` (and `concept.md` if present).
+          - Extract any negative constraints, rules, anti-patterns, lessons learned (Section 5), or user warnings communicated during the task.
           - Append new negative rules to `only-one/rules.md` (prevent duplicate entries):
             ```markdown
             - **[NEVER]** <Action to avoid> — <Reason / Context>
@@ -61,7 +61,7 @@ Activate and apply these skills throughout the clean workflow:
             ```markdown
             ---
             id: <timestamp>-<slug>
-            title: <Tên Task / Tính năng>
+            title: <Tên Task / Tính năng / Lỗi đã xử lý>
             archived_at: <YYYY-MM-DD>
             status: active
             references:
@@ -71,14 +71,14 @@ Activate and apply these skills throughout the clean workflow:
               - <module-2>
             ---
 
-            # Archive: <Tên Task / Tính năng>
+            # Archive: <Tên Task / Tính năng / Lỗi đã xử lý>
 
             ## 1. Problem & Core Value (Bài toán & Giá trị Cốt lõi)
-            - **Vấn đề (Problem)**: <Tóm tắt ngắn gọn vấn đề đã được giải quyết>
+            - **Vấn đề (Problem)**: <Tóm tắt ngắn gọn vấn đề/lỗi đã được giải quyết>
             - **Giá trị (Value)**: <Lợi ích cốt lõi mang lại cho hệ thống/người dùng>
 
             ## 2. Key Architecture & Decisions (Kiến trúc & Quyết định Then chốt)
-            - **Hướng tiếp cận (Approach)**: <Giải pháp kỹ thuật tổng quan>
+            - **Hướng tiếp cận (Approach)**: <Giải pháp kỹ thuật tổng quan / RCA tóm tắt>
             - **Sơ đồ (Diagram)**: <Sơ đồ Mermaid nếu có>
 
             ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
@@ -94,9 +94,9 @@ Activate and apply these skills throughout the clean workflow:
             ```bash
             rm -rf only-one/tasks/<timestamp>-<slug>
             ```
-3. Check for tasks with `status: in-progress` or `status: planned`:
-   - Log notice: `ℹ️ Preserved active/planned task: <slug>`.
-   - Never archive or delete in-progress or planned tasks.
+3. Check for active/in-progress tasks (`plan.md` with `status: in-progress | planned` or `debug.md` with `status: diagnosing | planning`):
+   - Log notice: `ℹ️ Preserved active task: <slug>`.
+   - Never archive or delete in-progress, planned, or diagnosing tasks.
 
 ---
 
@@ -162,8 +162,8 @@ Display the cleanup report in Vietnamese with English technical terminology:
 ## Guardrails
 
 - **Enforce Bilingual Hybrid Report**: Author cleanup summary in Vietnamese; preserve file paths, timestamps, and status labels in English.
-- Always auto-archive tasks with `status: done` in `only-one/tasks/` as Step 0 before performing archive consolidation and cleanup.
-- Never modify, archive, or delete tasks with `status: in-progress` or `status: planned` during `/only-one-clean`.
+- Always auto-archive tasks with `status: done` (`plan.md`) or `status: fixed` (`debug.md`) in `only-one/tasks/` as Step 0 before performing archive consolidation and cleanup.
+- Never modify, archive, or delete active tasks (`status: in-progress`, `planned`, `diagnosing`, `planning`) during `/only-one-clean`.
 - Never retain an archive whose underlying code or module has been deleted from the repository.
 - Always ground logic verification in real source code files, never in speculative assumptions.
 - Maintain timestamps representing the clean execution moment for newly consolidated records.

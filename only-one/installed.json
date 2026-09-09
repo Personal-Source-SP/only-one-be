@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-07T13:54:13.284Z",
+  "updatedAt": "2026-09-09T07:11:39.209Z",
   "installed": {
     "rules": {
       "nest-architecture-stack": {
@@ -85,11 +85,6 @@
         "installedAt": "2026-09-03T10:22:56.149Z",
         "updatedAt": "2026-09-03T10:22:56.716Z"
       },
-      "handoff": {
-        "version": "0.0.1",
-        "installedAt": "2026-09-03T10:22:56.430Z",
-        "updatedAt": "2026-09-03T10:22:56.716Z"
-      },
       "resolving-merge-conflicts": {
         "version": "0.0.1",
         "installedAt": "2026-09-03T10:22:56.712Z",
@@ -128,16 +123,11 @@
         "updatedAt": "2026-09-07T13:54:13.274Z"
       },
       "only-one-debug": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
+        "updatedAt": "2026-09-09T07:11:39.206Z"
       },
       "only-one-review": {
-        "version": "0.0.1",
-        "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-03T10:22:56.728Z"
-      },
-      "only-one-handoff": {
         "version": "0.0.1",
         "installedAt": "2026-09-03T10:22:56.728Z",
         "updatedAt": "2026-09-03T10:22:56.728Z"
@@ -148,9 +138,9 @@
         "updatedAt": "2026-09-03T10:22:56.728Z"
       },
       "only-one-clean": {
-        "version": "0.0.3",
+        "version": "0.0.4",
         "installedAt": "2026-09-03T10:22:56.728Z",
-        "updatedAt": "2026-09-07T13:54:13.274Z"
+        "updatedAt": "2026-09-09T07:11:39.206Z"
       }
     }
   }
