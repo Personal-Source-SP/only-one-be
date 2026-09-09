@@ -32,5 +32,8 @@
 - **[AVOID]** Persisting DataProvider feature configurations without optional sandbox pre-testing — When client provides test `input`, execute `testStateless` before creating DB records to catch faulty configurations immediately (fail-fast).
 - **[AVOID]** Returning unbounded data arrays from test/sandbox endpoints — Slice preview extraction results to top items (e.g. $\le 3$) to prevent UI freezing and payload bloat.
 - **[AVOID]** Prefixing sub-resource route paths with redundant plural entity identifiers (e.g., `/data-provider-features/data-providers/:id`) — Standardize route paths with clean, singular resource descriptors (`/data-provider-features/provider/:dataProviderId`).
+- **[AVOID]** Mutating in-place argument arrays in runner / service methods (`discoveredRecords.push(...)`) — Return explicit immutable typed entity arrays (`Promise<DiscoveryUrlEntity[]>`) to eliminate side effects and improve testability.
+- **[AVOID]** Coupling headless browser scraping logic with HTTP API clients inside a single scraper service — Decouple browser rendering (`HtmlFetcherService`) and HTTP API fetching (`ApiFetcherService`) into dedicated shared services under `src/shared/services/`.
+
 
 
