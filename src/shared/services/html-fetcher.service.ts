@@ -223,24 +223,20 @@ export class HtmlFetcherService implements OnModuleDestroy {
             await page.setJavaScriptEnabled(false);
         }
 
-        if (imagesEnabled === false) {
-            await page.setRequestInterception(true);
-            page.on('request', (req) => {
-                if (req.resourceType() === 'image') {
-                    req.abort();
-                } else {
-                    req.continue();
-                }
-            });
-        }
+        const shouldBlockImages = imagesEnabled === false;
+        const shouldBlockCss = cssEnabled === false;
 
-        if (cssEnabled === false) {
+        if (shouldBlockImages || shouldBlockCss) {
             await page.setRequestInterception(true);
             page.on('request', (req) => {
-                if (req.resourceType() === 'stylesheet') {
-                    req.abort();
+                if (typeof req.isInterceptResolutionHandled === 'function' && req.isInterceptResolutionHandled()) {
+                    return;
+                }
+                const resourceType = req.resourceType();
+                if ((shouldBlockImages && resourceType === 'image') || (shouldBlockCss && resourceType === 'stylesheet')) {
+                    req.abort().catch(() => {});
                 } else {
-                    req.continue();
+                    req.continue().catch(() => {});
                 }
             });
         }
