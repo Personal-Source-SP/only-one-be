@@ -99,18 +99,10 @@ dist-swc
 # TernJS port file
 .tern-port
 
-# Vscode
-.vscode
 .idea/
 
 gcloud/
 junit.xml
-
-# Ignore all files in .vscode directory
-.vscode/*
-
-# Except for extensions.json
-!.vscode/extensions.json
 
 .diskcache
 .request_logs
