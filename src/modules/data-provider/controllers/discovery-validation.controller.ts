@@ -19,7 +19,7 @@ export class DiscoveryValidationController {
     constructor(private readonly validationService: DiscoveryValidationService) {}
 
     @Get({
-        path: 'sessions/:sessionId/latest-batch',
+        path: ':sessionId/latest-batch',
         summary: 'Get latest validation batch progress for a session',
         responseDto: DiscoveryValidationBatchDto,
     })
@@ -28,7 +28,7 @@ export class DiscoveryValidationController {
     }
 
     @Post({
-        path: 'sessions/:sessionId/validate',
+        path: ':sessionId/validate',
         summary: 'Trigger batch validation on discovery session URLs',
         responseDto: DiscoveryValidationBatchDto,
     })

@@ -24,7 +24,7 @@ export class DataProviderFeatureController {
     ) {}
 
     @Get({
-        path: 'provider/:dataProviderId',
+        path: ':dataProviderId',
         summary: 'Get all features by provider ID',
         responseDto: [DataProviderFeatureDto],
     })
@@ -33,7 +33,7 @@ export class DataProviderFeatureController {
     }
 
     @Get({
-        path: 'provider/:dataProviderId/:type',
+        path: ':dataProviderId/:type',
         summary: 'Get feature by provider ID and type',
         responseDto: DataProviderFeatureDto,
     })
@@ -71,7 +71,7 @@ export class DataProviderFeatureController {
     }
 
     @Post({
-        path: 'provider/:dataProviderId',
+        path: ':dataProviderId',
         summary: 'Create feature for a data provider',
         responseDto: DataProviderFeatureDto,
     })
