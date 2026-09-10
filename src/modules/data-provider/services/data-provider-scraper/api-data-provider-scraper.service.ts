@@ -10,7 +10,7 @@ import {
     IExtractDataResponse,
     IGetExtractDataRequest,
     IScrapeItemDataRequest,
-    ITargetConfig,
+    IScrapingTargetConfig,
     IValidateParserFunctionRequest,
 } from '../../interfaces';
 
@@ -25,7 +25,7 @@ export class ApiDataProviderScraperService implements IDataProviderScraperServic
         const { dataProvider, dataProviderItem } = request;
 
         const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
-        const targetConfig: ITargetConfig = scrapingFeature?.config as ITargetConfig;
+        const targetConfig: IScrapingTargetConfig = scrapingFeature?.config as IScrapingTargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',

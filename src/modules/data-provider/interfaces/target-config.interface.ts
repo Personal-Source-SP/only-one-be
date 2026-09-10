@@ -1,6 +1,13 @@
 import { SearchResultItemDto } from '../dtos/responses/search-extract-data-response.dto';
 
-export interface ITargetConfig {
+export interface CookieItem {
+    name: string; // Tên cookie
+    value: string; // Giá trị cookie
+    domain?: string; // Domain áp dụng cookie
+    path?: string; // Đường dẫn áp dụng cookie
+}
+
+export interface IScrapingTargetConfig {
     functionGenerator: string; //  Hàm xử lý dữ liệu
 
     mainContentSelector?: string; // Selector lấy nội dung chính
@@ -14,13 +21,7 @@ export interface ITargetConfig {
     retryAttempts?: number; // Số lần thử lại khi có lỗi
     userAgent?: string; // Chuỗi user-agent giả lập cho trình duyệt
     headers?: Record<string, string>; // Các header HTTP bổ sung khi request
-    cookies?: Array<{
-        // Các cookie bổ sung khi truy cập trang
-        name: string; // Tên cookie
-        value: string; // Giá trị cookie
-        domain?: string; // Domain áp dụng cookie
-        path?: string; // Đường dẫn áp dụng cookie
-    }>; // Các cookie bổ sung khi truy cập trang
+    cookies?: Array<CookieItem>; // Các cookie bổ sung khi truy cập trang
 
     timeout?: number; // Thời gian chờ tối đa cho mỗi request (ms)
     waitForTimeout?: number; // Thời gian chờ tối đa cho waitForSelector (ms)
@@ -33,10 +34,21 @@ export interface ITargetConfig {
     cssEnabled?: boolean; // Có tải CSS hay không
 }
 
-export interface ISearchTargetConfig extends ITargetConfig {
+export interface ISearchTargetConfig extends IScrapingTargetConfig {
     searchUrlPattern?: string; // Pattern URL tìm kiếm (e.g. https://example.com/search?q={query})
     queryPlaceholder?: string; // Placeholder thay thế query trong searchUrlPattern (e.g. {query})
     resultSelector?: string; // Selector của từng thẻ sản phẩm/kết quả trong danh sách
+}
+
+export type TargetConfig = IScrapingTargetConfig | ISearchTargetConfig;
+
+export interface FeatureTestInput {
+    url?: string;
+    query?: string;
+    itemUrl?: string;
+    htmlContentString?: string;
+    dataContent?: Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 export interface IRunFunctionExtractData {
@@ -47,8 +59,8 @@ export interface IRunFunctionExtractData {
 }
 
 export interface IRunApiFunctionExtractData {
-    data: Record<string, any>;
     functionGenerator: string;
+    data: Record<string, unknown>;
 }
 
 export interface IRunSearchFunctionExtractData {
@@ -61,8 +73,8 @@ export interface IRunSearchFunctionExtractData {
 }
 
 export interface IRunApiSearchFunctionExtractData {
-    data: Record<string, any>;
     functionGenerator: string;
+    data: Record<string, unknown>;
     maxResults?: number;
 }
 

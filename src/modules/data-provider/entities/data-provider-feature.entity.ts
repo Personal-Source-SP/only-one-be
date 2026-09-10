@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Relation, Unique } fr
 
 import { AbstractEntity } from '../../../common/entities';
 import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { TargetConfig } from '../interfaces';
 import { ConfigVersionEntity } from './config-version.entity';
 import { DataProviderEntity } from './data-provider.entity';
 
@@ -27,7 +28,7 @@ export class DataProviderFeatureEntity extends AbstractEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     @AutoMap()
-    config?: Record<string, any>;
+    config?: TargetConfig;
 
     @Column({ name: 'consecutive_failures', type: 'integer', default: 0 })
     @AutoMap()

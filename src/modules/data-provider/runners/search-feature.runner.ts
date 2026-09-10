@@ -4,16 +4,28 @@ import { AppException } from '../../../exceptions/app.exception';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { IDataProviderSearchService, IFeatureRunner, ISearchExtractDataResponse, ISearchTargetConfig } from '../interfaces';
+import { ScraperServiceEnum } from '../enums';
+import { TargetConfigValidatorHelper } from '../helpers/target-config-validator.helper';
+import {
+    FeatureTestInput,
+    IDataProviderSearchService,
+    IFeatureRunner,
+    ISearchExtractDataResponse,
+    ISearchTargetConfig,
+} from '../interfaces';
 
 @Injectable()
-export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, any, ISearchExtractDataResponse> {
+export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, FeatureTestInput, ISearchExtractDataResponse> {
     constructor(
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
         private readonly dataProviderSearchServiceMap: Record<string, IDataProviderSearchService>,
     ) {}
 
-    buildSearchUrl(config: ISearchTargetConfig, input?: any): string {
+    validateConfig(config: unknown): ISearchTargetConfig {
+        return TargetConfigValidatorHelper.validateSearchTargetConfig(config);
+    }
+
+    buildSearchUrl(config: ISearchTargetConfig, input?: FeatureTestInput): string {
         if (input?.url) {
             return input.url;
         }
@@ -50,10 +62,15 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         return targetPattern.replace(/\{[a-zA-Z0-9_-]+\}/g, encodedQuery);
     }
 
-    async testStateless(service: string, config: ISearchTargetConfig, input: any): Promise<ISearchExtractDataResponse> {
+    async testStateless(
+        service: ScraperServiceEnum,
+        config: ISearchTargetConfig,
+        input: FeatureTestInput,
+    ): Promise<ISearchExtractDataResponse> {
+        const targetConfig = this.validateConfig(config);
         const { htmlContentString, dataContent } = input || {};
 
-        const url = this.buildSearchUrl(config, input);
+        const url = this.buildSearchUrl(targetConfig, input);
         if (!url && !dataContent && !htmlContentString) throw new AppException(DataProviderError.MissingSearchTestInput);
 
         const searchService = this.dataProviderSearchServiceMap[service];
@@ -62,15 +79,15 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         const result = await searchService.getExtractSearchData({
             url,
             dataContent,
+            targetConfig,
             htmlContentString,
-            targetConfig: config,
         });
         if (result.error) throw new AppException(DataProviderError.FeatureTestFailed(result.error));
 
         return result;
     }
 
-    async testContextual(feature: DataProviderFeatureEntity, input?: any): Promise<ISearchExtractDataResponse> {
+    async testContextual(feature: DataProviderFeatureEntity, input?: FeatureTestInput): Promise<ISearchExtractDataResponse> {
         const { htmlContentString, dataContent } = input || {};
 
         const config = (feature.config || {}) as ISearchTargetConfig;

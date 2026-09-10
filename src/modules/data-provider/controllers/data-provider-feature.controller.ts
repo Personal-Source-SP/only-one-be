@@ -10,6 +10,7 @@ import {
     UpdateFeatureConfigRequestDto,
 } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { IExtractDataResponse, ISearchExtractDataResponse } from '../interfaces';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { DataProviderFeatureService } from '../services/data-provider-feature.service';
 
@@ -56,9 +57,12 @@ export class DataProviderFeatureController {
         path: 'test',
         summary: 'Test feature stateless (sandbox)',
     })
-    async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<any> {
+    async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<IExtractDataResponse | ISearchExtractDataResponse> {
         const runner = this.runnerRegistry.getRunner(request.type);
-        const result = await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input);
+        const result = (await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input)) as
+            | IExtractDataResponse
+            | ISearchExtractDataResponse;
+
         if (result && Array.isArray(result.data)) {
             result.data = result.data.slice(0, 3);
         }

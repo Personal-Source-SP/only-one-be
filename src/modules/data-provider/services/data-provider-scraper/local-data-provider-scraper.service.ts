@@ -10,7 +10,7 @@ import {
     IExtractDataResponse,
     IGetExtractDataRequest,
     IScrapeItemDataRequest,
-    ITargetConfig,
+    IScrapingTargetConfig,
     IValidateParserFunctionRequest,
 } from '../../interfaces';
 
@@ -22,7 +22,7 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
         const { dataProvider, dataProviderItem } = request;
 
         const scrapingFeature = dataProvider.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
-        const targetConfig: ITargetConfig = scrapingFeature?.config as ITargetConfig;
+        const targetConfig: IScrapingTargetConfig = scrapingFeature?.config as IScrapingTargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
@@ -106,7 +106,7 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
         const { maxResults } = targetConfig;
 
         try {
-            let data = dataContent;
+            let data: ScrapeItemDataResponseItemDto[] | undefined = dataContent as unknown as ScrapeItemDataResponseItemDto[];
             if (!data) {
                 const fileContent = await this.getLocalFileContent(url);
                 data = fileContent;
@@ -123,9 +123,9 @@ export class LocalDataProviderScraperService implements IDataProviderScraperServ
             }
 
             return { data: extractData };
-        } catch (error) {
-            console.error(error);
-            return { error: error?.message || 'Unknown error' };
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            return { error: message || 'Unknown error' };
         }
     }
 

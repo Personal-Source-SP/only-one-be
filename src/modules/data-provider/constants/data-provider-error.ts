@@ -168,6 +168,13 @@ export class DataProviderError {
         params: { error },
     });
 
+    static InvalidFeatureConfig = (reason: string): IAppError => ({
+        code: 'data_provider_invalid_feature_config',
+        message: `Cấu hình tính năng không hợp lệ: ${reason}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { reason },
+    });
+
     static ConfigVersionNotFound = (versionId: number | string, featureId?: string): IAppError => ({
         code: 'data_provider_config_version_not_found',
         message: featureId

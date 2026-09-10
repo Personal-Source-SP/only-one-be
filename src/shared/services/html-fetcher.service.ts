@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-extra';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-import { IScraperResponse, ITargetConfig } from '../../modules/data-provider/interfaces';
+import { IScraperResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class HtmlFetcherService implements OnModuleDestroy {
         }
     }
 
-    async getHtmlContent(url: string, targetConfig: ITargetConfig): Promise<IScraperResponse> {
+    async getHtmlContent(url: string, targetConfig: IScrapingTargetConfig): Promise<IScraperResponse> {
         const {
             retryAttempts = 3,
             retryDelay = 2000,
@@ -95,7 +95,7 @@ export class HtmlFetcherService implements OnModuleDestroy {
         }
     }
 
-    private transformTargetConfig(targetConfig: ITargetConfig): ITargetConfig {
+    private transformTargetConfig(targetConfig: IScrapingTargetConfig): IScrapingTargetConfig {
         return {
             ...targetConfig,
             timeout: targetConfig?.timeout || 30000,
@@ -163,7 +163,7 @@ export class HtmlFetcherService implements OnModuleDestroy {
         return this.browser;
     }
 
-    private async handleCloudflare(page: Page, targetConfig: ITargetConfig): Promise<void> {
+    private async handleCloudflare(page: Page, targetConfig: IScrapingTargetConfig): Promise<void> {
         const { userAgent } = targetConfig;
 
         await page.evaluateOnNewDocument(() => {
@@ -204,7 +204,7 @@ export class HtmlFetcherService implements OnModuleDestroy {
         );
     }
 
-    private async configurePage(page: Page, targetConfig: ITargetConfig): Promise<void> {
+    private async configurePage(page: Page, targetConfig: IScrapingTargetConfig): Promise<void> {
         const { userAgent, headers, cookies, javascriptEnabled, imagesEnabled, cssEnabled } = targetConfig;
 
         if (userAgent) {

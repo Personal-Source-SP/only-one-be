@@ -16,7 +16,7 @@ export class UrlResolverHelper {
 
         const dataProvider = entity.dataProvider;
         const scrapingFeature = dataProvider?.features?.find((f) => f.type === DataProviderFeatureType.SCRAPING);
-        const config = scrapingFeature?.config || {};
+        const config = (scrapingFeature?.config || {}) as Record<string, unknown>;
 
         const baseUrl = (config.mediaBaseUrl || config.baseUrl || dataProvider?.baseUrl || '') as string;
 
@@ -59,6 +59,7 @@ export class UrlResolverHelper {
             const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
             result = result.replace(regex, value || '');
         }
+
         return result.replace(/([^:]\/)\/+/g, '$1');
     }
 }

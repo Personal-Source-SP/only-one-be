@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AxiosRequestConfig } from 'axios';
 
-import { IScraperResponse, ITargetConfig } from '../../modules/data-provider/interfaces';
+import { IScraperResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
 import { BaseHttpService } from './base-http.service';
 import { LoggerService } from './logger.service';
 
@@ -11,7 +11,7 @@ export class ApiFetcherService {
 
     constructor(private readonly baseHttpService: BaseHttpService) {}
 
-    async getApiContent(url: string, targetConfig: ITargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
+    async getApiContent(url: string, targetConfig: IScrapingTargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
         const config = this.transformTargetConfig(targetConfig);
         const { retryAttempts, retryDelay } = config;
 
@@ -21,22 +21,24 @@ export class ApiFetcherService {
             try {
                 const axiosConfig = this.buildRequestConfig(config);
                 const requestUrl = this.buildRequestUrl(url, config, lastScrapedTimestamp);
-                const response = await this.baseHttpService.get<Record<string, any>>(requestUrl, axiosConfig);
+                const response = await this.baseHttpService.get<Record<string, unknown>>(requestUrl, axiosConfig);
 
                 return {
                     status: 'success',
                     data: response.data,
                     execution_time: Date.now() - startTime,
                 };
-            } catch (error) {
-                this.loggerService.error(`Get api content attempt ${attempt} failed: ${error?.message}`);
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : String(error);
+                const errorName = error instanceof Error ? error.name : 'UNKNOWN_ERROR';
+                this.loggerService.error(`Get api content attempt ${attempt} failed: ${message}`);
 
                 if (attempt === retryAttempts) {
                     return {
                         status: 'error',
+                        error_code: errorName,
+                        error_message: message,
                         execution_time: Date.now() - startTime,
-                        error_code: error?.name || 'UNKNOWN_ERROR',
-                        error_message: error?.message || 'Unknown error',
                     };
                 }
 
@@ -47,11 +49,11 @@ export class ApiFetcherService {
         }
     }
 
-    async fetchApiContent(url: string, targetConfig: ITargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
+    async fetchApiContent(url: string, targetConfig: IScrapingTargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
         return this.getApiContent(url, targetConfig, lastScrapedTimestamp);
     }
 
-    private transformTargetConfig(targetConfig: ITargetConfig): ITargetConfig {
+    private transformTargetConfig(targetConfig: IScrapingTargetConfig): IScrapingTargetConfig {
         return {
             ...targetConfig,
             timeout: targetConfig?.timeout || 30000,
@@ -61,7 +63,7 @@ export class ApiFetcherService {
         };
     }
 
-    private buildRequestConfig(targetConfig: ITargetConfig): AxiosRequestConfig {
+    private buildRequestConfig(targetConfig: IScrapingTargetConfig): AxiosRequestConfig {
         const { timeout, userAgent, headers, cookies } = targetConfig;
 
         const requestHeaders: Record<string, string> = {
@@ -86,8 +88,9 @@ export class ApiFetcherService {
         };
     }
 
-    private buildRequestUrl(url: string, targetConfig: ITargetConfig, lastScrapedTimestamp?: Date): string {
+    private buildRequestUrl(url: string, targetConfig: IScrapingTargetConfig, lastScrapedTimestamp?: Date): string {
         const { queryParams, firstQueryParams } = targetConfig;
+
         const params = lastScrapedTimestamp ? queryParams : (firstQueryParams ?? queryParams);
         return params ? `${url}${params}` : url;
     }

@@ -39,9 +39,11 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         const existing = await this.exists({ dataProviderId, type: request.type });
         if (existing) throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
 
+        const runner = this.runnerRegistry.getRunner(request.type);
+        const validatedConfig = request.config ? runner.validateConfig(request.config) : undefined;
+
         if (request.input) {
-            const runner = this.runnerRegistry.getRunner(request.type);
-            await runner.testStateless(request.service, request.config, request.input);
+            await runner.testStateless(request.service, validatedConfig, request.input);
         }
 
         const status = request.input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED;
@@ -49,7 +51,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             status,
             dataProviderId,
             type: request.type,
-            config: request.config,
+            config: validatedConfig,
             service: request.service,
         });
 
@@ -61,22 +63,26 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         const feature = await this.findById(id);
         if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
+        const runner = this.runnerRegistry.getRunner(feature.type);
+        const validatedConfig = request.config ? runner.validateConfig(request.config) : undefined;
+
         if (request.input) {
-            const runner = this.runnerRegistry.getRunner(feature.type);
-            await runner.testStateless(feature.service, request.config, request.input);
+            await runner.testStateless(feature.service, validatedConfig, request.input);
         }
 
         // Create version snapshot
-        await this.configVersionService.create(
-            {
-                featureId: id,
-                isActive: true,
-                config: request.config,
-                changeType: ConfigVersionType.MANUAL_EDIT,
-                changeDescription: request.changeDescription,
-            },
-            user,
-        );
+        if (validatedConfig) {
+            await this.configVersionService.create(
+                {
+                    featureId: id,
+                    isActive: true,
+                    config: validatedConfig,
+                    changeType: ConfigVersionType.MANUAL_EDIT,
+                    changeDescription: request.changeDescription,
+                },
+                user,
+            );
+        }
 
         const newStatus = [DataProviderFeatureStatus.UNCONFIGURED, DataProviderFeatureStatus.ERROR].includes(feature.status)
             ? DataProviderFeatureStatus.TESTING
@@ -87,7 +93,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
             lastErrorType: null,
             consecutiveFailures: 0,
             lastErrorMessage: null,
-            config: request.config,
+            config: validatedConfig,
         });
 
         const updated = await this.findById(id);

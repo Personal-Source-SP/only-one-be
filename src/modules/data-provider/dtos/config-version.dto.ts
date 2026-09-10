@@ -4,6 +4,7 @@ import { ApiResponseProperty } from '@nestjs/swagger';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { UserDto } from '../../user/dtos/user.dto';
 import { ConfigVersionType } from '../enums';
+import { TargetConfig } from '../interfaces/target-config.interface';
 import { DataProviderFeatureDto } from './data-provider-feature.dto';
 
 export class ConfigVersionDto extends AbstractDto {
@@ -21,7 +22,7 @@ export class ConfigVersionDto extends AbstractDto {
 
     @ApiResponseProperty({ type: Object })
     @AutoMap()
-    config: Record<string, any>;
+    config: TargetConfig;
 
     @ApiResponseProperty()
     @AutoMap()

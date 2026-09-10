@@ -2,14 +2,14 @@ import { DataProviderDto } from '../dtos/data-provider.dto';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto, ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { ITargetConfig } from './target-config.interface';
+import { IScrapingTargetConfig } from './target-config.interface';
 
 export interface IGetExtractDataRequest {
     url: string;
-    targetConfig: ITargetConfig;
-    lastScrapedTimestamp?: Date;
+    targetConfig: IScrapingTargetConfig;
     htmlContentString?: string;
-    dataContent?: Record<string, any>;
+    lastScrapedTimestamp?: Date;
+    dataContent?: Record<string, unknown>;
 }
 
 export interface IExtractDataResponse {
@@ -24,7 +24,7 @@ export interface IScrapeItemDataRequest {
 }
 
 export interface IValidateParserFunctionRequest {
-    targetConfig: ITargetConfig;
+    targetConfig: IScrapingTargetConfig;
     productUrl?: string;
 }
 

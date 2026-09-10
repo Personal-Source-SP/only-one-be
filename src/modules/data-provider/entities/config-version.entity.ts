@@ -4,6 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, Relation } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { UserEntity } from '../../user/entities/user.entity';
 import { ConfigVersionType } from '../enums';
+import { TargetConfig } from '../interfaces';
 import { DataProviderFeatureEntity } from './data-provider-feature.entity';
 
 @Entity({ name: 'data_provider_config_versions', synchronize: false })
@@ -22,7 +23,7 @@ export class ConfigVersionEntity extends AbstractEntity {
 
     @Column({ type: 'jsonb' })
     @AutoMap()
-    config: Record<string, any>;
+    config: TargetConfig;
 
     @Column({ name: 'change_type', type: 'varchar', length: 100 })
     @AutoMap()

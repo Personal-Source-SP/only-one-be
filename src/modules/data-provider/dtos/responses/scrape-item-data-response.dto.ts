@@ -1,4 +1,4 @@
-import { ITargetConfig } from '../../interfaces';
+import { IScrapingTargetConfig } from '../../interfaces';
 
 export class ScrapeItemDataResponseItemDto {
     id: string;
@@ -23,7 +23,7 @@ export class ScrapeItemDataResponseDto {
     extractedDataResult?: Array<ScrapeItemDataResponseItemDto>;
 
     // Request
-    request?: ITargetConfig;
+    request?: IScrapingTargetConfig;
 
     constructor(data?: Partial<ScrapeItemDataResponseDto>) {
         if (data) {

@@ -1,5 +1,6 @@
-import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField, StringFieldOptional } from '../../../../decorators';
+import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
+import { FeatureTestInput, TargetConfig } from '../../interfaces';
 
 export class CreateDataProviderFeatureRequestDto {
     @EnumField(() => DataProviderFeatureType, { description: 'Type of feature' })
@@ -11,10 +12,10 @@ export class CreateDataProviderFeatureRequestDto {
     service: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
-    config?: Record<string, unknown>;
+    config?: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload to verify feature before creating' })
-    input?: Record<string, unknown>;
+    input?: FeatureTestInput;
 }
 
 export class UpdateFeatureConfigRequestDto {
@@ -22,10 +23,10 @@ export class UpdateFeatureConfigRequestDto {
     changeDescription: string;
 
     @ObjectFieldOptional({ description: 'Feature configuration payload' })
-    config?: Record<string, unknown>;
+    config?: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload to verify feature before updating' })
-    input?: Record<string, unknown>;
+    input?: FeatureTestInput;
 }
 
 export class TestFeatureStatelessRequestDto {
@@ -39,8 +40,8 @@ export class TestFeatureStatelessRequestDto {
     service?: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Raw draft configuration payload' })
-    config: Record<string, unknown>;
+    config: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload (e.g. url, htmlContentString, query)' })
-    input?: Record<string, unknown>;
+    input?: FeatureTestInput;
 }

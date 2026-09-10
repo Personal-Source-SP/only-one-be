@@ -24,7 +24,7 @@ import {
     IDiscoveryExtractedItem,
     IDiscoveryFetchHtmlResult,
     IRunDiscoveryParams,
-    ITargetConfig,
+    IScrapingTargetConfig,
 } from '../interfaces';
 import { DiscoveryValidationService } from '../services/discovery-validation.service';
 
@@ -61,7 +61,7 @@ export class DiscoveryRunner {
         await this.discoverySessionRepository.update(sessionId, { status: DiscoverySessionStatus.IN_PROGRESS });
 
         try {
-            const targetConfig = searchFeature?.config as ITargetConfig;
+            const targetConfig = searchFeature?.config as IScrapingTargetConfig;
             const isApiProvider = searchFeature?.service === ScraperServiceEnum.API;
             const params: IRunDiscoveryParams = {
                 session,
@@ -247,7 +247,7 @@ export class DiscoveryRunner {
         return discoveredRecords;
     }
 
-    private async fetchHtml(url: string, targetConfig?: ITargetConfig): Promise<IDiscoveryFetchHtmlResult> {
+    private async fetchHtml(url: string, targetConfig?: IScrapingTargetConfig): Promise<IDiscoveryFetchHtmlResult> {
         const isDynamicOrProtected =
             targetConfig &&
             (targetConfig.stealthMode ||
@@ -262,8 +262,9 @@ export class DiscoveryRunner {
                     return { html: result.html, title: result.title };
                 }
                 this.logger.warn(`Puppeteer scraping failed for ${url}: ${result.error_message}. Falling back to HTTP request.`);
-            } catch (err: any) {
-                this.logger.warn(`Puppeteer scraping error for ${url}: ${err.message}. Falling back to HTTP request.`);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err);
+                this.logger.warn(`Puppeteer scraping error for ${url}: ${message}. Falling back to HTTP request.`);
             }
         }
 

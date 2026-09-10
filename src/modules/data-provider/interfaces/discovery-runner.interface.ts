@@ -1,5 +1,5 @@
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
-import { ITargetConfig } from './target-config.interface';
+import { IScrapingTargetConfig } from './target-config.interface';
 
 export interface IDiscoveryFetchHtmlResult {
     html: string;
@@ -19,6 +19,6 @@ export interface IDiscoveryExtractedItem {
 
 export interface IRunDiscoveryParams {
     session: DiscoverySessionEntity;
-    targetConfig?: ITargetConfig;
     targetKeyword?: string;
+    targetConfig?: IScrapingTargetConfig;
 }

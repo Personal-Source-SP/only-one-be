@@ -3,6 +3,7 @@ import { ApiResponseProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { TargetConfig } from '../interfaces';
 import { ConfigVersionDto } from './config-version.dto';
 import { DataProviderDto } from './data-provider.dto';
 
@@ -25,7 +26,7 @@ export class DataProviderFeatureDto extends AbstractDto {
 
     @ApiResponseProperty({ type: Object })
     @AutoMap()
-    config?: Record<string, any>;
+    config?: TargetConfig;
 
     @ApiResponseProperty()
     @AutoMap()

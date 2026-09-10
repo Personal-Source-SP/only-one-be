@@ -4,7 +4,7 @@ import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-sc
 import { ValidateParserFunctionResponseDto } from '../dtos/responses';
 import { ScrapeItemDataResponseDto } from '../dtos/responses/scrape-item-data-response.dto';
 import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
-import { IDataProviderScraperService, ITargetConfig } from '../interfaces';
+import { IDataProviderScraperService, IScrapingTargetConfig } from '../interfaces';
 import { DataProviderItemService } from './data-provider-item.service';
 
 @Injectable()
@@ -44,7 +44,7 @@ export class DataProviderScraperService {
             });
         }
 
-        const targetConfig = scrapingFeature.config as ITargetConfig;
+        const targetConfig = scrapingFeature.config as IScrapingTargetConfig;
         if (!targetConfig) {
             return new ScrapeItemDataResponseDto({
                 status: 'error',
@@ -73,7 +73,7 @@ export class DataProviderScraperService {
     async validateParserFunction(dto: {
         itemUrl: string;
         scraperService: string;
-        targetConfig: ITargetConfig;
+        targetConfig: IScrapingTargetConfig;
     }): Promise<ValidateParserFunctionResponseDto> {
         const { scraperService, targetConfig, itemUrl } = dto;
 
