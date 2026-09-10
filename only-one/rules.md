@@ -24,11 +24,13 @@
 - **[AVOID]** Reusing generic scraping extraction helpers (`ExtractDataHelper`) or scraping DTOs for Search features — Maintain dedicated search extraction helpers (`ExtractSearchDataHelper`) and clean `SearchResultItemDto` to avoid schema mismatch and runtime script errors.
 - **[AVOID]** Automatically falling back to appending `?q=` in URL builders when search patterns omit query placeholders — Standardize on `{...}` path or query replacements and append clean placeholders when missing.
 - **[AVOID]** Passing raw unprocessed HTML directly into search or extraction script execution — Pre-process HTML to strip unnecessary style/link tags and scope the DOM to `mainContentSelector` (or its parent element) before running script generators.
+- **[AVOID]** Allowing immutable configuration attributes (e.g., `service` engine) in feature update DTOs — Treat feature runtime engine as immutable post-creation and enforce strict required metadata fields (`changeDescription`) on config updates.
 
 ## Error Handling & Exception Patterns
 - **[AVOID]** Wrapping try...catch manually and calling handleError() inside Service CRUD methods — Allow exceptions to naturally bubble up to `AllExceptionsFilter` for centralized call-site logging, classification, and HTTP Status mapping.
 - **[NEVER]** Leak internal stack traces, server file paths, or raw SQL queries to client responses — Log detailed context strictly on the server console/files via `LoggerService` and return standardized `ResponseDto` with sanitized `IAppError` codes and messages to clients.
 - **[AVOID]** Coercing all unhandled exceptions into `BadRequestException` (HTTP 400) — Classify exceptions accurately into proper RESTful status codes (400, 401, 403, 404, 409, 500) and use `AppException` with `AppError` dictionary.
+- **[NEVER]** Throw raw NestJS HTTP exceptions (`NotFoundException`, `BadRequestException`, `InternalServerErrorException`) with hardcoded string messages inside domain services — Always standardize on `AppException` using dedicated semantic error factories in `*Error` dictionaries.
 - **[AVOID]** Persisting DataProvider feature configurations without optional sandbox pre-testing — When client provides test `input`, execute `testStateless` before creating DB records to catch faulty configurations immediately (fail-fast).
 - **[AVOID]** Returning unbounded data arrays from test/sandbox endpoints — Slice preview extraction results to top items (e.g. $\le 3$) to prevent UI freezing and payload bloat.
 - **[AVOID]** Prefixing sub-resource route paths with redundant plural entity identifiers (e.g., `/data-provider-features/data-providers/:id`) — Standardize route paths with clean, singular resource descriptors (`/data-provider-features/provider/:dataProviderId`).
