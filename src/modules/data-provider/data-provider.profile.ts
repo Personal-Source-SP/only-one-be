@@ -74,7 +74,15 @@ export class DataProviderProfile extends AutomapperProfile {
                 mapFrom((s) => s.config),
             ),
         );
-        createMap(mapper, CreateDataProviderFeatureRequestDto, DataProviderFeatureEntity);
+        createMap(
+            mapper,
+            CreateDataProviderFeatureRequestDto,
+            DataProviderFeatureEntity,
+            forMember(
+                (d) => d.config,
+                mapFrom((s) => s.config),
+            ),
+        );
     }
 
     private mapDataProviderItem(mapper: Mapper): void {
@@ -121,7 +129,15 @@ export class DataProviderProfile extends AutomapperProfile {
                 mapFrom((s) => s.config),
             ),
         );
-        createMap(mapper, CreateConfigVersionRequestDto, ConfigVersionEntity);
+        createMap(
+            mapper,
+            CreateConfigVersionRequestDto,
+            ConfigVersionEntity,
+            forMember(
+                (d) => d.config,
+                mapFrom((s) => s.config),
+            ),
+        );
     }
 
     private mapDiscoverySession(mapper: Mapper): void {

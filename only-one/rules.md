@@ -36,6 +36,4 @@
 - **[AVOID]** Prefixing sub-resource route paths with redundant plural entity identifiers (e.g., `/data-provider-features/data-providers/:id`) — Standardize route paths with clean, singular resource descriptors (`/data-provider-features/provider/:dataProviderId`).
 - **[AVOID]** Mutating in-place argument arrays in runner / service methods (`discoveredRecords.push(...)`) — Return explicit immutable typed entity arrays (`Promise<DiscoveryUrlEntity[]>`) to eliminate side effects and improve testability.
 - **[AVOID]** Coupling headless browser scraping logic with HTTP API clients inside a single scraper service — Decouple browser rendering (`HtmlFetcherService`) and HTTP API fetching (`ApiFetcherService`) into dedicated shared services under `src/shared/services/`.
-
-
-
+- **[AVOID]** Omitting explicit member mapping (`forMember(..., mapFrom(...))`) in AutoMapper profiles for polymorphic JSON or TypeScript interface fields (e.g., `TargetConfig`) — `@automapper/classes` reflects TypeScript interfaces as generic `Object` and ignores them during auto-mapping, which silently sets entity fields to `undefined` and violates database `NOT NULL` constraints.
