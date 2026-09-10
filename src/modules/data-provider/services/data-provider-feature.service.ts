@@ -12,10 +12,15 @@ import { NOTIFICATION_EVENTS } from '../../notification/constants/notification.c
 import { NotificationType } from '../../notification/enum/notification.enum';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
-import { CreateDataProviderFeatureRequestDto, UpdateFeatureConfigRequestDto } from '../dtos/requests/data-provider-feature-request.dto';
+import {
+    CreateDataProviderFeatureRequestDto,
+    TestFeatureStatelessRequestDto,
+    UpdateFeatureConfigRequestDto,
+} from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
 import { ConfigVersionType } from '../enums/config-version-type.enum';
+import { IExtractDataResponse, ISearchExtractDataResponse } from '../interfaces';
 import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { ConfigVersionService } from './config-version.service';
 
@@ -202,5 +207,18 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         if (!feature) throw new AppException(DataProviderError.FeatureTypeNotFound(type, dataProviderId));
 
         return feature;
+    }
+
+    async testStateless(request: TestFeatureStatelessRequestDto): Promise<IExtractDataResponse | ISearchExtractDataResponse> {
+        const runner = this.runnerRegistry.getRunner(request.type);
+        const result = (await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input)) as
+            | IExtractDataResponse
+            | ISearchExtractDataResponse;
+
+        if (result && Array.isArray(result.data)) {
+            result.data = result.data.slice(0, 3);
+        }
+
+        return result;
     }
 }

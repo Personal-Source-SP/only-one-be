@@ -9,19 +9,15 @@ import {
     TestFeatureStatelessRequestDto,
     UpdateFeatureConfigRequestDto,
 } from '../dtos/requests/data-provider-feature-request.dto';
-import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { IExtractDataResponse, ISearchExtractDataResponse } from '../interfaces';
-import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
 import { DataProviderFeatureService } from '../services/data-provider-feature.service';
 
 @Controller('data-provider-features')
 @ApiTags('Data Provider Features')
 @Auth()
 export class DataProviderFeatureController {
-    constructor(
-        private readonly runnerRegistry: FeatureRunnerRegistry,
-        private readonly featureService: DataProviderFeatureService,
-    ) {}
+    constructor(private readonly featureService: DataProviderFeatureService) {}
 
     @Get({
         path: ':dataProviderId',
@@ -58,16 +54,7 @@ export class DataProviderFeatureController {
         summary: 'Test feature stateless (sandbox)',
     })
     async testStateless(@Body() request: TestFeatureStatelessRequestDto): Promise<IExtractDataResponse | ISearchExtractDataResponse> {
-        const runner = this.runnerRegistry.getRunner(request.type);
-        const result = (await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input)) as
-            | IExtractDataResponse
-            | ISearchExtractDataResponse;
-
-        if (result && Array.isArray(result.data)) {
-            result.data = result.data.slice(0, 3);
-        }
-
-        return result;
+        return await this.featureService.testStateless(request);
     }
 
     @Post({
