@@ -18,7 +18,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
             return input.url;
         }
 
-        const query = (input?.query || config?.sampleQuery || '').trim();
+        const query = (input?.query || '').trim();
         const pattern = config?.searchUrlPattern?.trim();
 
         if (!pattern) {
@@ -28,7 +28,7 @@ export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, 
         const placeholder = config?.queryPlaceholder?.trim() || '{query}';
         let targetPattern = pattern;
 
-        if (!targetPattern.includes(placeholder)) {
+        if (!targetPattern.includes(placeholder) && query) {
             const hasAnyPlaceholder = /\{[a-zA-Z0-9_-]+\}/.test(targetPattern);
             if (!hasAnyPlaceholder) {
                 const cleanPlaceholder = placeholder.startsWith('/') ? placeholder.slice(1) : placeholder;

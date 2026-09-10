@@ -37,7 +37,6 @@ export interface ISearchTargetConfig extends ITargetConfig {
     searchUrlPattern?: string; // Pattern URL tìm kiếm (e.g. https://example.com/search?q={query})
     queryPlaceholder?: string; // Placeholder thay thế query trong searchUrlPattern (e.g. {query})
     resultSelector?: string; // Selector của từng thẻ sản phẩm/kết quả trong danh sách
-    sampleQuery?: string; // Query mẫu dùng để test khi kích hoạt feature
 }
 
 export interface IRunFunctionExtractData {
