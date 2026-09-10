@@ -38,6 +38,56 @@ describe('TargetConfigValidatorHelper', () => {
                     retryAttempts: -1,
                 }),
             ).toThrow(AppException);
+
+            expect(() =>
+                TargetConfigValidatorHelper.validateScrapingTargetConfig({
+                    functionGenerator: 'return {};',
+                    maxResults: 0,
+                }),
+            ).toThrow(AppException);
+        });
+
+        it('should throw error when boolean options are invalid', () => {
+            expect(() =>
+                TargetConfigValidatorHelper.validateScrapingTargetConfig({
+                    functionGenerator: 'return {};',
+                    javascriptEnabled: 'yes' as unknown as boolean,
+                }),
+            ).toThrow(AppException);
+
+            expect(() =>
+                TargetConfigValidatorHelper.validateScrapingTargetConfig({
+                    functionGenerator: 'return {};',
+                    isGetParentElement: 1 as unknown as boolean,
+                }),
+            ).toThrow(AppException);
+        });
+
+        it('should throw error when string selector options are invalid', () => {
+            expect(() =>
+                TargetConfigValidatorHelper.validateScrapingTargetConfig({
+                    functionGenerator: 'return {};',
+                    mainContentSelector: 123 as unknown as string,
+                }),
+            ).toThrow(AppException);
+        });
+
+        it('should allow optional fields to be undefined or null', () => {
+            const config = {
+                functionGenerator: 'return { title: "sample" };',
+                mainContentSelector: undefined,
+                maxResults: null as unknown as number,
+                isGetParentElement: undefined,
+                cookies: undefined,
+                headers: null as unknown as Record<string, string>,
+            };
+            const result = TargetConfigValidatorHelper.validateScrapingTargetConfig(config);
+            expect(result.functionGenerator).toBe('return { title: "sample" };');
+            expect(result.mainContentSelector).toBeUndefined();
+            expect(result.maxResults).toBeUndefined();
+            expect(result.isGetParentElement).toBeUndefined();
+            expect(result.cookies).toBeUndefined();
+            expect(result.headers).toBeUndefined();
         });
 
         it('should throw error when cookies contain invalid elements', () => {

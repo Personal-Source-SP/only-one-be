@@ -1,3 +1,4 @@
+import { isNil } from 'lodash';
 import { AppException } from '../../../exceptions/app.exception';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderFeatureType } from '../enums';
@@ -22,23 +23,54 @@ export class TargetConfigValidatorHelper {
             throw new AppException(DataProviderError.InvalidFeatureConfig(`Cú pháp hàm functionGenerator không hợp lệ: ${message}`));
         }
 
-        if (config.retryAttempts !== undefined && (typeof config.retryAttempts !== 'number' || config.retryAttempts < 0)) {
+        if (!isNil(config.maxResults) && (typeof config.maxResults !== 'number' || config.maxResults <= 0)) {
+            throw new AppException(DataProviderError.InvalidFeatureConfig('maxResults phải là số nguyên dương (> 0).'));
+        }
+
+        if (!isNil(config.retryAttempts) && (typeof config.retryAttempts !== 'number' || config.retryAttempts < 0)) {
             throw new AppException(DataProviderError.InvalidFeatureConfig('retryAttempts phải là số nguyên không âm.'));
         }
 
-        if (config.retryDelay !== undefined && (typeof config.retryDelay !== 'number' || config.retryDelay < 0)) {
+        if (!isNil(config.retryDelay) && (typeof config.retryDelay !== 'number' || config.retryDelay < 0)) {
             throw new AppException(DataProviderError.InvalidFeatureConfig('retryDelay phải là số không âm.'));
         }
 
-        if (config.timeout !== undefined && (typeof config.timeout !== 'number' || config.timeout <= 0)) {
+        if (!isNil(config.timeout) && (typeof config.timeout !== 'number' || config.timeout <= 0)) {
             throw new AppException(DataProviderError.InvalidFeatureConfig('timeout phải là số dương (> 0).'));
         }
 
-        if (config.waitForTimeout !== undefined && (typeof config.waitForTimeout !== 'number' || config.waitForTimeout < 0)) {
+        if (!isNil(config.waitForTimeout) && (typeof config.waitForTimeout !== 'number' || config.waitForTimeout < 0)) {
             throw new AppException(DataProviderError.InvalidFeatureConfig('waitForTimeout phải là số không âm.'));
         }
 
-        if (config.cookies !== undefined) {
+        const booleanFields: (keyof IScrapingTargetConfig)[] = [
+            'isGetParentElement',
+            'stealthMode',
+            'cloudflareBypass',
+            'javascriptEnabled',
+            'imagesEnabled',
+            'cssEnabled',
+        ];
+        for (const field of booleanFields) {
+            if (!isNil(config[field]) && typeof config[field] !== 'boolean') {
+                throw new AppException(DataProviderError.InvalidFeatureConfig(`${String(field)} phải là kiểu boolean.`));
+            }
+        }
+
+        const stringFields: (keyof IScrapingTargetConfig)[] = [
+            'mainContentSelector',
+            'waitForSelector',
+            'userAgent',
+            'queryParams',
+            'firstQueryParams',
+        ];
+        for (const field of stringFields) {
+            if (!isNil(config[field]) && typeof config[field] !== 'string') {
+                throw new AppException(DataProviderError.InvalidFeatureConfig(`${String(field)} phải là chuỗi ký tự.`));
+            }
+        }
+
+        if (!isNil(config.cookies)) {
             if (!Array.isArray(config.cookies)) {
                 throw new AppException(DataProviderError.InvalidFeatureConfig('cookies phải là một mảng.'));
             }
@@ -50,35 +82,59 @@ export class TargetConfigValidatorHelper {
             }
         }
 
-        if (config.headers !== undefined && (typeof config.headers !== 'object' || Array.isArray(config.headers))) {
+        if (!isNil(config.headers) && (typeof config.headers !== 'object' || Array.isArray(config.headers))) {
             throw new AppException(DataProviderError.InvalidFeatureConfig('headers phải là một đối tượng key-value.'));
         }
 
-        return config as IScrapingTargetConfig;
+        const sanitizedConfig: IScrapingTargetConfig = {
+            functionGenerator: config.functionGenerator,
+            ...(!isNil(config.mainContentSelector) ? { mainContentSelector: config.mainContentSelector } : {}),
+            ...(!isNil(config.isGetParentElement) ? { isGetParentElement: config.isGetParentElement } : {}),
+            ...(!isNil(config.queryParams) ? { queryParams: config.queryParams } : {}),
+            ...(!isNil(config.firstQueryParams) ? { firstQueryParams: config.firstQueryParams } : {}),
+            ...(!isNil(config.maxResults) ? { maxResults: config.maxResults } : {}),
+            ...(!isNil(config.retryDelay) ? { retryDelay: config.retryDelay } : {}),
+            ...(!isNil(config.retryAttempts) ? { retryAttempts: config.retryAttempts } : {}),
+            ...(!isNil(config.userAgent) ? { userAgent: config.userAgent } : {}),
+            ...(!isNil(config.headers) ? { headers: config.headers } : {}),
+            ...(!isNil(config.cookies) ? { cookies: config.cookies } : {}),
+            ...(!isNil(config.timeout) ? { timeout: config.timeout } : {}),
+            ...(!isNil(config.waitForTimeout) ? { waitForTimeout: config.waitForTimeout } : {}),
+            ...(!isNil(config.stealthMode) ? { stealthMode: config.stealthMode } : {}),
+            ...(!isNil(config.cloudflareBypass) ? { cloudflareBypass: config.cloudflareBypass } : {}),
+            ...(!isNil(config.waitForSelector) ? { waitForSelector: config.waitForSelector } : {}),
+            ...(!isNil(config.javascriptEnabled) ? { javascriptEnabled: config.javascriptEnabled } : {}),
+            ...(!isNil(config.imagesEnabled) ? { imagesEnabled: config.imagesEnabled } : {}),
+            ...(!isNil(config.cssEnabled) ? { cssEnabled: config.cssEnabled } : {}),
+        };
+
+        return sanitizedConfig;
     }
 
     static validateSearchTargetConfig(rawConfig: unknown): ISearchTargetConfig {
         const baseConfig = this.validateScrapingTargetConfig(rawConfig);
         const searchConfig = rawConfig as Partial<ISearchTargetConfig>;
 
-        if (searchConfig.searchUrlPattern !== undefined && typeof searchConfig.searchUrlPattern !== 'string') {
+        if (!isNil(searchConfig.searchUrlPattern) && typeof searchConfig.searchUrlPattern !== 'string') {
             throw new AppException(DataProviderError.InvalidFeatureConfig('searchUrlPattern phải là chuỗi ký tự.'));
         }
 
-        if (searchConfig.queryPlaceholder !== undefined && typeof searchConfig.queryPlaceholder !== 'string') {
+        if (!isNil(searchConfig.queryPlaceholder) && typeof searchConfig.queryPlaceholder !== 'string') {
             throw new AppException(DataProviderError.InvalidFeatureConfig('queryPlaceholder phải là chuỗi ký tự.'));
         }
 
-        if (searchConfig.resultSelector !== undefined && typeof searchConfig.resultSelector !== 'string') {
+        if (!isNil(searchConfig.resultSelector) && typeof searchConfig.resultSelector !== 'string') {
             throw new AppException(DataProviderError.InvalidFeatureConfig('resultSelector phải là chuỗi ký tự.'));
         }
 
-        return {
+        const sanitizedSearchConfig: ISearchTargetConfig = {
             ...baseConfig,
-            searchUrlPattern: searchConfig.searchUrlPattern,
-            queryPlaceholder: searchConfig.queryPlaceholder,
-            resultSelector: searchConfig.resultSelector,
+            ...(!isNil(searchConfig.searchUrlPattern) ? { searchUrlPattern: searchConfig.searchUrlPattern } : {}),
+            ...(!isNil(searchConfig.queryPlaceholder) ? { queryPlaceholder: searchConfig.queryPlaceholder } : {}),
+            ...(!isNil(searchConfig.resultSelector) ? { resultSelector: searchConfig.resultSelector } : {}),
         };
+
+        return sanitizedSearchConfig;
     }
 
     static validateConfig(rawConfig: unknown, type: DataProviderFeatureType): TargetConfig {
