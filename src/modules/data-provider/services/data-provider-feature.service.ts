@@ -59,7 +59,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         return created;
     }
 
-    async updateFeatureConfig(id: string, request: UpdateFeatureConfigRequestDto, user?: PayloadDto): Promise<DataProviderFeatureDto> {
+    async updateFeature(id: string, request: UpdateFeatureConfigRequestDto, user?: PayloadDto): Promise<DataProviderFeatureDto> {
         const feature = await this.findById(id);
         if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
@@ -193,11 +193,11 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         return await super.update(id, { status });
     }
 
-    async getFeaturesByProviderId(dataProviderId: string): Promise<DataProviderFeatureDto[]> {
+    async getByProviderId(dataProviderId: string): Promise<DataProviderFeatureDto[]> {
         return await this.findListByFilter({ dataProviderId });
     }
 
-    async getFeatureByProviderIdAndType(dataProviderId: string, type: DataProviderFeatureType): Promise<DataProviderFeatureDto> {
+    async getByProviderIdAndType(dataProviderId: string, type: DataProviderFeatureType): Promise<DataProviderFeatureDto> {
         const feature = await this.findOneByFilter({ dataProviderId, type });
         if (!feature) throw new AppException(DataProviderError.FeatureTypeNotFound(type, dataProviderId));
 

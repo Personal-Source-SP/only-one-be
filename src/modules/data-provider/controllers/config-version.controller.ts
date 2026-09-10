@@ -18,7 +18,7 @@ export class ConfigVersionController {
         responseDto: [ConfigVersionDto],
     })
     async getVersions(@UUIDParam('id') id: string): Promise<ConfigVersionDto[]> {
-        return await this.configVersionService.getConfigVersionOptionsByFeature(id);
+        return await this.configVersionService.getByFeatureId(id);
     }
 
     @Post({
@@ -31,7 +31,7 @@ export class ConfigVersionController {
         @Param('versionId', ParseIntPipe) versionId: number,
         @User() user: PayloadDto,
     ): Promise<boolean> {
-        return await this.configVersionService.rollbackToVersionIdByFeature(id, versionId, user);
+        return await this.configVersionService.rollbackByFeatureId(id, versionId, user);
     }
 
     @Delete({
@@ -40,6 +40,6 @@ export class ConfigVersionController {
         responseDto: Boolean,
     })
     async deleteVersion(@UUIDParam('id') id: string, @Param('versionId', ParseIntPipe) versionId: number): Promise<boolean> {
-        return await this.configVersionService.deleteConfigVersionByFeature(id, versionId);
+        return await this.configVersionService.deleteByFeatureId(id, versionId);
     }
 }

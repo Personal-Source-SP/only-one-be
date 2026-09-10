@@ -42,7 +42,7 @@ describe('DiscoverySessionService', () => {
     });
 
     it('should create a new discovery session with generated sessionCode and trigger runner', async () => {
-        const result = await service.createSession({
+        const result = await service.create({
             dataProviderId: 'dp-1',
             targetUrl: 'https://amazon.com/deals',
             depth: 2,
@@ -72,7 +72,7 @@ describe('DiscoverySessionService', () => {
     });
 
     it('should map request to DiscoverySessionEntity and save session', async () => {
-        const result = await service.createSession({
+        const result = await service.create({
             dataProviderId: 'dp-1',
             targetUrl: 'https://amazon.com/deals',
         });

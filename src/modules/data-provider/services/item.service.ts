@@ -31,7 +31,7 @@ export class ItemService extends BaseService<ItemEntity, ItemDto> {
         return await super.create(entity);
     }
 
-    async updateItem(id: string, request: UpdateItemRequestDto): Promise<boolean> {
+    async update(id: string, request: UpdateItemRequestDto): Promise<boolean> {
         const existingItem = await this.exists({ id });
         if (!existingItem) {
             this.loggerService.error(`No item found with id ${id}`);

@@ -48,7 +48,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         });
     }
 
-    async getConfigVersionOptionsByFeature(featureId: string): Promise<ConfigVersionDto[]> {
+    async getByFeatureId(featureId: string): Promise<ConfigVersionDto[]> {
         const dataProviderConfigVersions = await this.repository
             .createQueryBuilder('dataProviderConfigVersions')
             .leftJoinAndSelect('dataProviderConfigVersions.user', 'user')
@@ -79,7 +79,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         return this.mapEntityToDto(dataProviderConfigVersions) as ConfigVersionDto[];
     }
 
-    async rollbackToVersionIdByFeature(featureId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
+    async rollbackByFeatureId(featureId: string, versionId: number, user?: PayloadDto): Promise<boolean> {
         const dataProviderConfigVersion = await this.findOneByFilter({
             featureId,
             versionId,
@@ -132,7 +132,7 @@ export class ConfigVersionService extends BaseService<ConfigVersionEntity, Confi
         return true;
     }
 
-    async deleteConfigVersionByFeature(featureId: string, versionId: number): Promise<boolean> {
+    async deleteByFeatureId(featureId: string, versionId: number): Promise<boolean> {
         const dataProviderConfigVersion = await this.findOneByFilter({
             featureId,
             versionId,

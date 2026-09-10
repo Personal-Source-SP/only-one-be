@@ -48,7 +48,7 @@ describe('ConfigVersionService', () => {
         it('should throw AppException when version is not found', async () => {
             mockRepo.findOne.mockResolvedValue(null);
 
-            await expect(service.rollbackToVersionIdByFeature('feat-1', 99)).rejects.toThrow(AppException);
+            await expect(service.rollbackByFeatureId('feat-1', 99)).rejects.toThrow(AppException);
         });
     });
 
@@ -56,13 +56,13 @@ describe('ConfigVersionService', () => {
         it('should throw AppException when version is not found', async () => {
             mockRepo.findOne.mockResolvedValue(null);
 
-            await expect(service.deleteConfigVersionByFeature('feat-1', 99)).rejects.toThrow(AppException);
+            await expect(service.deleteByFeatureId('feat-1', 99)).rejects.toThrow(AppException);
         });
 
         it('should throw AppException when attempting to delete active version', async () => {
             mockRepo.findOne.mockResolvedValue({ id: 'ver-1', isActive: true });
 
-            await expect(service.deleteConfigVersionByFeature('feat-1', 1)).rejects.toThrow(AppException);
+            await expect(service.deleteByFeatureId('feat-1', 1)).rejects.toThrow(AppException);
         });
     });
 });

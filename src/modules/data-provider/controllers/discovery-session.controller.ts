@@ -39,6 +39,6 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         responseDto: DiscoverySessionDto,
     })
     async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
-        return await this.sessionService.createSession(request, user);
+        return await this.sessionService.create(request, user);
     }
 }

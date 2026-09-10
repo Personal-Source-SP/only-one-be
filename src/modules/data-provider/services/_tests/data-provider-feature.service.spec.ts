@@ -120,7 +120,7 @@ describe('DataProviderFeatureService', () => {
             };
             mockRepo.findOne.mockResolvedValue(existingFeature);
 
-            await service.updateFeatureConfig('feat-1', {
+            await service.updateFeature('feat-1', {
                 config: { newKey: 'val' },
                 changeDescription: 'Updated scraping selectors',
                 input: { url: 'https://example.com' },
@@ -151,7 +151,7 @@ describe('DataProviderFeatureService', () => {
             mockRunner.testStateless.mockRejectedValue(new AppException(DataProviderError.FeatureTestFailed('Failed')));
 
             await expect(
-                service.updateFeatureConfig('feat-1', {
+                service.updateFeature('feat-1', {
                     config: {},
                     changeDescription: 'Invalid config',
                     input: { url: 'invalid' },

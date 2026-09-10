@@ -29,7 +29,7 @@ export class DataProviderFeatureController {
         responseDto: [DataProviderFeatureDto],
     })
     async findByProvider(@UUIDParam('dataProviderId') dataProviderId: string): Promise<DataProviderFeatureDto[]> {
-        return await this.featureService.getFeaturesByProviderId(dataProviderId);
+        return await this.featureService.getByProviderId(dataProviderId);
     }
 
     @Get({
@@ -41,7 +41,7 @@ export class DataProviderFeatureController {
         @UUIDParam('dataProviderId') dataProviderId: string,
         @Param('type') type: DataProviderFeatureType,
     ): Promise<DataProviderFeatureDto> {
-        return await this.featureService.getFeatureByProviderIdAndType(dataProviderId, type);
+        return await this.featureService.getByProviderIdAndType(dataProviderId, type);
     }
 
     @Get({
@@ -101,6 +101,6 @@ export class DataProviderFeatureController {
         @Body() request: UpdateFeatureConfigRequestDto,
         @User() user: PayloadDto,
     ): Promise<DataProviderFeatureDto> {
-        return await this.featureService.updateFeatureConfig(id, request, user);
+        return await this.featureService.updateFeature(id, request, user);
     }
 }

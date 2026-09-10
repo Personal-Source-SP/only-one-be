@@ -33,7 +33,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         super(discoverySessionRepository, mapper, DiscoverySessionDto, DiscoverySessionService.name);
     }
 
-    async createSession(request: CreateDiscoverySessionRequestDto, user?: PayloadDto): Promise<DiscoverySessionDto> {
+    async create(request: CreateDiscoverySessionRequestDto, user?: PayloadDto): Promise<DiscoverySessionDto> {
         const dataProvider = await this.dataProviderRepository.findOne({
             where: { id: request.dataProviderId },
         });
