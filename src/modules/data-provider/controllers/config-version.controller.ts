@@ -6,8 +6,8 @@ import { Auth, Delete, Get, Post, User, UUIDParam } from '../../../decorators';
 import { ConfigVersionDto } from '../dtos/config-version.dto';
 import { ConfigVersionService } from '../services/config-version.service';
 
-@Controller('config-version-features')
-@ApiTags('Config Version Features')
+@Controller('config-versions')
+@ApiTags('Config Versions')
 @Auth()
 export class ConfigVersionController {
     constructor(private readonly configVersionService: ConfigVersionService) {}
