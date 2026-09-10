@@ -58,38 +58,7 @@ export interface ISearchTargetConfig extends ITargetConfig {
     sampleQuery?: string;
 }
 
-export interface IRunFunctionExtractData {
-    htmlContent: string;
-    functionGenerator: string;
-    mainContentSelector: string;
-    isGetParentElement: boolean;
-}
-
-export interface IRunApiFunctionExtractData {
-    data: Record<string, any>;
-    functionGenerator: string;
-}
-
-export interface IRunSearchFunctionExtractData {
-    htmlContent: string;
-    functionGenerator: string;
-    resultSelector?: string;
-    maxResults?: number;
-    mainContentSelector?: string;
-    isGetParentElement?: boolean;
-}
-
-export interface IRunApiSearchFunctionExtractData {
-    data: Record<string, any>;
-    functionGenerator: string;
-    maxResults?: number;
-}
-
-export interface ISearchExtractDataResponse {
-    html?: string;
-    error?: string;
-    data?: Array<Record<string, any>>;
-}
+export type TargetConfig = ITargetConfig | ISearchTargetConfig;
 ```
 
 #### 2. `config-version.types.ts`
@@ -98,17 +67,18 @@ import type { IUser } from '@/app/(root)/setting/users/types';
 import type { Abstract } from '@/interfaces';
 import type { ConfigVersionType } from '../enums';
 import type { IDataProviderFeature } from './data-provider-feature.types';
+import type { TargetConfig } from './target-config.types';
 
-export interface IConfigVersion extends Abstract {
+export interface IConfigVersion<TConfig extends TargetConfig = TargetConfig> extends Abstract {
     featureId: string;
     isActive: boolean;
     versionId: number;
-    config: Record<string, any>;
+    config: TConfig;
     changeType: ConfigVersionType;
     changeDescription?: string;
-    createdBy?: string;
+
     user?: IUser;
-    feature?: IDataProviderFeature;
+    feature?: IDataProviderFeature<TConfig>;
 }
 
 export interface HistoryModalState {
@@ -128,42 +98,22 @@ import type {
     ScraperServiceEnum,
 } from '../enums';
 import type { IConfigVersion } from './config-version.types';
-import type { ISearchTargetConfig, ITargetConfig } from './target-config.types';
+import type { TargetConfig } from './target-config.types';
 
-export interface IDataProviderFeature extends Abstract {
+export interface IDataProviderFeature<TConfig extends TargetConfig = TargetConfig> extends Abstract {
     dataProviderId: string;
     type: DataProviderFeatureType;
     service: ScraperServiceEnum;
     status: DataProviderFeatureStatus;
     consecutiveFailures: number;
 
-    config?: Record<string, any>;
+    config?: TConfig;
     lastErrorMessage?: string;
     lastErrorType?: DataProviderFeatureErrorType;
     lastFailedRunAt?: Date;
     lastSuccessfulRunAt?: Date;
     dataProvider?: IDataProvider;
-    versions?: IConfigVersion[];
-}
-
-export interface CreateDataProviderFeatureRequest {
-    type: DataProviderFeatureType;
-    service: ScraperServiceEnum;
-    config?: Record<string, any>;
-    input?: Record<string, any>;
-}
-
-export interface UpdateFeatureConfigRequest {
-    changeDescription: string;
-    config?: Record<string, any>;
-    input?: Record<string, any>;
-}
-
-export interface TestFeatureStatelessRequest {
-    type: DataProviderFeatureType;
-    config: Record<string, any>;
-    service?: ScraperServiceEnum;
-    input?: Record<string, any>;
+    versions?: IConfigVersion<TConfig>[];
 }
 
 export type FeatureModalTab = 'config' | 'test';
