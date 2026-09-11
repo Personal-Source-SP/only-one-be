@@ -71,7 +71,8 @@ describe('DataProviderFeatureService', () => {
         it('should execute testStateless when input is provided and create feature with READY status', async () => {
             mockRepo.exists.mockResolvedValue(false);
 
-            const result = await service.createFeature('provider-1', {
+            const result = await service.createFeature({
+                dataProviderId: 'provider-1',
                 type: DataProviderFeatureType.SCRAPING,
                 service: ScraperServiceEnum.GENERIC,
                 config: { sampleUrl: 'https://example.com' },
@@ -85,6 +86,7 @@ describe('DataProviderFeatureService', () => {
             );
             expect(mockRepo.create).toHaveBeenCalledWith(
                 expect.objectContaining({
+                    dataProviderId: 'provider-1',
                     status: DataProviderFeatureStatus.READY,
                     service: ScraperServiceEnum.GENERIC,
                 }),
@@ -97,7 +99,8 @@ describe('DataProviderFeatureService', () => {
             mockRunner.testStateless.mockRejectedValue(new AppException(DataProviderError.FeatureTestFailed('Scraping error')));
 
             await expect(
-                service.createFeature('provider-1', {
+                service.createFeature({
+                    dataProviderId: 'provider-1',
                     type: DataProviderFeatureType.SCRAPING,
                     service: ScraperServiceEnum.GENERIC,
                     config: {},

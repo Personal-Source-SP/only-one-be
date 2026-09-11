@@ -1,8 +1,11 @@
-import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField } from '../../../../decorators';
+import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField, UUIDField } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
 import { FeatureTestInput, TargetConfig } from '../../interfaces';
 
 export class CreateDataProviderFeatureRequestDto {
+    @UUIDField({ description: 'Data provider ID' })
+    dataProviderId: string;
+
     @EnumField(() => DataProviderFeatureType, { description: 'Type of feature' })
     type: DataProviderFeatureType;
 

@@ -58,15 +58,13 @@ export class DataProviderFeatureController {
     }
 
     @Post({
-        path: ':dataProviderId',
         summary: 'Create feature for a data provider',
         responseDto: DataProviderFeatureDto,
     })
     async createFeature(
-        @UUIDParam('dataProviderId') dataProviderId: string,
         @Body() request: CreateDataProviderFeatureRequestDto,
     ): Promise<DataProviderFeatureDto> {
-        return await this.featureService.createFeature(dataProviderId, request);
+        return await this.featureService.createFeature(request);
     }
 
     @Put({

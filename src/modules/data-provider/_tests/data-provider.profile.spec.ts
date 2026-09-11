@@ -39,6 +39,7 @@ describe('DataProviderProfile', () => {
 
     it('should correctly map config property from CreateDataProviderFeatureRequestDto to DataProviderFeatureEntity', () => {
         const dto = new CreateDataProviderFeatureRequestDto();
+        dto.dataProviderId = 'deb65a15-2f1e-4077-8477-da39c55eac47';
         dto.type = DataProviderFeatureType.SCRAPING;
         dto.service = ScraperServiceEnum.GENERIC;
         dto.config = { sampleUrl: 'https://example.com/feature' };
@@ -46,6 +47,7 @@ describe('DataProviderProfile', () => {
         const entity = mapper.map(dto, CreateDataProviderFeatureRequestDto, DataProviderFeatureEntity);
 
         expect(entity).toBeDefined();
+        expect(entity.dataProviderId).toBe('deb65a15-2f1e-4077-8477-da39c55eac47');
         expect(entity.type).toBe(DataProviderFeatureType.SCRAPING);
         expect(entity.service).toBe(ScraperServiceEnum.GENERIC);
         expect(entity.config).toEqual({ sampleUrl: 'https://example.com/feature' });

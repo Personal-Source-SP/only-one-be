@@ -40,24 +40,26 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         super(dataProviderFeatureRepository, mapper, DataProviderFeatureDto, DataProviderFeatureService.name);
     }
 
-    async createFeature(dataProviderId: string, request: CreateDataProviderFeatureRequestDto): Promise<DataProviderFeatureDto> {
-        const existing = await this.exists({ dataProviderId, type: request.type });
-        if (existing) throw new AppException(DataProviderError.FeatureAlreadyExists(request.type, dataProviderId));
+    async createFeature(request: CreateDataProviderFeatureRequestDto): Promise<DataProviderFeatureDto> {
+        const { dataProviderId, type, service, config, input } = request;
 
-        const runner = this.runnerRegistry.getRunner(request.type);
-        const validatedConfig = request.config ? runner.validateConfig(request.config) : undefined;
+        const existing = await this.exists({ dataProviderId, type });
+        if (existing) throw new AppException(DataProviderError.FeatureAlreadyExists(type, dataProviderId));
 
-        if (request.input) {
-            await runner.testStateless(request.service, validatedConfig, request.input);
+        const runner = this.runnerRegistry.getRunner(type);
+        const validatedConfig = config ? runner.validateConfig(config) : undefined;
+
+        if (input) {
+            await runner.testStateless(service, validatedConfig, input);
         }
 
-        const status = request.input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED;
+        const status = input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED;
         const entity = this.dataProviderFeatureRepository.create({
+            type,
             status,
+            service,
             dataProviderId,
-            type: request.type,
             config: validatedConfig,
-            service: request.service,
         });
 
         const created = await super.create(entity);
