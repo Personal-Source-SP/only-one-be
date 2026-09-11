@@ -73,15 +73,15 @@ flowchart TD
 ```
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [target-config.interface.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/interfaces/target-config.interface.ts): Hợp đồng kiểu dữ liệu đa hình `TargetConfig`.
-- [target-config-validator.helper.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/helpers/target-config-validator.helper.ts): Module kiểm tra tính hợp lệ của cấu hình.
-- [data-provider.profile.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/profiles/data-provider.profile.ts): AutoMapper profile với explicit mapping cho `config`.
-- [data-provider-feature.controller.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/controllers/data-provider-feature.controller.ts): Controller quản lý tính năng.
-- [config-version.controller.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/controllers/config-version.controller.ts): Controller quản lý phiên bản cấu hình.
-- [data-provider-feature.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/data-provider-feature.service.ts): Service nghiệp vụ tính năng và validation.
-- [config-version.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/config-version.service.ts): Service quản lý phiên bản snapshot.
-- [discovery-validation.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/discovery-validation.service.ts): Service đánh giá chất lượng URL phát hiện.
-- [discovery-url.service.ts](file:///d:/Sources/Personal/only-one-be/src/modules/data-provider/services/discovery-url.service.ts): Service nạp dữ liệu SKU/Name.
+- [target-config.interface.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/interfaces/target-config.interface.ts): Hợp đồng kiểu dữ liệu đa hình `TargetConfig`.
+- [target-config-validator.helper.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/helpers/target-config-validator.helper.ts): Module kiểm tra tính hợp lệ của cấu hình.
+- [data-provider.profile.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/data-provider.profile.ts): AutoMapper profile với explicit mapping cho `config`.
+- [data-provider-feature.controller.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/controllers/data-provider-feature.controller.ts): Controller quản lý tính năng.
+- [config-version.controller.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/controllers/config-version.controller.ts): Controller quản lý phiên bản cấu hình.
+- [data-provider-feature.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/data-provider-feature.service.ts): Service nghiệp vụ tính năng và validation.
+- [config-version.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/config-version.service.ts): Service quản lý phiên bản snapshot.
+- [discovery-validation.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/discovery-validation.service.ts): Service đánh giá chất lượng URL phát hiện.
+- [discovery-url.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/data-provider/services/discovery-url.service.ts): Service nạp dữ liệu SKU/Name.
 
 ## 4. Verification Evidence & PR (Bằng chứng Nghiệm thu & PR)
 - **Unit Tests**:

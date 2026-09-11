@@ -59,10 +59,10 @@ flowchart TD
 ```
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [html-fetcher.service.ts](file:///d:/Sources/Personal/only-one-be/src/shared/services/html-fetcher.service.ts): Headless browser rendering với single interceptor.
-- [api-fetcher.service.ts](file:///d:/Sources/Personal/only-one-be/src/shared/services/api-fetcher.service.ts): HTTP API fetching engine.
-- [shared.module.ts](file:///d:/Sources/Personal/only-one-be/src/shared/shared.module.ts): Đăng ký và export `HtmlFetcherService`, `ApiFetcherService`.
-- [html-fetcher.service.spec.ts](file:///d:/Sources/Personal/only-one-be/src/shared/services/_tests/html-fetcher.service.spec.ts): Unit tests kiểm tra chặn images/css không bị lỗi request conflict.
+- [html-fetcher.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/services/html-fetcher.service.ts): Headless browser rendering với single interceptor.
+- [api-fetcher.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/services/api-fetcher.service.ts): HTTP API fetching engine.
+- [shared.module.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/shared.module.ts): Đăng ký và export `HtmlFetcherService`, `ApiFetcherService`.
+- [html-fetcher.service.spec.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/services/_tests/html-fetcher.service.spec.ts): Unit tests kiểm tra chặn images/css không bị lỗi request conflict.
 
 ## 4. Verification Evidence & PR (Bằng chứng Nghiệm thu & PR)
 - **Automated Tests**: Unit test suite `html-fetcher.service.spec.ts` đạt 100% Passed.
