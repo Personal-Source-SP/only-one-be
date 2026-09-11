@@ -213,7 +213,7 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
 
     async testStateless(request: TestFeatureStatelessRequestDto): Promise<IExtractDataResponse | ISearchExtractDataResponse> {
         const runner = this.runnerRegistry.getRunner(request.type);
-        const result = (await runner.testStateless(request.service || ScraperServiceEnum.GENERIC, request.config, request.input)) as
+        const result = (await runner.testStateless(request.service, request.config, request.input)) as
             | IExtractDataResponse
             | ISearchExtractDataResponse;
 

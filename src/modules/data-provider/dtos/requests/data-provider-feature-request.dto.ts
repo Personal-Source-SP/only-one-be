@@ -1,4 +1,4 @@
-import { EnumField, EnumFieldOptional, ObjectFieldOptional, StringField, UUIDField } from '../../../../decorators';
+import { EnumField, ObjectFieldOptional, StringField, UUIDField } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
 import { FeatureTestInput, TargetConfig } from '../../interfaces';
 
@@ -36,11 +36,10 @@ export class TestFeatureStatelessRequestDto {
     @EnumField(() => DataProviderFeatureType, { description: 'Feature type to test' })
     type: DataProviderFeatureType;
 
-    @EnumFieldOptional(() => ScraperServiceEnum, {
-        default: ScraperServiceEnum.GENERIC,
+    @EnumField(() => ScraperServiceEnum, {
         description: 'Service engine to test',
     })
-    service?: ScraperServiceEnum;
+    service: ScraperServiceEnum;
 
     @ObjectFieldOptional({ description: 'Raw draft configuration payload' })
     config: TargetConfig;
