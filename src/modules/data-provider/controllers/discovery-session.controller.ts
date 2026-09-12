@@ -6,21 +6,17 @@ import { PayloadDto } from '../../../common/dto/payload.dto';
 import { Auth, Get, Post, User, UUIDParam } from '../../../decorators';
 import { DISCOVERY_SESSION_PAGINATION_CONFIG } from '../constants/discovery-session-pagination.config';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
-import { CreateDiscoverySessionRequestDto, SubmitBulkUserActionRequestDto, TriggerValidationRequestDto } from '../dtos/requests';
+import { CreateDiscoverySessionRequestDto, TriggerValidationRequestDto } from '../dtos/requests';
 import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoverySessionService } from '../services/discovery-session.service';
-import { DiscoveryUrlService } from '../services/discovery-url.service';
 
 @ApiTags('Discovery Sessions')
 @Controller('discovery-sessions')
 @Auth()
 export class DiscoverySessionController extends BaseController<DiscoverySessionEntity, DiscoverySessionDto> {
-    constructor(
-        private readonly sessionService: DiscoverySessionService,
-        private readonly discoveryUrlService: DiscoveryUrlService,
-    ) {
-        super(sessionService, DISCOVERY_SESSION_PAGINATION_CONFIG, {
+    constructor(private readonly discoverySessionService: DiscoverySessionService) {
+        super(discoverySessionService, DISCOVERY_SESSION_PAGINATION_CONFIG, {
             enableGetAll: true,
             enableGetById: true,
             enablePagination: true,
@@ -35,7 +31,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         responseDto: DiscoverySessionSummaryResponseDto,
     })
     async getSummary(@UUIDParam('id') id: string): Promise<DiscoverySessionSummaryResponseDto> {
-        return await this.sessionService.getSessionSummary(id);
+        return await this.discoverySessionService.getSessionSummary(id);
     }
 
     @Post({
@@ -43,7 +39,7 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         responseDto: DiscoverySessionDto,
     })
     async create(@Body() request: CreateDiscoverySessionRequestDto, @User() user: PayloadDto): Promise<DiscoverySessionDto> {
-        return await this.sessionService.create(request, user);
+        return await this.discoverySessionService.create(request, user);
     }
 
     @Post({
@@ -52,15 +48,6 @@ export class DiscoverySessionController extends BaseController<DiscoverySessionE
         responseDto: DiscoverySessionDto,
     })
     async triggerValidation(@UUIDParam('id') id: string, @Body() request?: TriggerValidationRequestDto): Promise<DiscoverySessionDto> {
-        return await this.sessionService.startSessionValidation(id, request?.targetKeyword);
-    }
-
-    @Post({
-        path: 'bulk-user-actions',
-        summary: 'Submit bulk user actions for discovered URLs in a session',
-        responseDto: Boolean,
-    })
-    async submitBulkUserActionsForSession(@Body() request: SubmitBulkUserActionRequestDto): Promise<boolean> {
-        return await this.discoveryUrlService.submitBulkUserActions(request.urlIds, request.action, request.reason);
+        return await this.discoverySessionService.startSessionValidation(id, request?.targetKeyword);
     }
 }
