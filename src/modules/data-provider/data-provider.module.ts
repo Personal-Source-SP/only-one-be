@@ -10,7 +10,6 @@ import { DataProviderFeatureController } from './controllers/data-provider-featu
 import { DataProviderItemController } from './controllers/data-provider-item.controller';
 import { DiscoverySessionController } from './controllers/discovery-session.controller';
 import { DiscoveryUrlController } from './controllers/discovery-url.controller';
-import { DiscoveryValidationController } from './controllers/discovery-validation.controller';
 import { ItemController } from './controllers/item.controller';
 import { ScrapingDataController } from './controllers/scraping-data.controller';
 import { DataProviderProfile } from './data-provider.profile';
@@ -20,7 +19,6 @@ import { DataProviderFeatureEntity } from './entities/data-provider-feature.enti
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DiscoverySessionEntity } from './entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
-import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
 import { DiscoveryValidationLogEntity } from './entities/discovery-validation-log.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
@@ -30,7 +28,6 @@ import { ExtractSearchDataHelper } from './helpers/extract-search-data.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
 import { IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
-import { DiscoveryRunner } from './runners/discovery.runner';
 import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
 import { ScrapingFeatureRunner } from './runners/scraping-feature.runner';
 import { SearchFeatureRunner } from './runners/search-feature.runner';
@@ -47,7 +44,7 @@ import { GenericDataProviderSearchService } from './services/data-provider-searc
 import { LocalDataProviderSearchService } from './services/data-provider-search/local-data-provider-search.service';
 import { DiscoverySessionService } from './services/discovery-session.service';
 import { DiscoveryUrlService } from './services/discovery-url.service';
-import { DiscoveryValidationService } from './services/discovery-validation.service';
+import { DiscoveryValidationLogService } from './services/discovery-validation-log.service';
 import { ItemService } from './services/item.service';
 import { ScrapingDataService } from './services/scraping-data.service';
 
@@ -62,7 +59,6 @@ const entities = [
     ConfigVersionEntity,
     DiscoverySessionEntity,
     DiscoveryUrlEntity,
-    DiscoveryValidationBatchEntity,
     DiscoveryValidationLogEntity,
 ];
 const controllers = [
@@ -74,9 +70,8 @@ const controllers = [
     DataProviderItemController,
     DiscoverySessionController,
     DiscoveryUrlController,
-    DiscoveryValidationController,
 ];
-const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry, DiscoveryRunner];
+const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry];
 const services = [
     ItemService,
     ScrapingDataService,
@@ -92,7 +87,7 @@ const services = [
     LocalDataProviderSearchService,
     GenericDataProviderSearchService,
     DiscoverySessionService,
-    DiscoveryValidationService,
+    DiscoveryValidationLogService,
     DiscoveryUrlService,
     ...runners,
 ];

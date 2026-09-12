@@ -40,3 +40,10 @@ export enum ValidationBatchStatus {
     CANCELLED = 'cancelled',
     FAILED = 'failed',
 }
+
+export enum ValidationOperationStatus {
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+    SKIPPED = 'skipped',
+}
+

@@ -8,7 +8,7 @@ const discoverySessionColumns = getColumnNames(DiscoverySessionEntity);
 
 export const DISCOVERY_SESSION_PAGINATION_CONFIG = createPaginationConfig<DiscoverySessionEntity>({
     sortableColumns: ['sessionCode', 'targetUrl', 'status', 'totalDiscovered', 'totalQueued', 'createdAt'],
-    searchableColumns: ['sessionCode', 'targetUrl', 'notes'],
+    searchableColumns: ['sessionCode', 'targetUrl'],
     defaultSortBy: [['createdAt', 'DESC']],
     filterableColumns: {
         dataProviderId: [FilterOperator.EQ],

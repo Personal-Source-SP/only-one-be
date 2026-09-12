@@ -2,10 +2,10 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { DiscoverySessionStatus } from '../enums';
+import { DiscoverySessionStatus, ValidationBatchStatus } from '../enums';
 import { DataProviderEntity } from './data-provider.entity';
 import { DiscoveryUrlEntity } from './discovery-url.entity';
-import { DiscoveryValidationBatchEntity } from './discovery-validation-batch.entity';
+import { DiscoveryValidationLogEntity } from './discovery-validation-log.entity';
 
 @Entity({ name: 'discovery_sessions', synchronize: false })
 export class DiscoverySessionEntity extends AbstractEntity {
@@ -21,6 +21,10 @@ export class DiscoverySessionEntity extends AbstractEntity {
     @Column({ type: 'varchar', length: 2000 })
     @AutoMap()
     targetUrl: string;
+
+    @Column({ type: 'jsonb', nullable: true, default: [] })
+    @AutoMap()
+    targetKeywords?: string[];
 
     @Column({ type: 'varchar', length: 20, default: DiscoverySessionStatus.PENDING })
     @AutoMap()
@@ -50,6 +54,30 @@ export class DiscoverySessionEntity extends AbstractEntity {
     @AutoMap()
     totalValidated: number;
 
+    @Column({ type: 'varchar', length: 20, default: ValidationBatchStatus.PENDING })
+    @AutoMap()
+    validationStatus: ValidationBatchStatus;
+
+    @Column({ type: 'integer', default: 0 })
+    @AutoMap()
+    matchedUrls: number;
+
+    @Column({ type: 'integer', default: 0 })
+    @AutoMap()
+    noMatchUrls: number;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    @AutoMap()
+    validationStartedAt?: Date;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    @AutoMap()
+    validationCompletedAt?: Date;
+
+    @Column({ type: 'text', nullable: true })
+    @AutoMap()
+    validationReasonCancelled?: string;
+
     @Column({ type: 'integer', nullable: true })
     @AutoMap()
     durationSeconds?: number;
@@ -57,10 +85,6 @@ export class DiscoverySessionEntity extends AbstractEntity {
     @Column({ type: 'text', nullable: true })
     @AutoMap()
     errorMessage?: string;
-
-    @Column({ type: 'text', nullable: true })
-    @AutoMap()
-    notes?: string;
 
     @ManyToOne(() => DataProviderEntity, (p) => p.discoverySessions, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'data_provider_id' })
@@ -71,7 +95,7 @@ export class DiscoverySessionEntity extends AbstractEntity {
     @AutoMap(() => [DiscoveryUrlEntity])
     discoveryUrls: Relation<DiscoveryUrlEntity>[];
 
-    @OneToMany(() => DiscoveryValidationBatchEntity, (b) => b.discoverySession)
-    @AutoMap(() => [DiscoveryValidationBatchEntity])
-    validationBatches: Relation<DiscoveryValidationBatchEntity>[];
+    @OneToMany(() => DiscoveryValidationLogEntity, (l) => l.discoverySession)
+    @AutoMap(() => [DiscoveryValidationLogEntity])
+    validationLogs: Relation<DiscoveryValidationLogEntity>[];
 }

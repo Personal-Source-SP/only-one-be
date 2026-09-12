@@ -6,6 +6,11 @@ import { Auth, Get, Post, UUIDParam } from '../../../decorators';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
+import {
+    RevalidateUrlRequestDto,
+    SubmitBulkUserActionRequestDto,
+    SubmitUserActionRequestDto,
+} from '../dtos/requests';
 import { IngestDiscoveryUrlResponseDto } from '../dtos/responses';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
@@ -31,6 +36,33 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     })
     async getValidationLogs(@UUIDParam('id') id: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryUrlService.getValidationLogsByUrl(id);
+    }
+
+    @Post({
+        path: ':id/user-action',
+        summary: 'Submit user review action for a single discovered URL',
+        responseDto: Boolean,
+    })
+    async submitUserAction(@UUIDParam('id') id: string, @Body() request: SubmitUserActionRequestDto): Promise<boolean> {
+        return await this.discoveryUrlService.submitUserAction(id, request.action, request.reason);
+    }
+
+    @Post({
+        path: ':id/re-validate',
+        summary: 'Revalidate a single discovered URL',
+        responseDto: DiscoveryUrlDto,
+    })
+    async revalidate(@UUIDParam('id') id: string, @Body() request?: RevalidateUrlRequestDto): Promise<DiscoveryUrlDto> {
+        return await this.discoveryUrlService.revalidateDiscoveredUrl(id, request?.targetKeyword);
+    }
+
+    @Post({
+        path: 'bulk-user-actions',
+        summary: 'Submit bulk user actions for discovered URLs',
+        responseDto: Boolean,
+    })
+    async submitBulkUserActions(@Body() request: SubmitBulkUserActionRequestDto): Promise<boolean> {
+        return await this.discoveryUrlService.submitBulkUserActions(request.urlIds, request.action, request.reason);
     }
 
     @Post({

@@ -1,8 +1,8 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, In, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { AppException } from '../../../exceptions/app.exception';
@@ -13,26 +13,34 @@ import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
 import { IngestDiscoveredUrlResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
-import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
-import { DiscoveryUrlStatus, FinalValidationStatus } from '../enums';
+import {
+    DiscoveryUrlStatus,
+    DiscoveryValidationStatus,
+    FinalValidationStatus,
+    ValidationOperationStatus,
+    ValidationUserAction,
+} from '../enums';
+import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { DataProviderItemService } from './data-provider-item.service';
+import { DiscoverySessionService } from './discovery-session.service';
+import { DiscoveryValidationLogService } from './discovery-validation-log.service';
 import { ItemService } from './item.service';
 
 @Injectable()
 export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, DiscoveryUrlDto> {
     constructor(
+        private readonly dataSource: DataSource,
         private readonly itemService: ItemService,
-        private readonly dataProviderItemService: DataProviderItemService,
         private readonly queueService: QueueService,
+        private readonly dataProviderItemService: DataProviderItemService,
+        @Inject(forwardRef(() => DiscoverySessionService))
+        private readonly discoverySessionService: DiscoverySessionService,
+        private readonly discoveryValidationLogService: DiscoveryValidationLogService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
-        @InjectRepository(DiscoverySessionEntity)
-        private readonly discoverySessionRepository: Repository<DiscoverySessionEntity>,
-        @InjectRepository(DiscoveryValidationLogEntity)
-        private readonly discoveryValidationLogRepository: Repository<DiscoveryValidationLogEntity>,
     ) {
         super(discoveryUrlRepository, mapper, DiscoveryUrlDto, DiscoveryUrlService.name);
     }
@@ -89,7 +97,7 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
     }
 
     async batchIngest(sessionId: string, urlIds?: string[]): Promise<IngestDiscoveryUrlResponseDto> {
-        const session = await this.discoverySessionRepository.findOne({ where: { id: sessionId } });
+        const session = await this.discoverySessionService.findById(sessionId);
         if (!session) throw new AppException(DataProviderError.SessionNotFound(sessionId));
 
         const whereCondition: FindOptionsWhere<DiscoveryUrlEntity> = { sessionId };
@@ -142,13 +150,95 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         });
     }
 
-    async getValidationLogsByUrl(urlId: string): Promise<DiscoveryValidationLogDto[]> {
-        const entities = await this.discoveryValidationLogRepository.find({
-            where: { discoveryUrlId: urlId },
-            order: { createdAt: 'DESC' },
+    async revalidateDiscoveredUrl(urlId: string, targetKeyword?: string): Promise<DiscoveryUrlDto> {
+        const urlDto = await this.findById(urlId);
+        if (!urlDto) throw new AppException(DataProviderError.UrlNotFound(urlId));
+
+        const startTime = Date.now();
+        const evalResult = DiscoveryValidationHelper.evaluateUrl({
+            targetKeyword,
+            url: urlDto.url,
+            title: urlDto.title,
+            domain: urlDto.domain,
         });
 
-        return this.mapper.mapArray(entities, DiscoveryValidationLogEntity, DiscoveryValidationLogDto);
+        await this.discoveryValidationLogService.markPreviousLogsNotLatest({ discoveryUrlId: urlId });
+
+        const log = this.discoveryValidationLogService.createValidationLog({
+            isLatestLog: true,
+            operationStatus: ValidationOperationStatus.COMPLETED,
+            discoveryUrlId: urlDto.id,
+            sessionId: urlDto.sessionId,
+            matchResult: evalResult.matchResult,
+            confidenceScore: evalResult.confidenceScore,
+            reason: `Revalidation: ${evalResult.reason}`,
+            matchedCriteria: evalResult.matchedCriteria,
+            processingDuration: Date.now() - startTime,
+        });
+
+        await this.dataSource.transaction(async (manager) => {
+            await manager.update(DiscoveryUrlEntity, urlId, {
+                matchResult: evalResult.matchResult,
+                confidenceScore: evalResult.confidenceScore,
+                validationStatus: DiscoveryValidationStatus.COMPLETED,
+            });
+            await manager.save(DiscoveryValidationLogEntity, log);
+        });
+
+        urlDto.matchResult = evalResult.matchResult;
+        urlDto.confidenceScore = evalResult.confidenceScore;
+        urlDto.validationStatus = DiscoveryValidationStatus.COMPLETED;
+
+        return urlDto;
+    }
+
+    async submitUserAction(urlId: string, action: ValidationUserAction, reason?: string): Promise<boolean> {
+        const finalStatus = action === ValidationUserAction.CONFIRM ? FinalValidationStatus.APPROVED : FinalValidationStatus.REJECTED;
+
+        const success = await this.update(urlId, {
+            userAction: action,
+            userActionReason: reason,
+            userActionDate: new Date(),
+            finalValidationStatus: finalStatus,
+        });
+
+        if (action === ValidationUserAction.CONFIRM && success) {
+            await this.ingestDiscoveredUrl(urlId);
+        }
+
+        return success;
+    }
+
+    async submitBulkUserActions(urlIds: string[], action: ValidationUserAction, reason?: string): Promise<boolean> {
+        const finalStatus = action === ValidationUserAction.CONFIRM ? FinalValidationStatus.APPROVED : FinalValidationStatus.REJECTED;
+
+        const result = await this.discoveryUrlRepository.update(
+            { id: In(urlIds) },
+            {
+                userAction: action,
+                userActionReason: reason,
+                userActionDate: new Date(),
+                finalValidationStatus: finalStatus,
+            },
+        );
+
+        if (action === ValidationUserAction.CONFIRM) {
+            for (const urlId of urlIds) {
+                try {
+                    await this.ingestDiscoveredUrl(urlId);
+                } catch (err) {
+                    this.loggerService.warn(
+                        `[submitBulkUserActions] Failed to ingest discovered URL with id: ${urlId} error: ${err?.message}`,
+                    );
+                }
+            }
+        }
+
+        return (result.affected ?? 0) > 0;
+    }
+
+    async getValidationLogsByUrl(urlId: string): Promise<DiscoveryValidationLogDto[]> {
+        return await this.discoveryValidationLogService.getValidationLogsByUrl(urlId);
     }
 
     private extractCodeFromUrl(url: string, title?: string): string | undefined {

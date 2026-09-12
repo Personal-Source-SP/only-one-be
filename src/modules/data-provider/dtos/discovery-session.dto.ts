@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { DiscoverySessionStatus } from '../enums';
+import { DiscoverySessionStatus, ValidationBatchStatus } from '../enums';
 import { DataProviderDto } from './data-provider.dto';
 
 export class DiscoverySessionDto extends AbstractDto {
@@ -18,13 +18,16 @@ export class DiscoverySessionDto extends AbstractDto {
     targetUrl: string;
 
     @AutoMap()
+    targetKeywords?: string[];
+
+    @AutoMap()
     status: DiscoverySessionStatus;
 
     @AutoMap()
     depth: number;
 
     @AutoMap()
-    maxUrls?: number | null;
+    maxUrls?: number;
 
     @AutoMap()
     autoValidate: boolean;
@@ -39,11 +42,26 @@ export class DiscoverySessionDto extends AbstractDto {
     totalValidated: number;
 
     @AutoMap()
+    validationStatus: ValidationBatchStatus;
+
+    @AutoMap()
+    matchedUrls: number;
+
+    @AutoMap()
+    noMatchUrls: number;
+
+    @AutoMap()
+    validationStartedAt?: Date;
+
+    @AutoMap()
+    validationCompletedAt?: Date;
+
+    @AutoMap()
+    validationReasonCancelled?: string;
+
+    @AutoMap()
     durationSeconds?: number;
 
     @AutoMap()
     errorMessage?: string;
-
-    @AutoMap()
-    notes?: string;
 }

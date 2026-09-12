@@ -8,7 +8,6 @@ import { DataProviderFeatureDto } from './dtos/data-provider-feature.dto';
 import { DataProviderItemDto } from './dtos/data-provider-item.dto';
 import { DiscoverySessionDto } from './dtos/discovery-session.dto';
 import { DiscoveryUrlDto } from './dtos/discovery-url.dto';
-import { DiscoveryValidationBatchDto } from './dtos/discovery-validation-batch.dto';
 import { DiscoveryValidationLogDto } from './dtos/discovery-validation-log.dto';
 import { ItemDto } from './dtos/item.dto';
 import {
@@ -30,7 +29,6 @@ import { DataProviderFeatureEntity } from './entities/data-provider-feature.enti
 import { DataProviderItemEntity } from './entities/data-provider-item.entity';
 import { DiscoverySessionEntity } from './entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
-import { DiscoveryValidationBatchEntity } from './entities/discovery-validation-batch.entity';
 import { DiscoveryValidationLogEntity } from './entities/discovery-validation-log.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
@@ -53,7 +51,6 @@ export class DataProviderProfile extends AutomapperProfile {
             this.mapConfigVersion(mapper);
             this.mapDiscoverySession(mapper);
             this.mapDiscoveryUrl(mapper);
-            this.mapDiscoveryValidationBatch(mapper);
             this.mapDiscoveryValidationLog(mapper);
         };
     }
@@ -179,10 +176,6 @@ export class DataProviderProfile extends AutomapperProfile {
 
     private mapDiscoveryUrl(mapper: Mapper): void {
         createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
-    }
-
-    private mapDiscoveryValidationBatch(mapper: Mapper): void {
-        createMap(mapper, DiscoveryValidationBatchEntity, DiscoveryValidationBatchDto);
     }
 
     private mapDiscoveryValidationLog(mapper: Mapper): void {

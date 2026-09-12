@@ -3,4 +3,5 @@ export enum QUEUE_NAME {
     DISCOVERY_VALIDATION_JOB = 'discovery-validation-job',
     DISCOVERY_INGESTION_JOB = 'discovery-ingestion-job',
     AUDIT_LOG_JOB = 'audit-log-job',
+    DISCOVERY_SEARCH_JOB = 'discovery-search-job',
 }

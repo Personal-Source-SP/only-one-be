@@ -9,3 +9,5 @@
 - **ConfigVersion (`ConfigVersionEntity`)**: Snapshot bất biến lưu lại từng phiên bản cấu hình `config` của một feature khi có thao tác chỉnh sửa thủ công (`MANUAL_EDIT`) hoặc rollback (`ROLLBACK`).
 - **FeatureRunnerRegistry (`FeatureRunnerRegistry`)**: Registry tập trung lưu trữ và cung cấp runner tương ứng theo `DataProviderFeatureType`.
 - **Stateless Sandbox (`testStateless`)**: Kiểm thử cấu hình tức thì với dữ liệu mẫu đầu vào (`input`) mà không làm thay đổi trạng thái của database hay entity.
+- **DiscoverySession (`DiscoverySessionEntity`)**: Phiên khám phá, thu thập danh sách URL sản phẩm/bài viết từ Data Provider dựa trên cấu hình Search Feature và từ khóa tìm kiếm (`targetKeyword`).
+- **DiscoveryRunner (`DiscoveryRunner`)**: Runner nền điều phối tác vụ tìm kiếm, cào dữ liệu URL thông qua Search Feature và khởi chạy quy trình tự động thẩm định (Validation Batch).

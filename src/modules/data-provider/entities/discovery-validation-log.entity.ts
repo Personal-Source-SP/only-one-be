@@ -2,9 +2,9 @@ import { AutoMap } from '@automapper/classes';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Relation } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/entities';
-import { ValidationMatchResult } from '../enums';
+import { ValidationMatchResult, ValidationOperationStatus } from '../enums';
+import { DiscoverySessionEntity } from './discovery-session.entity';
 import { DiscoveryUrlEntity } from './discovery-url.entity';
-import { DiscoveryValidationBatchEntity } from './discovery-validation-batch.entity';
 
 @Entity({ name: 'discovery_validation_logs', synchronize: false })
 export class DiscoveryValidationLogEntity extends AbstractEntity {
@@ -18,14 +18,9 @@ export class DiscoveryValidationLogEntity extends AbstractEntity {
     @Index()
     discoveryUrlId: string;
 
-    @Column({ type: 'uuid' })
+    @Column({ type: 'varchar', length: 20, default: ValidationOperationStatus.COMPLETED })
     @AutoMap()
-    @Index()
-    validationBatchId: string;
-
-    @Column({ type: 'varchar', length: 20, default: 'completed' })
-    @AutoMap()
-    operationStatus: string;
+    operationStatus: ValidationOperationStatus;
 
     @Column({ type: 'varchar', length: 20, default: ValidationMatchResult.UNCERTAIN })
     @AutoMap()
@@ -56,8 +51,8 @@ export class DiscoveryValidationLogEntity extends AbstractEntity {
     @AutoMap(() => DiscoveryUrlEntity)
     discoveryUrl: Relation<DiscoveryUrlEntity>;
 
-    @ManyToOne(() => DiscoveryValidationBatchEntity, (b) => b.validationLogs, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'validation_batch_id' })
-    @AutoMap(() => DiscoveryValidationBatchEntity)
-    validationBatch: Relation<DiscoveryValidationBatchEntity>;
+    @ManyToOne(() => DiscoverySessionEntity, (s) => s.validationLogs, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'session_id' })
+    @AutoMap(() => DiscoverySessionEntity)
+    discoverySession: Relation<DiscoverySessionEntity>;
 }

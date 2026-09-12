@@ -1,9 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { ValidationMatchResult } from '../enums';
+import { ValidationMatchResult, ValidationOperationStatus } from '../enums';
 import { DiscoveryUrlDto } from './discovery-url.dto';
-import { DiscoveryValidationBatchDto } from './discovery-validation-batch.dto';
 
 export class DiscoveryValidationLogDto extends AbstractDto {
     @AutoMap()
@@ -16,13 +15,7 @@ export class DiscoveryValidationLogDto extends AbstractDto {
     discoveryUrl?: DiscoveryUrlDto;
 
     @AutoMap()
-    validationBatchId: string;
-
-    @AutoMap(() => DiscoveryValidationBatchDto)
-    validationBatch?: DiscoveryValidationBatchDto;
-
-    @AutoMap()
-    operationStatus: string;
+    operationStatus: ValidationOperationStatus;
 
     @AutoMap()
     matchResult: ValidationMatchResult;

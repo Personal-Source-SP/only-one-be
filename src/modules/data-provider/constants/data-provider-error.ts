@@ -63,6 +63,13 @@ export class DataProviderError {
         params: { type, dataProviderId },
     });
 
+    static FeatureNotReady = (type: string, dataProviderId: string): IAppError => ({
+        code: 'data_provider_feature_not_ready',
+        message: `Tính năng '${type}' của nhà cung cấp dữ liệu chưa sẵn sàng hoạt động (cần trạng thái READY).`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        params: { type, dataProviderId },
+    });
+
     static readonly InvalidStatusSwitchUnconfigured: IAppError = {
         code: 'data_provider_invalid_switch_unconfigured',
         message: 'Không được phép chuyển trạng thái về UNCONFIGURED.',
@@ -234,6 +241,12 @@ export class DataProviderError {
     static readonly BatchAlreadyFinishedOrCancelled: IAppError = {
         code: 'discovery_validation_batch_already_finished',
         message: 'Đợt xác thực đã hoàn thành hoặc đã bị hủy trước đó.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static readonly ValidationBatchAlreadyRunning: IAppError = {
+        code: 'discovery_validation_batch_already_running',
+        message: 'Phiên discovery đang trong quá trình xác thực.',
         statusCode: HttpStatus.BAD_REQUEST,
     };
 
