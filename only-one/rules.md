@@ -25,6 +25,7 @@
 - **[AVOID]** Automatically falling back to appending `?q=` in URL builders when search patterns omit query placeholders — Standardize on `{...}` path or query replacements and append clean placeholders when missing.
 - **[AVOID]** Passing raw unprocessed HTML directly into search or extraction script execution — Pre-process HTML to strip unnecessary style/link tags and scope the DOM to `mainContentSelector` (or its parent element) before running script generators.
 - **[AVOID]** Allowing immutable configuration attributes (e.g., `service` engine) in feature update DTOs — Treat feature runtime engine as immutable post-creation and enforce strict required metadata fields (`changeDescription`) on config updates.
+- **[AVOID]** Sequential single-record query loops during batch URL ingestion — Chunk incoming batch URLs into standardized batch sizes (`DISCOVERY_INGESTION_CHUNK_SIZE`) and utilize bulk queries/inserts (`findListByFilter` with `In()`, batch inserts) to prevent $O(N)$ database roundtrip bottlenecks.
 
 ## Error Handling & Exception Patterns
 - **[AVOID]** Wrapping try...catch manually and calling handleError() inside Service CRUD methods — Allow exceptions to naturally bubble up to `AllExceptionsFilter` for centralized call-site logging, classification, and HTTP Status mapping.
