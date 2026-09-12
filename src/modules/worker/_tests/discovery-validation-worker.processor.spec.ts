@@ -4,45 +4,12 @@ import { DiscoveryValidationWorkerProcessor } from '../processors/discovery-vali
 
 describe('DiscoveryValidationWorkerProcessor', () => {
     let processor: DiscoveryValidationWorkerProcessor;
-    let dataSource: any;
     let discoveryUrlService: any;
-    let discoverySessionService: any;
-    let discoveryValidationLogService: any;
     let eventEmitter: any;
 
     beforeEach(() => {
-        dataSource = {
-            transaction: jest.fn(async (cb) => {
-                const manager = {
-                    update: jest.fn().mockResolvedValue({ affected: 1 }),
-                    save: jest.fn().mockResolvedValue({}),
-                    createQueryBuilder: jest.fn().mockReturnValue({
-                        update: jest.fn().mockReturnThis(),
-                        set: jest.fn().mockReturnThis(),
-                        where: jest.fn().mockReturnThis(),
-                        execute: jest.fn().mockResolvedValue({ affected: 1 }),
-                    }),
-                    findOne: jest.fn().mockResolvedValue(null),
-                };
-                return await cb(manager);
-            }),
-        };
-
         discoveryUrlService = {
-            findById: jest.fn().mockResolvedValue({
-                id: 'url-1',
-                url: 'https://example.com/p1',
-                title: 'Product 1',
-                domain: 'example.com',
-            }),
-        };
-
-        discoverySessionService = {
-            findById: jest.fn().mockResolvedValue({ id: 'session-1', validationStatus: 'in_progress' }),
-        };
-
-        discoveryValidationLogService = {
-            createValidationLog: jest.fn().mockReturnValue({ id: 'log-1' }),
+            processDiscoveryValidation: jest.fn().mockResolvedValue(undefined),
         };
 
         eventEmitter = {
@@ -50,15 +17,12 @@ describe('DiscoveryValidationWorkerProcessor', () => {
         };
 
         processor = new DiscoveryValidationWorkerProcessor(
-            dataSource,
-            discoveryUrlService,
-            discoverySessionService,
-            discoveryValidationLogService,
             eventEmitter,
+            discoveryUrlService,
         );
     });
 
-    it('should process validation job and update discovery URL evaluation', async () => {
+    it('should process validation job by delegating to discoveryUrlService', async () => {
         const job: any = {
             id: 'job-1',
             attemptsMade: 1,
@@ -71,9 +35,7 @@ describe('DiscoveryValidationWorkerProcessor', () => {
 
         await processor.process(job);
 
-        expect(discoverySessionService.findById).toHaveBeenCalledWith('session-1');
-        expect(discoveryUrlService.findById).toHaveBeenCalledWith('url-1');
-        expect(dataSource.transaction).toHaveBeenCalled();
+        expect(discoveryUrlService.processDiscoveryValidation).toHaveBeenCalledWith('session-1', 'url-1', 'product');
     });
 
     it('should emit failure audit log event on error', async () => {

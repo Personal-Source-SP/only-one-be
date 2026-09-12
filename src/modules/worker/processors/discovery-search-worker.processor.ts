@@ -27,15 +27,7 @@ export class DiscoverySearchWorkerProcessor {
     @Process({ concurrency: 3 })
     async process(job: DiscoverySearchJobType): Promise<void> {
         const { sessionId, keyword } = job.data;
-        this.loggerService.log(`Processing discovery search job ${job.id} for keyword "${keyword}" (Session: ${sessionId})`);
-
-        try {
-            await this.discoverySessionService.processDiscoverySearch(sessionId, keyword);
-            this.loggerService.log(`Successfully completed discovery search job for keyword "${keyword}"`);
-        } catch (error) {
-            this.loggerService.error(`Failed discovery search job for keyword "${keyword}": ${error?.message}`);
-            throw error;
-        }
+        await this.discoverySessionService.processDiscoverySearch(sessionId, keyword);
     }
 
     @OnQueueCompleted()

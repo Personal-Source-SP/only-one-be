@@ -12,6 +12,7 @@ import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
 import { IngestDiscoveredUrlResponseDto } from '../dtos/responses';
+import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
 import { ItemEntity } from '../entities/item.entity';
@@ -19,6 +20,7 @@ import {
     DiscoveryUrlStatus,
     DiscoveryValidationStatus,
     FinalValidationStatus,
+    ValidationBatchStatus,
     ValidationOperationStatus,
     ValidationUserAction,
 } from '../enums';
@@ -284,6 +286,54 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
 
     async getValidationLogsByUrl(urlId: string): Promise<DiscoveryValidationLogDto[]> {
         return await this.discoveryValidationLogService.getValidationLogsByUrl(urlId);
+    }
+
+    async processDiscoveryValidation(sessionId: string, urlId: string, targetKeyword?: string): Promise<void> {
+        const startTime = Date.now();
+
+        const session = await this.dataSource.getRepository(DiscoverySessionEntity).findOne({ where: { id: sessionId } });
+        if (!session || session.validationStatus === ValidationBatchStatus.CANCELLED) {
+            this.loggerService.warn(`Validation skipped: session ${sessionId} not found or cancelled`);
+            return;
+        }
+
+        const url = await this.findById(urlId);
+        if (!url) {
+            this.loggerService.warn(`Validation skipped: URL ${urlId} not found`);
+            return;
+        }
+
+        const evalResult = DiscoveryValidationHelper.evaluateUrl({
+            targetKeyword,
+            url: url.url,
+            title: url.title,
+            domain: url.domain,
+        });
+
+        await this.dataSource.transaction(async (manager) => {
+            await manager.update(DiscoveryUrlEntity, urlId, {
+                matchResult: evalResult.matchResult,
+                confidenceScore: evalResult.confidenceScore,
+                validationStatus: DiscoveryValidationStatus.COMPLETED,
+            });
+
+            await manager.save(
+                DiscoveryValidationLogEntity,
+                this.discoveryValidationLogService.createValidationLog({
+                    sessionId,
+                    isLatestLog: true,
+                    discoveryUrlId: urlId,
+                    reason: evalResult.reason,
+                    matchResult: evalResult.matchResult,
+                    confidenceScore: evalResult.confidenceScore,
+                    matchedCriteria: evalResult.matchedCriteria,
+                    processingDuration: Date.now() - startTime,
+                    operationStatus: ValidationOperationStatus.COMPLETED,
+                }),
+            );
+        });
+
+        this.loggerService.log(`Successfully validated discovery URL ${urlId}`);
     }
 
     private extractCodeFromUrl(url: string, title?: string): string | undefined {

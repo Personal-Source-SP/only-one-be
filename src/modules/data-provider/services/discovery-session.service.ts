@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -42,7 +42,6 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         private readonly searchFeatureRunner: SearchFeatureRunner,
         private readonly dataProviderService: DataProviderService,
         private readonly discoveryUrlService: DiscoveryUrlService,
-        @Inject(forwardRef(() => DiscoveryValidationLogService))
         private readonly discoveryValidationLogService: DiscoveryValidationLogService,
         @InjectMapper() mapper: Mapper,
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
@@ -322,8 +321,8 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         const durationSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
         await this.discoverySessionRepository.update(sessionId, {
             durationSeconds,
-            errorMessage: error?.message || String(error),
             status: DiscoverySessionStatus.FAILED,
+            errorMessage: error?.message || String(error),
         });
     }
 }
