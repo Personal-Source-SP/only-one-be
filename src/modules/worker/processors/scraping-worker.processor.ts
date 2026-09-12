@@ -1,10 +1,13 @@
 import { OnQueueCompleted, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Job } from 'bull';
 
 import { CustomError } from '../../../exceptions/custom-error.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
+import { RecordAuditLogDto } from '../../audit-log/dtos/requests/record-audit-log.dto';
+import { AuditAction, AuditResource, AuditStatus, AUDIT_LOG_EVENTS } from '../../audit-log/enums/audit-log.enum';
 import { ProcessScrapeDataResponse } from '../../data-provider/dtos/responses';
 import { ScrapingDataService } from '../../data-provider/services/scraping-data.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
@@ -22,6 +25,7 @@ export class ScrapingWorkerProcessor {
     private readonly loggerService: LoggerService = new LoggerService(ScrapingWorkerProcessor.name);
 
     constructor(
+        private readonly eventEmitter: EventEmitter2,
         private readonly scrapingDataService: ScrapingDataService,
         private readonly scheduleJobEventService: ScheduleJobEventService,
     ) {
@@ -65,6 +69,22 @@ export class ScrapingWorkerProcessor {
         const meta = err instanceof CustomError ? err.data : { name: err?.name, stack: err?.stack };
 
         this.loggerService.error(`Job ${scrapingJobEventId} failed. Error: ${err?.message}`);
+
+        this.eventEmitter.emit(AUDIT_LOG_EVENTS.RECORD, {
+            errorMessage: err?.message,
+            resourceId: scrapingJobEventId,
+            status: AuditStatus.FAILED,
+            action: AuditAction.RUN_JOB,
+            resource: AuditResource.CRAWLER_JOB,
+            deduplicationKey: `audit_fail_${QUEUE_NAME.SCRAPING_JOB}_${job.id}_${job.attemptsMade}`,
+            metadata: {
+                jobId: job.id,
+                attemptsMade: job.attemptsMade,
+                queueName: QUEUE_NAME.SCRAPING_JOB,
+                errorMeta: meta,
+                scheduleJobEventId: scrapingJobEventId,
+            },
+        } as RecordAuditLogDto);
 
         if (job.attemptsMade >= job.opts.attempts) {
             await this.updateScheduleJobEvent(job, ScheduleJobEventType.FAILED);

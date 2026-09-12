@@ -50,4 +50,7 @@ export class RecordAuditLogDto {
 
     @NumberFieldOptional({ int: true })
     durationMs?: number;
+
+    @StringFieldOptional()
+    deduplicationKey?: string;
 }

@@ -17,7 +17,9 @@ export class AuditLogListener {
     @OnEvent(AUDIT_LOG_EVENTS.RECORD)
     async handleAuditLogRecord(dto: RecordAuditLogDto): Promise<void> {
         try {
+            const jobId = dto.deduplicationKey || undefined;
             await this.auditLogQueue.add(dto, {
+                jobId,
                 attempts: 3,
                 removeOnComplete: true,
                 backoff: {

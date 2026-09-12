@@ -1,9 +1,12 @@
 import { OnQueueCompleted, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Job } from 'bull';
 import { DataSource, EntityManager } from 'typeorm';
 
 import { LoggerService } from '../../../shared/services/logger.service';
+import { RecordAuditLogDto } from '../../audit-log/dtos/requests/record-audit-log.dto';
+import { AuditAction, AuditResource, AuditStatus, AUDIT_LOG_EVENTS } from '../../audit-log/enums/audit-log.enum';
 import { DiscoverySessionEntity } from '../../data-provider/entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../../data-provider/entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from '../../data-provider/entities/discovery-validation-log.entity';
@@ -29,6 +32,7 @@ export class DiscoveryValidationWorkerProcessor {
 
     constructor(
         private readonly dataSource: DataSource,
+        private readonly eventEmitter: EventEmitter2,
         private readonly discoveryUrlService: DiscoveryUrlService,
         private readonly discoverySessionService: DiscoverySessionService,
         private readonly discoveryValidationLogService: DiscoveryValidationLogService,
@@ -128,5 +132,23 @@ export class DiscoveryValidationWorkerProcessor {
     @OnQueueFailed()
     async onError(job: DiscoveryValidationJobType, err: Error): Promise<void> {
         this.loggerService.error(`Discovery validation job ${job.id} failed: ${err?.message}`);
+
+        this.eventEmitter.emit(AUDIT_LOG_EVENTS.RECORD, {
+            resourceId: job.data.urlId,
+            errorMessage: err?.message,
+            status: AuditStatus.FAILED,
+            action: AuditAction.RUN_JOB,
+            resource: AuditResource.DISCOVERY_URL,
+            deduplicationKey: `audit_fail_${QUEUE_NAME.DISCOVERY_VALIDATION_JOB}_${job.id}_${job.attemptsMade}`,
+            metadata: {
+                jobId: job.id,
+                urlId: job.data.urlId,
+                sessionId: job.data.sessionId,
+                attemptsMade: job.attemptsMade,
+                targetKeyword: job.data.targetKeyword,
+                queueName: QUEUE_NAME.DISCOVERY_VALIDATION_JOB,
+                stack: err?.stack,
+            },
+        } as RecordAuditLogDto);
     }
 }
