@@ -14,7 +14,7 @@ export interface IBaseService<T, D> {
     findAll(options?: IFindOptions<T>): Promise<D[]>;
     findById(id: string, options?: IFindOptions<T>): Promise<D>;
     findOneByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D>;
-    findListByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D[]>;
+    findListByFilter(where: FindOptionsWhere<T> | FindOptionsWhere<T>[], options?: IFindOptions<T>): Promise<D[]>;
 
     create(data: T, user?: PayloadDto): Promise<D>;
     createMany(data: T[], user?: PayloadDto): Promise<D[]>;

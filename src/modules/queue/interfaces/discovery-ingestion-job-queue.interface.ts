@@ -1,5 +1,5 @@
 export interface IDiscoveryIngestionJob {
-    urlId: string;
+    urlIds: string[];
     sessionId: string;
     dataProviderId: string;
 }

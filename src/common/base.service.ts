@@ -58,7 +58,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         return this.mapEntityToDto(entity) as D;
     }
 
-    async findListByFilter(where: FindOptionsWhere<T>, options?: IFindOptions<T>): Promise<D[]> {
+    async findListByFilter(where: FindOptionsWhere<T> | FindOptionsWhere<T>[], options?: IFindOptions<T>): Promise<D[]> {
         const { relations, select, withDeleted } = options ?? {};
 
         const entities = await this.repository.find({

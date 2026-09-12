@@ -21,15 +21,17 @@ export class DiscoveryIngestionWorkerProcessor {
 
     @Process({ concurrency: 5 })
     async process(job: DiscoveryIngestionJobType): Promise<void> {
-        const { urlId, sessionId } = job.data;
-        this.loggerService.log(`Processing ingestion job ${job.id} for URL ${urlId} (Session: ${sessionId})`);
+        const { urlIds, sessionId } = job.data;
+        this.loggerService.log(`Processing ingestion job ${job.id} for ${urlIds.length} URL(s) (Session: ${sessionId})`);
 
         try {
-            await this.discoveryUrlService.ingestDiscoveredUrl(urlId);
-            this.loggerService.log(`Successfully ingested discovery URL ${urlId}`);
+            await this.discoveryUrlService.ingestDiscoveredUrlsChunk(urlIds);
+            this.loggerService.log(`Successfully ingested ${urlIds.length} discovery URLs in job ${job.id}`);
         } catch (error) {
-            this.loggerService.error(`Failed to ingest discovery URL ${urlId}: ${error?.message}`);
-            await this.discoveryUrlService.update(urlId, { status: DiscoveryUrlStatus.FAILED });
+            this.loggerService.error(`Failed to ingest discovery URLs in job ${job.id}: ${error?.message}`);
+            if (urlIds?.length > 0) {
+                await this.discoveryUrlService.updateStatus(urlIds, DiscoveryUrlStatus.FAILED);
+            }
 
             throw error;
         }
@@ -37,7 +39,7 @@ export class DiscoveryIngestionWorkerProcessor {
 
     @OnQueueCompleted()
     async onCompleted(job: DiscoveryIngestionJobType): Promise<void> {
-        this.loggerService.log(`Discovery ingestion job ${job.id} for URL ${job.data.urlId} completed`);
+        this.loggerService.log(`Discovery ingestion job ${job.id} for ${job.data.urlIds?.length || 0} URL(s) completed`);
     }
 
     @OnQueueFailed()
