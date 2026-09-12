@@ -22,16 +22,10 @@ export class AuditLogService extends BaseService<AuditLogEntity, AuditLogDto> {
         super(auditLogRepository, mapper, AuditLogDto, AuditLogService.name);
     }
 
-    /**
-     * Dispatches an asynchronous audit log record event
-     */
     record(dto: RecordAuditLogDto): void {
         this.eventEmitter.emit(AUDIT_LOG_EVENTS.RECORD, dto);
     }
 
-    /**
-     * Persists audit log record directly to database with sensitive data sanitization
-     */
     async saveAuditLog(dto: RecordAuditLogDto): Promise<AuditLogEntity> {
         const sanitizedOld = this.sanitizeData(dto.oldValues);
         const sanitizedNew = this.sanitizeData(dto.newValues);
@@ -49,9 +43,8 @@ export class AuditLogService extends BaseService<AuditLogEntity, AuditLogDto> {
     private sanitizeData(data?: Record<string, any>): Record<string, any> | undefined {
         if (!data || typeof data !== 'object') return data;
 
-        const sensitiveKeys = ['password', 'secret', 'secretKey', 'token', 'apiKey', 'authorization'];
-
         const copy = { ...data };
+        const sensitiveKeys = ['password', 'secret', 'secretKey', 'token', 'apiKey', 'authorization'];
 
         for (const key of Object.keys(copy)) {
             if (sensitiveKeys.some((s) => key.toLowerCase().includes(s.toLowerCase()))) {
