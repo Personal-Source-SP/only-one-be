@@ -1,20 +1,17 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { AppException } from '../../../exceptions/app.exception';
-import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
-import { QueueService } from '../../queue/services/queue.service';
 import { DataProviderError } from '../constants/data-provider-error';
-import { DISCOVERY_INGESTION_CHUNK_SIZE } from '../constants/discovery-constants';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
 import { ItemDto } from '../dtos/item.dto';
-import { IngestDiscoveredUrlResponseDto, IngestDiscoveryUrlResponseDto } from '../dtos/responses';
+import { IngestDiscoveredUrlResponseDto } from '../dtos/responses';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from '../entities/discovery-validation-log.entity';
 import { ItemEntity } from '../entities/item.entity';
@@ -27,7 +24,6 @@ import {
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { DataProviderItemService } from './data-provider-item.service';
-import { DiscoverySessionService } from './discovery-session.service';
 import { DiscoveryValidationLogService } from './discovery-validation-log.service';
 import { ItemService } from './item.service';
 
@@ -36,11 +32,8 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
     constructor(
         private readonly dataSource: DataSource,
         private readonly itemService: ItemService,
-        private readonly queueService: QueueService,
         private readonly dataProviderItemService: DataProviderItemService,
         private readonly discoveryValidationLogService: DiscoveryValidationLogService,
-        @Inject(forwardRef(() => DiscoverySessionService))
-        private readonly discoverySessionService: DiscoverySessionService,
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DiscoveryUrlEntity)
         private readonly discoveryUrlRepository: Repository<DiscoveryUrlEntity>,
@@ -199,64 +192,6 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         await this.discoveryUrlRepository.update({ id: In(processedIds) }, { status: DiscoveryUrlStatus.INGESTED });
 
         return results;
-    }
-
-    async batchIngest(sessionId: string, urlIds?: string[]): Promise<IngestDiscoveryUrlResponseDto> {
-        const session = await this.discoverySessionService.findById(sessionId);
-        if (!session) throw new AppException(DataProviderError.SessionNotFound(sessionId));
-
-        const whereCondition: FindOptionsWhere<DiscoveryUrlEntity> = { sessionId };
-        if (urlIds && urlIds.length > 0) {
-            whereCondition.id = In(urlIds);
-        } else {
-            whereCondition.finalValidationStatus = FinalValidationStatus.APPROVED;
-        }
-
-        const urls = await this.discoveryUrlRepository.find({ where: whereCondition });
-        if (!urls.length) {
-            return new IngestDiscoveryUrlResponseDto({
-                sessionId,
-                totalQueued: 0,
-                itemsReused: 0,
-                itemsCreated: 0,
-                totalProcessed: 0,
-                dataProviderItemsCreated: 0,
-            });
-        }
-
-        const targetUrlIds = urls.map((u) => u.id);
-        await this.discoveryUrlRepository.update({ id: In(targetUrlIds) }, { status: DiscoveryUrlStatus.QUEUED });
-
-        const jobs = [];
-        for (let i = 0; i < urls.length; i += DISCOVERY_INGESTION_CHUNK_SIZE) {
-            const chunk = urls.slice(i, i + DISCOVERY_INGESTION_CHUNK_SIZE);
-            jobs.push({
-                data: {
-                    sessionId,
-                    urlIds: chunk.map((u) => u.id),
-                    dataProviderId: chunk[0].dataProviderId,
-                },
-                opts: {
-                    attempts: 3,
-                    removeOnComplete: true,
-                    backoff: {
-                        delay: 2000,
-                        type: 'exponential',
-                    },
-                },
-            });
-        }
-
-        await this.queueService.addBulkJob(QUEUE_NAME.DISCOVERY_INGESTION_JOB, jobs);
-
-        return new IngestDiscoveryUrlResponseDto({
-            sessionId,
-            itemsReused: 0,
-            itemsCreated: 0,
-            totalQueued: urls.length,
-            totalProcessed: urls.length,
-            dataProviderItemsCreated: 0,
-        });
     }
 
     async updateStatus(urlIds: string[], status: DiscoveryUrlStatus): Promise<void> {

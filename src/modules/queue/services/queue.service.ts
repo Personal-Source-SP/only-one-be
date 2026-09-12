@@ -7,7 +7,7 @@ import { LoggerService } from '../../../shared/services/logger.service';
 import { QueueError } from '../constants/queue-error';
 import { QUEUE_NAME } from '../enums/queue-name.enum';
 import { QueueStatusEnum } from '../enums/queue-status.enum';
-import { IDiscoveryIngestionJob, IDiscoverySearchJob, IDiscoveryValidationJob, IScrapingJobQueueInterface } from '../interfaces';
+import { IDiscoverySearchJob, IDiscoveryValidationJob, IScrapingJobQueueInterface } from '../interfaces';
 
 @Injectable()
 export class QueueService implements OnModuleInit {
@@ -19,14 +19,11 @@ export class QueueService implements OnModuleInit {
         private readonly scrapingJobQueue: Queue<IScrapingJobQueueInterface>,
         @InjectQueue(QUEUE_NAME.DISCOVERY_SEARCH_JOB)
         private readonly discoverySearchQueue: Queue<IDiscoverySearchJob>,
-        @InjectQueue(QUEUE_NAME.DISCOVERY_INGESTION_JOB)
-        private readonly discoveryIngestionQueue: Queue<IDiscoveryIngestionJob>,
         @InjectQueue(QUEUE_NAME.DISCOVERY_VALIDATION_JOB)
         private readonly discoveryValidationQueue: Queue<IDiscoveryValidationJob>,
     ) {
         this.registerQueue(QUEUE_NAME.SCRAPING_JOB, this.scrapingJobQueue);
         this.registerQueue(QUEUE_NAME.DISCOVERY_SEARCH_JOB, this.discoverySearchQueue);
-        this.registerQueue(QUEUE_NAME.DISCOVERY_INGESTION_JOB, this.discoveryIngestionQueue);
         this.registerQueue(QUEUE_NAME.DISCOVERY_VALIDATION_JOB, this.discoveryValidationQueue);
     }
 

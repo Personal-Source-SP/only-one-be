@@ -11,7 +11,6 @@ import {
     SubmitBulkUserActionRequestDto,
     SubmitUserActionRequestDto,
 } from '../dtos/requests';
-import { IngestDiscoveryUrlResponseDto } from '../dtos/responses';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
 
@@ -63,17 +62,5 @@ export class DiscoveryUrlController extends BaseController<DiscoveryUrlEntity, D
     })
     async submitBulkUserActions(@Body() request: SubmitBulkUserActionRequestDto): Promise<boolean> {
         return await this.discoveryUrlService.submitBulkUserActions(request.urlIds, request.action, request.reason);
-    }
-
-    @Post({
-        path: 'sessions/:sessionId/batch-ingest',
-        summary: 'Batch ingest approved URLs for a discovery session into Item and DataProviderItem catalog',
-        responseDto: IngestDiscoveryUrlResponseDto,
-    })
-    async batchIngestUrls(
-        @UUIDParam('sessionId') sessionId: string,
-        @Body() request?: { urlIds?: string[] },
-    ): Promise<IngestDiscoveryUrlResponseDto> {
-        return await this.discoveryUrlService.batchIngest(sessionId, request?.urlIds);
     }
 }

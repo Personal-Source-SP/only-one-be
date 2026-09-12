@@ -7,7 +7,6 @@ import { DataProviderModule } from '../data-provider/data-provider.module';
 import { QueueModule } from '../queue/queue.module';
 import { ScheduleExecutorModule } from '../schedule/schedule.module';
 import { AuditLogWorkerProcessor } from './processors/audit-log-worker.processor';
-import { DiscoveryIngestionWorkerProcessor } from './processors/discovery-ingestion-worker.processor';
 import { DiscoverySearchWorkerProcessor } from './processors/discovery-search-worker.processor';
 import { DiscoveryValidationWorkerProcessor } from './processors/discovery-validation-worker.processor';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
@@ -15,7 +14,6 @@ import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor'
 const processors = [
     ScrapingWorkerProcessor,
     DiscoveryValidationWorkerProcessor,
-    DiscoveryIngestionWorkerProcessor,
     AuditLogWorkerProcessor,
     DiscoverySearchWorkerProcessor,
 ];
