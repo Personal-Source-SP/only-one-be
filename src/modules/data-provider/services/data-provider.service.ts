@@ -9,7 +9,7 @@ import { IFindOptions } from '../../../common/interfaces/base-service.interface'
 import { AppException } from '../../../exceptions/app.exception';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderDto } from '../dtos/data-provider.dto';
-import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests';
+import { CreateDataProviderRequestDto, FindDataProvidersWithFeaturesRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderItemService } from './data-provider-item.service';
 
@@ -18,11 +18,27 @@ export class DataProviderService extends BaseService<DataProviderEntity, DataPro
     constructor(
         @InjectMapper() mapper: Mapper,
         @InjectRepository(DataProviderEntity) dataProviderRepository: Repository<DataProviderEntity>,
-
         @Inject(forwardRef(() => DataProviderItemService))
         private readonly dataProviderItemService: DataProviderItemService,
     ) {
         super(dataProviderRepository, mapper, DataProviderDto, DataProviderService.name);
+    }
+
+    async findAllWithFeatures(query?: FindDataProvidersWithFeaturesRequestDto): Promise<DataProviderDto[]> {
+        const queryBuilder = this.repository.createQueryBuilder('dataProvider').leftJoinAndSelect('dataProvider.features', 'feature');
+
+        if (query?.featureType) {
+            queryBuilder.andWhere('feature.type = :featureType', { featureType: query.featureType });
+        }
+
+        if (query?.featureStatus) {
+            queryBuilder.andWhere('feature.status = :featureStatus', { featureStatus: query.featureStatus });
+        }
+
+        queryBuilder.orderBy('dataProvider.createdAt', 'DESC');
+
+        const entities = await queryBuilder.getMany();
+        return this.mapper.mapArray(entities, DataProviderEntity, DataProviderDto);
     }
 
     async findById(id: string, options?: IFindOptions<DataProviderEntity>): Promise<DataProviderDto> {

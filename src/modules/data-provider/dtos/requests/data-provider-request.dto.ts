@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 
-import { StringField, StringFieldOptional, URLField, URLFieldOptional } from '../../../../decorators';
+import { EnumFieldOptional, StringField, StringFieldOptional, URLField, URLFieldOptional } from '../../../../decorators';
+import { DataProviderFeatureStatus, DataProviderFeatureType } from '../../enums';
 
 export class CreateDataProviderRequestDto {
     @StringField({ maxLength: 255 })
@@ -35,3 +36,12 @@ export class UpdateDataProviderRequestDto {
     @AutoMap()
     baseUrl?: string;
 }
+
+export class FindDataProvidersWithFeaturesRequestDto {
+    @EnumFieldOptional(() => DataProviderFeatureType, { description: 'Filter by feature type' })
+    featureType?: DataProviderFeatureType;
+
+    @EnumFieldOptional(() => DataProviderFeatureStatus, { description: 'Filter by feature status' })
+    featureStatus?: DataProviderFeatureStatus;
+}
+

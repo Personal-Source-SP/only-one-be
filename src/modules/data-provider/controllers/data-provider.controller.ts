@@ -1,11 +1,15 @@
-import { Body, Controller } from '@nestjs/common';
+import { Body, Controller, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
-import { Auth, Post, Put, UUIDParam } from '../../../decorators';
+import { Auth, Get, Post, Put, UUIDParam } from '../../../decorators';
 import { DATA_PROVIDER_PAGINATION_CONFIG } from '../constants/data-provider-pagination.config';
 import { DataProviderDto } from '../dtos/data-provider.dto';
-import { CreateDataProviderRequestDto, UpdateDataProviderRequestDto } from '../dtos/requests/data-provider-request.dto';
+import {
+    CreateDataProviderRequestDto,
+    FindDataProvidersWithFeaturesRequestDto,
+    UpdateDataProviderRequestDto,
+} from '../dtos/requests/data-provider-request.dto';
 import { DataProviderEntity } from '../entities/data-provider.entity';
 import { DataProviderService } from '../services/data-provider.service';
 
@@ -15,6 +19,16 @@ import { DataProviderService } from '../services/data-provider.service';
 export class DataProviderController extends BaseController<DataProviderEntity, DataProviderDto> {
     constructor(private readonly dataProviderService: DataProviderService) {
         super(dataProviderService, DATA_PROVIDER_PAGINATION_CONFIG);
+    }
+
+    @Get({
+        path: 'all-with-features',
+        summary: 'Get all data providers with features (optionally filtered by feature type/status)',
+        responseDto: [DataProviderDto],
+    })
+    async getAllWithFeatures(@Query() query: FindDataProvidersWithFeaturesRequestDto): Promise<DataProviderDto[]> {
+        const result = await this.dataProviderService.findAllWithFeatures(query);
+        return result;
     }
 
     @Post({
