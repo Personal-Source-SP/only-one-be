@@ -32,10 +32,10 @@ affected_modules:
 - **Barrel Export (`src/decorators/index.ts`)**: Cung cấp điểm truy cập thống nhất cho toàn bộ hệ thống decorators.
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [http-route.decorator.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/decorators/http-route.decorator.ts): Định nghĩa `@Get`, `@Post`, `@Put`, `@Delete`, `@Patch`.
-- [api-property.decorator.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/decorators/api-property.decorator.ts): Hỗ trợ mảng DTO tự động.
-- [field.decorators.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/decorators/field.decorators.ts): Bộ composite DTO decorators.
-- [index.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/decorators/index.ts): Barrel export trung tâm.
+- [http-route.decorator.ts](file:///d:/Sources/Personal/only-one-be/src/decorators/http-route.decorator.ts): Định nghĩa `@Get`, `@Post`, `@Put`, `@Delete`, `@Patch`.
+- [api-property.decorator.ts](file:///d:/Sources/Personal/only-one-be/src/decorators/api-property.decorator.ts): Hỗ trợ mảng DTO tự động.
+- [field.decorators.ts](file:///d:/Sources/Personal/only-one-be/src/decorators/field.decorators.ts): Bộ composite DTO decorators.
+- [index.ts](file:///d:/Sources/Personal/only-one-be/src/decorators/index.ts): Barrel export trung tâm.
 - Refactor 100% DTOs và 28 Controllers trên toàn bộ codebase.
 
 ## 4. Verification Evidence & PR (Bằng chứng Nghiệm thu & PR)

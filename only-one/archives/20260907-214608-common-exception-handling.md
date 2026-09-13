@@ -48,12 +48,12 @@ sequenceDiagram
 ```
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [error-code.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/constant/error-code.ts): Interface `IAppError` và class `AppError`.
-- [index.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/constant/index.ts): Re-export `./error-code`.
-- [app.exception.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/exceptions/app.exception.ts): Class `AppException`.
-- [all-exception.filter.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/filters/all-exception.filter.ts): Phân loại ngoại lệ, extractLocation, server logging và format response.
-- [logger.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/services/logger.service.ts): Hỗ trợ param stack trace cho winston logger.
-- [base.service.ts](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/common/base.service.ts): Dỡ bỏ `try...catch` trong các CRUD methods.
+- [error-code.ts](file:///d:/Sources/Personal/only-one-be/src/constant/error-code.ts): Interface `IAppError` và class `AppError`.
+- [index.ts](file:///d:/Sources/Personal/only-one-be/src/constant/index.ts): Re-export `./error-code`.
+- [app.exception.ts](file:///d:/Sources/Personal/only-one-be/src/exceptions/app.exception.ts): Class `AppException`.
+- [all-exception.filter.ts](file:///d:/Sources/Personal/only-one-be/src/filters/all-exception.filter.ts): Phân loại ngoại lệ, extractLocation, server logging và format response.
+- [logger.service.ts](file:///d:/Sources/Personal/only-one-be/src/shared/services/logger.service.ts): Hỗ trợ param stack trace cho winston logger.
+- [base.service.ts](file:///d:/Sources/Personal/only-one-be/src/common/base.service.ts): Dỡ bỏ `try...catch` trong các CRUD methods.
 
 ## 4. Verification Evidence & PR (Bằng chứng Nghiệm thu & PR)
 - **TypeScript Compilation**: `npm run build` $\rightarrow$ Pass (Exit code 0).
