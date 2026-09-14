@@ -1,5 +1,5 @@
-export * from './discovery-session-summary-response.dto';
-export * from './ingest-discovered-url-response.dto';
+export * from './discovery-session-response.dto';
+export * from './discovery-url-response.dto';
 export * from './scrape-item-data-response.dto';
 export * from './scraping-data-response.dto';
 export * from './search-extract-data-response.dto';
