@@ -10,6 +10,7 @@ import {
 } from '../enums';
 import { DataProviderDto } from './data-provider.dto';
 import { DiscoverySessionDto } from './discovery-session.dto';
+import { ItemDto } from './item.dto';
 
 export class DiscoveryUrlDto extends AbstractDto {
     @AutoMap()
@@ -34,7 +35,7 @@ export class DiscoveryUrlDto extends AbstractDto {
     title?: string;
 
     @AutoMap()
-    description?: string;
+    code: string;
 
     @AutoMap()
     status: DiscoveryUrlStatus;
@@ -62,4 +63,13 @@ export class DiscoveryUrlDto extends AbstractDto {
 
     @AutoMap()
     finalValidationStatus: FinalValidationStatus;
+
+    @AutoMap()
+    metadata?: Record<string, unknown>;
+
+    @AutoMap()
+    itemId?: string;
+
+    @AutoMap(() => ItemDto)
+    item?: ItemDto;
 }

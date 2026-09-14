@@ -6,6 +6,7 @@ import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { AppException } from '../../../exceptions/app.exception';
+import { StringHelper } from '../../../shared/helpers/string-helper';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderItemDto } from '../dtos/data-provider-item.dto';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
@@ -47,34 +48,29 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         const urlEntity = await this.discoveryUrlRepository.findOne({ where: { id: urlId } });
         if (!urlEntity) throw new AppException(DataProviderError.UrlNotFound(urlId));
 
-        const code = this.extractCodeFromUrl(urlEntity.url, urlEntity.title);
-        const name = urlEntity.title?.trim() || urlEntity.url;
+        const code = urlEntity.code;
+        const name = urlEntity.title?.trim() || urlEntity.code;
 
         let item: ItemDto = null;
         let isNewItem = false;
 
-        // Step 1 & 2: Combined single query check by code OR name
-        const itemConditions: FindOptionsWhere<ItemEntity>[] = [];
-        if (code) itemConditions.push({ code });
-        if (name) itemConditions.push({ name });
-
-        if (itemConditions.length > 0) {
-            const existingItems = await this.itemService.findListByFilter(itemConditions);
-            if (code) {
-                item = existingItems.find((i) => i.code === code) || null;
-            }
-            if (!item && name) {
-                item = existingItems.find((i) => i.name === name) || null;
-            }
+        // Step 1: Lookup existing item by required unique code
+        if (code) {
+            item = await this.itemService.findOneByFilter({ code });
         }
 
-        // Step 3: Create new Item if not found
+        // Step 2: Create new Item if not found
         if (!item) {
-            item = await this.itemService.create({ name, code: code || undefined });
+            item = await this.itemService.create({
+                name,
+                code,
+                metadata: urlEntity.metadata || {},
+            });
+
             isNewItem = true;
         }
 
-        // Step 4: Check & create DataProviderItem
+        // Step 3: Check & create DataProviderItem
         let dataProviderItem = await this.dataProviderItemService.findOneByFilterAndOptions({
             itemId: item.id,
             itemUrl: urlEntity.url,
@@ -89,8 +85,11 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
             });
         }
 
-        // Step 5: Mark status INGESTED
-        await this.discoveryUrlRepository.update(urlId, { status: DiscoveryUrlStatus.INGESTED });
+        // Step 4: Link item to discovery URL and mark status INGESTED
+        await this.discoveryUrlRepository.update(urlId, {
+            itemId: item.id,
+            status: DiscoveryUrlStatus.INGESTED,
+        });
 
         return new IngestDiscoveredUrlResponseDto({
             isNewItem,
@@ -105,55 +104,37 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         const urls = await this.discoveryUrlRepository.find({ where: { id: In(urlIds) } });
         if (!urls.length) return [];
 
-        // 1. Extract metadata for all URLs in chunk
-        const urlMetadataList = urls.map((urlEntity) => {
-            const code = this.extractCodeFromUrl(urlEntity.url, urlEntity.title);
-            const name = urlEntity.title?.trim() || urlEntity.url;
-            return { urlEntity, code, name };
-        });
-
-        // 2. Collect unique codes and names for bulk item lookup
-        const codes = Array.from(new Set(urlMetadataList.map((m) => m.code).filter(Boolean)));
-        const names = Array.from(new Set(urlMetadataList.map((m) => m.name).filter(Boolean)));
-
-        const itemConditions: FindOptionsWhere<ItemEntity>[] = [];
-        if (codes.length > 0) itemConditions.push({ code: In(codes) });
-        if (names.length > 0) itemConditions.push({ name: In(names) });
-
-        const existingItems = itemConditions.length > 0 ? await this.itemService.findListByFilter(itemConditions) : [];
+        // 1. Collect unique codes for bulk item lookup
+        const codes = Array.from(new Set(urls.map((u) => u.code).filter(Boolean)));
+        const existingItems = codes.length > 0 ? await this.itemService.findListByFilter({ code: In(codes) }) : [];
 
         const codeToItemMap = new Map<string, ItemDto>();
-        const nameToItemMap = new Map<string, ItemDto>();
-
         for (const it of existingItems) {
             if (it.code && !codeToItemMap.has(it.code)) codeToItemMap.set(it.code, it);
-            if (it.name && !nameToItemMap.has(it.name)) nameToItemMap.set(it.name, it);
         }
 
-        // 3. Resolve Items for each URL (Deduplicating in-memory for newly created items)
-        const resolvedItems: { meta: (typeof urlMetadataList)[0]; item: ItemDto; isNewItem: boolean }[] = [];
+        // 2. Resolve Items for each URL (Deduplicating in-memory for newly created items)
+        const resolvedItems: { urlEntity: DiscoveryUrlEntity; item: ItemDto; isNewItem: boolean }[] = [];
 
-        for (const meta of urlMetadataList) {
-            let matchedItem: ItemDto = null;
+        for (const urlEntity of urls) {
+            let matchedItem = codeToItemMap.get(urlEntity.code) || null;
             let isNew = false;
 
-            if (meta.code && codeToItemMap.has(meta.code)) {
-                matchedItem = codeToItemMap.get(meta.code);
-            } else if (meta.name && nameToItemMap.has(meta.name)) {
-                matchedItem = nameToItemMap.get(meta.name);
-            }
-
             if (!matchedItem) {
-                matchedItem = await this.itemService.create({ name: meta.name, code: meta.code || undefined });
+                const name = urlEntity.title?.trim() || urlEntity.code;
+                matchedItem = await this.itemService.create({
+                    name,
+                    code: urlEntity.code,
+                    metadata: urlEntity.metadata || {},
+                });
                 isNew = true;
-                if (meta.code) codeToItemMap.set(meta.code, matchedItem);
-                if (meta.name) nameToItemMap.set(meta.name, matchedItem);
+                codeToItemMap.set(urlEntity.code, matchedItem);
             }
 
-            resolvedItems.push({ meta, item: matchedItem, isNewItem: isNew });
+            resolvedItems.push({ urlEntity, item: matchedItem, isNewItem: isNew });
         }
 
-        // 4. Bulk lookup existing DataProviderItems
+        // 3. Bulk lookup existing DataProviderItems
         const distinctDataProviderIds = Array.from(new Set(urls.map((u) => u.dataProviderId)));
         const existingDataProviders = await this.dataProviderItemService.findListByFilter({
             dataProviderId: In(distinctDataProviderIds),
@@ -165,20 +146,26 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
             dpiMap.set(`${dpi.dataProviderId}_${dpi.itemId}_${dpi.itemUrl}`, dpi);
         }
 
-        // 5. Ensure DataProviderItems exist
+        // 4. Ensure DataProviderItems exist
         const results: IngestDiscoveredUrlResponseDto[] = [];
-        for (const { meta, item, isNewItem } of resolvedItems) {
-            const key = `${meta.urlEntity.dataProviderId}_${item.id}_${meta.urlEntity.url}`;
+        for (const { urlEntity, item, isNewItem } of resolvedItems) {
+            const key = `${urlEntity.dataProviderId}_${item.id}_${urlEntity.url}`;
             let dpi = dpiMap.get(key);
 
             if (!dpi) {
                 dpi = await this.dataProviderItemService.create({
                     itemId: item.id,
-                    itemUrl: meta.urlEntity.url,
-                    dataProviderId: meta.urlEntity.dataProviderId,
+                    itemUrl: urlEntity.url,
+                    dataProviderId: urlEntity.dataProviderId,
                 });
                 dpiMap.set(key, dpi);
             }
+
+            // Update individual DiscoveryUrl with itemId and status INGESTED
+            await this.discoveryUrlRepository.update(urlEntity.id, {
+                itemId: item.id,
+                status: DiscoveryUrlStatus.INGESTED,
+            });
 
             results.push(
                 new IngestDiscoveredUrlResponseDto({
@@ -188,10 +175,6 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
                 }),
             );
         }
-
-        // 6. Bulk update DiscoveryUrls status to INGESTED
-        const processedIds = urls.map((u) => u.id);
-        await this.discoveryUrlRepository.update({ id: In(processedIds) }, { status: DiscoveryUrlStatus.INGESTED });
 
         return results;
     }
@@ -336,25 +319,46 @@ export class DiscoveryUrlService extends BaseService<DiscoveryUrlEntity, Discove
         this.loggerService.log(`Successfully validated discovery URL ${urlId}`);
     }
 
-    private extractCodeFromUrl(url: string, title?: string): string | undefined {
-        try {
-            const parsed = new URL(url);
-            const skuParam =
-                parsed.searchParams.get('sku') ||
-                parsed.searchParams.get('code') ||
-                parsed.searchParams.get('productId') ||
-                parsed.searchParams.get('id');
-
-            if (skuParam && skuParam.length <= 20) {
-                return skuParam;
+    extractCodeFromUrl(url: string, title?: string): string | undefined {
+        if (title?.trim()) {
+            const slug = StringHelper.slugify(title.trim());
+            if (slug) {
+                return slug.length > 100 ? slug.substring(0, 100) : slug;
             }
+        }
 
-            const dpMatch = parsed.pathname.match(/\/(?:dp|product|p|item)\/([A-Za-z0-9_-]{3,20})/i);
-            if (dpMatch && dpMatch[1]) {
-                return dpMatch[1];
+        if (url?.trim()) {
+            try {
+                const parsed = new URL(url);
+                const skuParam =
+                    parsed.searchParams.get('sku') ||
+                    parsed.searchParams.get('code') ||
+                    parsed.searchParams.get('productId') ||
+                    parsed.searchParams.get('id');
+
+                if (skuParam && skuParam.length <= 100) {
+                    return skuParam;
+                }
+
+                const dpMatch = parsed.pathname.match(/\/(?:dp|product|p|item)\/([A-Za-z0-9_-]{3,100})/i);
+                if (dpMatch && dpMatch[1]) {
+                    return dpMatch[1];
+                }
+
+                const pathSegments = parsed.pathname.split('/').filter(Boolean);
+                if (pathSegments.length > 0) {
+                    const lastSegment = pathSegments[pathSegments.length - 1];
+                    const slug = StringHelper.slugify(lastSegment);
+                    if (slug) {
+                        return slug.length > 100 ? slug.substring(0, 100) : slug;
+                    }
+                }
+            } catch {
+                const slug = StringHelper.slugify(url);
+                if (slug) {
+                    return slug.length > 100 ? slug.substring(0, 100) : slug;
+                }
             }
-        } catch {
-            // ignore malformed URL
         }
 
         return undefined;

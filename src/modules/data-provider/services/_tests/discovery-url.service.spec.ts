@@ -3,13 +3,7 @@ import { DataSource } from 'typeorm';
 import { AppException } from '../../../../exceptions/app.exception';
 import { DataProviderError } from '../../constants/data-provider-error';
 import { DiscoveryUrlEntity } from '../../entities/discovery-url.entity';
-import {
-    DiscoveryUrlStatus,
-    DiscoveryValidationStatus,
-    FinalValidationStatus,
-    MatchResultEnum,
-    ValidationUserAction,
-} from '../../enums';
+import { DiscoveryUrlStatus, DiscoveryValidationStatus, FinalValidationStatus, MatchResultEnum, ValidationUserAction } from '../../enums';
 import { DataProviderItemService } from '../data-provider-item.service';
 import { DiscoveryUrlService } from '../discovery-url.service';
 import { DiscoveryValidationLogService } from '../discovery-validation-log.service';
@@ -91,25 +85,35 @@ describe('DiscoveryUrlService', () => {
                 dataProviderId: 'dp-1',
                 url: 'https://example.com/p1?sku=SKU-1',
                 title: 'Product 1',
+                code: 'SKU-1',
+                metadata: { category: 'electronics' },
             });
+            itemService.findOneByFilter.mockResolvedValue(null);
+            itemService.create.mockResolvedValue({ id: 'item-1', code: 'SKU-1', name: 'Product 1' });
+            dataProviderItemService.findOneByFilterAndOptions.mockResolvedValue(null);
+            dataProviderItemService.create.mockResolvedValue({ id: 'dpi-1', itemId: 'item-1' });
 
             const result = await service.ingestDiscoveredUrl('url-1');
 
             expect(result.itemId).toBe('item-1');
             expect(result.dataProviderItemId).toBe('dpi-1');
             expect(result.isNewItem).toBe(true);
-            expect(urlRepo.update).toHaveBeenCalledWith('url-1', { status: DiscoveryUrlStatus.INGESTED });
+            expect(urlRepo.update).toHaveBeenCalledWith('url-1', {
+                itemId: 'item-1',
+                status: DiscoveryUrlStatus.INGESTED,
+            });
         });
 
-        it('should reuse existing item if found by code or name', async () => {
+        it('should reuse existing item if found by code', async () => {
             urlRepo.findOne.mockResolvedValue({
                 id: 'url-1',
                 sessionId: 'session-1',
                 dataProviderId: 'dp-1',
                 url: 'https://example.com/p1?sku=SKU-1',
                 title: 'Product 1',
+                code: 'SKU-1',
             });
-            itemService.findListByFilter.mockResolvedValue([{ id: 'existing-item-id', code: 'SKU-1', name: 'Product 1' }]);
+            itemService.findOneByFilter.mockResolvedValue({ id: 'existing-item-id', code: 'SKU-1', name: 'Product 1' });
             dataProviderItemService.findOneByFilterAndOptions.mockResolvedValue({
                 id: 'existing-dpi-id',
                 itemId: 'existing-item-id',
@@ -142,6 +146,7 @@ describe('DiscoveryUrlService', () => {
                     dataProviderId: 'dp-1',
                     url: 'https://example.com/p1?sku=SKU-1',
                     title: 'Product 1',
+                    code: 'SKU-1',
                 },
                 {
                     id: 'url-2',
@@ -149,6 +154,7 @@ describe('DiscoveryUrlService', () => {
                     dataProviderId: 'dp-1',
                     url: 'https://example.com/p2?sku=SKU-2',
                     title: 'Product 2',
+                    code: 'SKU-2',
                 },
             ]);
 
@@ -165,10 +171,8 @@ describe('DiscoveryUrlService', () => {
             const results = await service.ingestDiscoveredUrlsChunk(['url-1', 'url-2']);
 
             expect(results.length).toBe(2);
-            expect(urlRepo.update).toHaveBeenCalledWith(
-                expect.objectContaining({ id: expect.anything() }),
-                { status: DiscoveryUrlStatus.INGESTED },
-            );
+            expect(urlRepo.update).toHaveBeenCalledWith('url-1', { itemId: 'item-1', status: DiscoveryUrlStatus.INGESTED });
+            expect(urlRepo.update).toHaveBeenCalledWith('url-2', { itemId: 'item-2', status: DiscoveryUrlStatus.INGESTED });
         });
     });
 
@@ -249,9 +253,7 @@ describe('DiscoveryUrlService', () => {
     describe('submitBulkUserActions', () => {
         it('should bulk update actions and ingest chunk if action is CONFIRM', async () => {
             urlRepo.update.mockResolvedValue({ affected: 2 });
-            urlRepo.find.mockResolvedValue([
-                { id: 'url-1', url: 'https://example.com/1', title: 'Item 1', dataProviderId: 'dp-1' },
-            ]);
+            urlRepo.find.mockResolvedValue([{ id: 'url-1', url: 'https://example.com/1', title: 'Item 1', dataProviderId: 'dp-1' }]);
 
             const success = await service.submitBulkUserActions(['url-1', 'url-2'], ValidationUserAction.CONFIRM);
 

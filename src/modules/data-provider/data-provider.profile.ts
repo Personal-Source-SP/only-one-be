@@ -110,10 +110,42 @@ export class DataProviderProfile extends AutomapperProfile {
     }
 
     private mapItem(mapper: Mapper): void {
-        createMap(mapper, ItemEntity, ItemDto);
-        createMap(mapper, ItemDto, ItemEntity);
-        createMap(mapper, CreateItemRequestDto, ItemEntity);
-        createMap(mapper, UpdateItemRequestDto, ItemEntity);
+        createMap(
+            mapper,
+            ItemEntity,
+            ItemDto,
+            forMember(
+                (d) => d.metadata,
+                mapFrom((s) => s.metadata),
+            ),
+        );
+        createMap(
+            mapper,
+            ItemDto,
+            ItemEntity,
+            forMember(
+                (d) => d.metadata,
+                mapFrom((s) => s.metadata),
+            ),
+        );
+        createMap(
+            mapper,
+            CreateItemRequestDto,
+            ItemEntity,
+            forMember(
+                (d) => d.metadata,
+                mapFrom((s) => s.metadata),
+            ),
+        );
+        createMap(
+            mapper,
+            UpdateItemRequestDto,
+            ItemEntity,
+            forMember(
+                (d) => d.metadata,
+                mapFrom((s) => s.metadata),
+            ),
+        );
     }
 
     private mapConfigVersion(mapper: Mapper): void {
@@ -175,7 +207,15 @@ export class DataProviderProfile extends AutomapperProfile {
     }
 
     private mapDiscoveryUrl(mapper: Mapper): void {
-        createMap(mapper, DiscoveryUrlEntity, DiscoveryUrlDto);
+        createMap(
+            mapper,
+            DiscoveryUrlEntity,
+            DiscoveryUrlDto,
+            forMember(
+                (d) => d.metadata,
+                mapFrom((s) => s.metadata),
+            ),
+        );
     }
 
     private mapDiscoveryValidationLog(mapper: Mapper): void {

@@ -9,6 +9,7 @@ const discoveryUrlColumns = getColumnNames(DiscoveryUrlEntity);
 export const DISCOVERY_URL_PAGINATION_CONFIG = createPaginationConfig<DiscoveryUrlEntity>({
     sortableColumns: [
         'url',
+        'code',
         'domain',
         'title',
         'status',
@@ -18,7 +19,7 @@ export const DISCOVERY_URL_PAGINATION_CONFIG = createPaginationConfig<DiscoveryU
         'foundAtDepth',
         'createdAt',
     ],
-    searchableColumns: ['url', 'domain', 'title'],
+    searchableColumns: ['url', 'code', 'domain', 'title'],
     defaultSortBy: [['createdAt', 'DESC']],
     filterableColumns: {
         sessionId: [FilterOperator.EQ],

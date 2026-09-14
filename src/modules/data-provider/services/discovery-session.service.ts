@@ -294,7 +294,8 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
             urlEntity.dataProviderId = session.dataProviderId;
             urlEntity.url = item.url;
             urlEntity.title = item.title;
-            urlEntity.description = item.description;
+            urlEntity.metadata = item.metadata || {};
+            urlEntity.code = item.code || this.discoveryUrlService.extractCodeFromUrl(item.url, item.title);
             urlEntity.matchResult = evalResult.matchResult;
             urlEntity.confidenceScore = evalResult.confidenceScore;
             urlEntity.status = DiscoveryUrlStatus.DISCOVERED;

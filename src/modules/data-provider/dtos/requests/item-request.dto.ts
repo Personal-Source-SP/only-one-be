@@ -1,16 +1,20 @@
 import { AutoMap } from '@automapper/classes';
 import { Transform } from 'class-transformer';
 
-import { StringField, StringFieldOptional } from '../../../../decorators';
+import { ObjectFieldOptional, StringField, StringFieldOptional } from '../../../../decorators';
 
 export class CreateItemRequestDto {
     @StringField({ maxLength: 255 })
     @AutoMap()
     name: string;
 
-    @StringFieldOptional({ maxLength: 20 })
+    @StringField({ maxLength: 100 })
     @AutoMap()
-    code?: string;
+    code: string;
+
+    @ObjectFieldOptional()
+    @AutoMap()
+    metadata?: Record<string, unknown>;
 
     @StringFieldOptional({
         each: true,
@@ -34,9 +38,13 @@ export class UpdateItemRequestDto {
     @AutoMap()
     name?: string;
 
-    @StringFieldOptional({ maxLength: 20 })
+    @StringFieldOptional({ maxLength: 100 })
     @AutoMap()
     code?: string;
+
+    @ObjectFieldOptional()
+    @AutoMap()
+    metadata?: Record<string, unknown>;
 
     @StringFieldOptional({ each: true })
     @AutoMap()

@@ -12,6 +12,7 @@ import {
 import { DataProviderEntity } from './data-provider.entity';
 import { DiscoverySessionEntity } from './discovery-session.entity';
 import { DiscoveryValidationLogEntity } from './discovery-validation-log.entity';
+import { ItemEntity } from './item.entity';
 
 @Entity({ name: 'discovery_urls', synchronize: false })
 @Unique(['sessionId', 'url'])
@@ -38,9 +39,14 @@ export class DiscoveryUrlEntity extends AbstractEntity {
     @AutoMap()
     title?: string;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'varchar', length: 100 })
     @AutoMap()
-    description?: string;
+    @Index()
+    code: string;
+
+    @Column({ type: 'jsonb', default: {} })
+    @AutoMap()
+    metadata?: Record<string, unknown>;
 
     @Column({ type: 'varchar', length: 20, default: DiscoveryUrlStatus.DISCOVERED })
     @AutoMap()
@@ -82,6 +88,16 @@ export class DiscoveryUrlEntity extends AbstractEntity {
     @JoinColumn({ name: 'session_id' })
     @AutoMap(() => DiscoverySessionEntity)
     discoverySession: Relation<DiscoverySessionEntity>;
+
+    @Column({ type: 'uuid', nullable: true })
+    @AutoMap()
+    @Index()
+    itemId?: string;
+
+    @ManyToOne(() => ItemEntity, (item) => item.discoveryUrls, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ name: 'item_id' })
+    @AutoMap(() => ItemEntity)
+    item?: Relation<ItemEntity>;
 
     @ManyToOne(() => DataProviderEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'data_provider_id' })

@@ -4,6 +4,7 @@ import { Column, Entity, OneToMany, Relation, Unique } from 'typeorm';
 import { AbstractEntity } from '../../../common/entities';
 import { ProductMappingStatus } from '../enums';
 import { DataProviderItemEntity } from './data-provider-item.entity';
+import { DiscoveryUrlEntity } from './discovery-url.entity';
 import { ScrapingDataEntity } from './scraping-data.entity';
 
 @Entity({ name: 'items', synchronize: false })
@@ -17,9 +18,13 @@ export class ItemEntity extends AbstractEntity {
     @AutoMap()
     mappingStatus: ProductMappingStatus;
 
-    @Column({ length: 20, nullable: true })
+    @Column({ length: 100, nullable: false })
     @AutoMap()
-    code?: string;
+    code: string;
+
+    @Column({ type: 'jsonb', default: {} })
+    @AutoMap()
+    metadata?: Record<string, unknown>;
 
     @Column({ type: 'jsonb', default: [] })
     @AutoMap()
@@ -28,6 +33,10 @@ export class ItemEntity extends AbstractEntity {
     @OneToMany(() => DataProviderItemEntity, (entity) => entity.item)
     @AutoMap(() => [DataProviderItemEntity])
     dataProviderItems?: Relation<DataProviderItemEntity>[];
+
+    @OneToMany(() => DiscoveryUrlEntity, (d) => d.item)
+    @AutoMap(() => [DiscoveryUrlEntity])
+    discoveryUrls?: Relation<DiscoveryUrlEntity>[];
 
     @OneToMany(() => ScrapingDataEntity, (entity) => entity.item)
     @AutoMap(() => [ScrapingDataEntity])

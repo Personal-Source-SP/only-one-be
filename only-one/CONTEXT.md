@@ -9,7 +9,8 @@
 - **ConfigVersion (`ConfigVersionEntity`)**: Snapshot bất biến lưu lại từng phiên bản cấu hình `config` của một feature khi có thao tác chỉnh sửa thủ công (`MANUAL_EDIT`) hoặc rollback (`ROLLBACK`).
 - **FeatureRunnerRegistry (`FeatureRunnerRegistry`)**: Registry tập trung lưu trữ và cung cấp runner tương ứng theo `DataProviderFeatureType`.
 - **Stateless Sandbox (`testStateless`)**: Kiểm thử cấu hình tức thì với dữ liệu mẫu đầu vào (`input`) mà không làm thay đổi trạng thái của database hay entity.
-- **DiscoverySession (`DiscoverySessionEntity`)**: Phiên khám phá, thu thập danh sách URL sản phẩm/bài viết từ Data Provider dựa trên cấu hình Search Feature và từ khóa tìm kiếm (`targetKeyword`).
+- **DiscoveryUrl (`DiscoveryUrlEntity`)**: Đại diện cho một URL được khám phá trong `DiscoverySession`. Chứa mã định danh `code` (required), trạng thái xử lý, điểm tin cậy (`confidenceScore`), và `metadata` (JSONB) lưu trữ dữ liệu trích xuất bổ sung. Có liên kết trực tiếp tới `ItemEntity` (ManyToOne).
+- **Item (`ItemEntity`)**: Thực thể sản phẩm chuẩn (Canonical Product/Item) trong hệ thống, quản lý định danh duy nhất qua `code` (required & unique), `mappingStatus`, `tags`, và `metadata` (JSONB). Có quan hệ OneToMany tới `DataProviderItemEntity` và `DiscoveryUrlEntity`.
 - **DiscoveryRunner (`DiscoveryRunner`)**: Runner nền điều phối tác vụ tìm kiếm, cào dữ liệu URL thông qua Search Feature và khởi chạy quy trình tự động thẩm định (Validation Batch).
 
 ## Setting & User Preferences Domain
@@ -17,4 +18,3 @@
 - **Setting (`SettingEntity`)**: Thực thể lưu trữ cấu hình hệ thống hoặc cấu hình cá nhân dạng JSONB (`key`, `value`, `type`, `isActive`, `userId`).
 - **SettingType (`SettingType`)**: Định danh phạm vi của cấu hình (`GLOBAL` cho toàn hệ thống, `USER` cho từng tài khoản cá nhân).
 - **ThemePalette (`HubThemePalette`)**: Tông màu giao diện được cá nhân hóa cho từng người dùng, hỗ trợ đồng bộ đa thiết bị (multi-device sync) kết hợp SWR caching trên client.
-

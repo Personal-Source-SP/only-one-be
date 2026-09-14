@@ -131,10 +131,7 @@ describe('DiscoverySessionService', () => {
 
         expect(searchServiceMap.generic.getExtractSearchData).toHaveBeenCalled();
         expect(discoveryUrlService.createMany).toHaveBeenCalled();
-        expect(sessionRepo.update).toHaveBeenCalledWith(
-            'session-1',
-            expect.objectContaining({ status: 'completed' }),
-        );
+        expect(sessionRepo.update).toHaveBeenCalledWith('session-1', expect.objectContaining({ status: 'completed' }));
     });
 
     it('should return session summary with metrics', async () => {

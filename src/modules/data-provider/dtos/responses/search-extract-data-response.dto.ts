@@ -1,8 +1,9 @@
 export class SearchResultItemDto {
     url: string;
+    code?: string;
     title?: string;
     imageUrl?: string;
-    relativeUrl?: string;
+    tags?: string[];
     metadata?: Record<string, any>;
     [key: string]: any;
 }
