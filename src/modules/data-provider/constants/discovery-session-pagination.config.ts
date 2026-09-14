@@ -1,10 +1,11 @@
 import { FilterOperator } from 'nestjs-paginate';
 
 import { createPaginationConfig } from '../../../common/pagination/pagination-config.factory';
-import { getColumnNames } from '../../../shared/helpers/typeorm.helper';
+import { getColumnNames, getRelationColumns } from '../../../shared/helpers/typeorm.helper';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 
 const discoverySessionColumns = getColumnNames(DiscoverySessionEntity);
+const dataProviderColumns = getRelationColumns(DiscoverySessionEntity, 'dataProvider', ['dataProviderId']);
 
 export const DISCOVERY_SESSION_PAGINATION_CONFIG = createPaginationConfig<DiscoverySessionEntity>({
     sortableColumns: ['sessionCode', 'targetUrl', 'status', 'totalDiscovered', 'totalQueued', 'createdAt'],
@@ -15,7 +16,7 @@ export const DISCOVERY_SESSION_PAGINATION_CONFIG = createPaginationConfig<Discov
         status: [FilterOperator.EQ],
     },
     relations: ['dataProvider'],
-    select: [...discoverySessionColumns],
+    select: [...discoverySessionColumns, ...dataProviderColumns],
     maxLimit: Number.MAX_SAFE_INTEGER,
     defaultLimit: 20,
 });
