@@ -16,7 +16,7 @@ import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-sea
 import { DataProviderDto } from '../dtos/data-provider.dto';
 import { DiscoverySessionDto } from '../dtos/discovery-session.dto';
 import { CreateDiscoverySessionRequestDto } from '../dtos/requests/create-discovery-session-request.dto';
-import { DiscoverySessionSummaryResponseDto, SearchResultItemDto } from '../dtos/responses';
+import { DiscoverySessionSummaryResponseDto } from '../dtos/responses';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
 import { DiscoverySessionEntity } from '../entities/discovery-session.entity';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
@@ -30,7 +30,7 @@ import {
     ValidationMatchResult,
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
-import { IDataProviderSearchService, ISearchTargetConfig, ISessionWithSearchFeature } from '../interfaces';
+import { IDataProviderSearchService, ISearchResultItem, ISearchTargetConfig, ISessionWithSearchFeature } from '../interfaces';
 import { DataProviderService } from './data-provider.service';
 import { SearchFeatureService } from './data-provider-feature/search-feature.service';
 import { DiscoveryUrlService } from './discovery-url.service';
@@ -241,7 +241,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         session: DiscoverySessionEntity,
         searchFeature: DataProviderFeatureEntity,
         keyword: string,
-    ): Promise<SearchResultItemDto[]> {
+    ): Promise<ISearchResultItem[]> {
         const searchService = this.dataProviderSearchServiceMap[searchFeature.service];
         if (!searchService) throw new AppException(DataProviderError.SearchServiceNotFound(searchFeature.service));
 
@@ -262,7 +262,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         return searchResult.data || [];
     }
 
-    private async saveDiscoveredUrls(session: DiscoverySessionEntity, items: SearchResultItemDto[], keyword: string): Promise<number> {
+    private async saveDiscoveredUrls(session: DiscoverySessionEntity, items: ISearchResultItem[], keyword: string): Promise<number> {
         const existingUrls = await this.discoveryUrlService.findListByFilter({ sessionId: session.id }, { select: { url: true } });
 
         const seenUrls = new Set(existingUrls.map((u) => u.url));

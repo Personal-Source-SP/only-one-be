@@ -1,4 +1,4 @@
-import { ISearchExtractDataResponse, ISearchTargetConfig } from './target-config.interface';
+import { ISearchExtractDataResponse, ISearchTargetConfig } from './search-feature.interface';
 
 export interface IGetExtractSearchDataRequest {
     url: string;

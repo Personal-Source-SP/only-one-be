@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-import { SearchResultItemDto } from '../dtos/responses/search-extract-data-response.dto';
-import { IRunApiSearchFunctionExtractData, IRunSearchFunctionExtractData } from '../interfaces/target-config.interface';
+import { IRunApiSearchFunctionExtractData, IRunSearchFunctionExtractData, ISearchResultItem } from '../interfaces';
 
 @Injectable()
 export class ExtractSearchDataHelper {
-    async runFunctionExtractSearchData(dto: IRunSearchFunctionExtractData): Promise<SearchResultItemDto[]> {
+    async runFunctionExtractSearchData(dto: IRunSearchFunctionExtractData): Promise<ISearchResultItem[]> {
         const { functionGenerator, htmlContent, resultSelector, maxResults, mainContentSelector, isGetParentElement } = dto;
 
         if (!functionGenerator) {
@@ -57,7 +56,7 @@ export class ExtractSearchDataHelper {
         }
     }
 
-    async runApiFunctionExtractSearchData(dto: IRunApiSearchFunctionExtractData): Promise<SearchResultItemDto[]> {
+    async runApiFunctionExtractSearchData(dto: IRunApiSearchFunctionExtractData): Promise<ISearchResultItem[]> {
         const { functionGenerator, data, maxResults } = dto;
 
         if (!functionGenerator) {

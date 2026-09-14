@@ -8,7 +8,7 @@ import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.
 import { ScraperServiceEnum } from '../../enums';
 import { TargetConfigValidatorHelper } from '../../helpers/target-config-validator.helper';
 import {
-    FeatureTestInput,
+    IFeatureTestInput,
     IDataProviderFeatureService,
     IDataProviderScraperService,
     IExtractDataResponse,
@@ -19,7 +19,7 @@ import { DataProviderItemService } from '../data-provider-item.service';
 @Injectable()
 export class ScrapingFeatureService
     implements
-        IDataProviderFeatureService<IScrapingTargetConfig, FeatureTestInput, IExtractDataResponse | ValidateParserFunctionResponseDto>
+        IDataProviderFeatureService<IScrapingTargetConfig, IFeatureTestInput, IExtractDataResponse | ValidateParserFunctionResponseDto>
 {
     constructor(
         private readonly dataProviderItemService: DataProviderItemService,
@@ -34,7 +34,7 @@ export class ScrapingFeatureService
     async testStateless(
         service: ScraperServiceEnum,
         config: IScrapingTargetConfig,
-        input: FeatureTestInput,
+        input: IFeatureTestInput,
     ): Promise<IExtractDataResponse> {
         const targetConfig = this.validateConfig(config);
         const { url, dataContent, htmlContentString } = input || {};
@@ -54,7 +54,7 @@ export class ScrapingFeatureService
         return result;
     }
 
-    async testContextual(feature: DataProviderFeatureEntity, input?: FeatureTestInput): Promise<ValidateParserFunctionResponseDto> {
+    async testContextual(feature: DataProviderFeatureEntity, input?: IFeatureTestInput): Promise<ValidateParserFunctionResponseDto> {
         let itemUrl = input?.itemUrl || input?.url;
         if (!itemUrl) {
             const randomItem = await this.dataProviderItemService.findOneByFilterAndOptions(

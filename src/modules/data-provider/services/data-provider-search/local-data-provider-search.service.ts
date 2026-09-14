@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 
-import { SearchResultItemDto } from '../../dtos/responses';
-import { IDataProviderSearchService, IGetExtractSearchDataRequest, ISearchExtractDataResponse } from '../../interfaces';
+import { IDataProviderSearchService, IGetExtractSearchDataRequest, ISearchExtractDataResponse, ISearchResultItem } from '../../interfaces';
 
 @Injectable()
 export class LocalDataProviderSearchService implements IDataProviderSearchService {
@@ -11,7 +10,7 @@ export class LocalDataProviderSearchService implements IDataProviderSearchServic
         const { maxResults } = targetConfig;
 
         try {
-            const data: SearchResultItemDto[] | undefined = dataContent as unknown as SearchResultItemDto[];
+            const data: ISearchResultItem[] | undefined = dataContent as unknown as ISearchResultItem[];
             const extractData = Array.isArray(data) ? data : data ? [data] : [];
 
             if (isEmpty(extractData)) {

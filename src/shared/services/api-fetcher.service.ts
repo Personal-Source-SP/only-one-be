@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AxiosRequestConfig } from 'axios';
 
-import { IScraperResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
+import { IScraperExtractDataResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
 import { BaseHttpService } from './base-http.service';
 import { LoggerService } from './logger.service';
 
@@ -11,7 +11,11 @@ export class ApiFetcherService {
 
     constructor(private readonly baseHttpService: BaseHttpService) {}
 
-    async getApiContent(url: string, targetConfig: IScrapingTargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
+    async getApiContent(
+        url: string,
+        targetConfig: IScrapingTargetConfig,
+        lastScrapedTimestamp?: Date,
+    ): Promise<IScraperExtractDataResponse> {
         const config = this.transformTargetConfig(targetConfig);
         const { retryAttempts, retryDelay } = config;
 
@@ -49,7 +53,11 @@ export class ApiFetcherService {
         }
     }
 
-    async fetchApiContent(url: string, targetConfig: IScrapingTargetConfig, lastScrapedTimestamp?: Date): Promise<IScraperResponse> {
+    async fetchApiContent(
+        url: string,
+        targetConfig: IScrapingTargetConfig,
+        lastScrapedTimestamp?: Date,
+    ): Promise<IScraperExtractDataResponse> {
         return this.getApiContent(url, targetConfig, lastScrapedTimestamp);
     }
 

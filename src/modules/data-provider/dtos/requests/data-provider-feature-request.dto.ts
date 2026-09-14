@@ -1,6 +1,6 @@
 import { EnumField, ObjectFieldOptional, StringField, UUIDField } from '../../../../decorators';
 import { DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
-import { FeatureTestInput, TargetConfig } from '../../interfaces';
+import { IFeatureTestInput, TargetConfig } from '../../interfaces';
 
 export class CreateDataProviderFeatureRequestDto {
     @UUIDField({ description: 'Data provider ID' })
@@ -18,7 +18,7 @@ export class CreateDataProviderFeatureRequestDto {
     config?: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload to verify feature before creating' })
-    input?: FeatureTestInput;
+    input?: IFeatureTestInput;
 }
 
 export class UpdateFeatureConfigRequestDto {
@@ -29,7 +29,7 @@ export class UpdateFeatureConfigRequestDto {
     config?: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload to verify feature before updating' })
-    input?: FeatureTestInput;
+    input?: IFeatureTestInput;
 }
 
 export class TestFeatureStatelessRequestDto {
@@ -45,5 +45,5 @@ export class TestFeatureStatelessRequestDto {
     config: TargetConfig;
 
     @ObjectFieldOptional({ description: 'Test input payload (e.g. url, htmlContentString, query)' })
-    input?: FeatureTestInput;
+    input?: IFeatureTestInput;
 }

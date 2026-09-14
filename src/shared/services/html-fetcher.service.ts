@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-extra';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-import { IScraperResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
+import { IScraperExtractDataResponse, IScrapingTargetConfig } from '../../modules/data-provider/interfaces';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class HtmlFetcherService implements OnModuleDestroy {
         }
     }
 
-    async getHtmlContent(url: string, targetConfig: IScrapingTargetConfig): Promise<IScraperResponse> {
+    async getHtmlContent(url: string, targetConfig: IScrapingTargetConfig): Promise<IScraperExtractDataResponse> {
         const {
             retryAttempts = 3,
             retryDelay = 2000,

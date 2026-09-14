@@ -7,7 +7,7 @@ import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.
 import { ScraperServiceEnum } from '../../enums';
 import { TargetConfigValidatorHelper } from '../../helpers/target-config-validator.helper';
 import {
-    FeatureTestInput,
+    IFeatureTestInput,
     IDataProviderFeatureService,
     IDataProviderSearchService,
     ISearchExtractDataResponse,
@@ -16,7 +16,7 @@ import {
 
 @Injectable()
 export class SearchFeatureService
-    implements IDataProviderFeatureService<ISearchTargetConfig, FeatureTestInput, ISearchExtractDataResponse>
+    implements IDataProviderFeatureService<ISearchTargetConfig, IFeatureTestInput, ISearchExtractDataResponse>
 {
     constructor(
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
@@ -27,7 +27,7 @@ export class SearchFeatureService
         return TargetConfigValidatorHelper.validateSearchTargetConfig(config);
     }
 
-    buildSearchUrl(config: ISearchTargetConfig, input?: FeatureTestInput): string {
+    buildSearchUrl(config: ISearchTargetConfig, input?: IFeatureTestInput): string {
         if (input?.url) {
             return input.url;
         }
@@ -67,7 +67,7 @@ export class SearchFeatureService
     async testStateless(
         service: ScraperServiceEnum,
         config: ISearchTargetConfig,
-        input: FeatureTestInput,
+        input: IFeatureTestInput,
     ): Promise<ISearchExtractDataResponse> {
         const targetConfig = this.validateConfig(config);
         const { htmlContentString, dataContent } = input || {};
@@ -89,7 +89,7 @@ export class SearchFeatureService
         return result;
     }
 
-    async testContextual(feature: DataProviderFeatureEntity, input?: FeatureTestInput): Promise<ISearchExtractDataResponse> {
+    async testContextual(feature: DataProviderFeatureEntity, input?: IFeatureTestInput): Promise<ISearchExtractDataResponse> {
         const { htmlContentString, dataContent } = input || {};
 
         const config = (feature.config || {}) as ISearchTargetConfig;

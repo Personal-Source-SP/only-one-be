@@ -1,5 +1,3 @@
-import { SearchResultItemDto } from '../dtos/responses/search-extract-data-response.dto';
-
 export interface CookieItem {
     name: string; // Tên cookie
     value: string; // Giá trị cookie
@@ -42,44 +40,11 @@ export interface ISearchTargetConfig extends IScrapingTargetConfig {
 
 export type TargetConfig = IScrapingTargetConfig | ISearchTargetConfig;
 
-export interface FeatureTestInput {
+export interface IFeatureTestInput {
     url?: string;
     query?: string;
     itemUrl?: string;
     htmlContentString?: string;
     dataContent?: Record<string, unknown>;
     [key: string]: unknown;
-}
-
-export interface IRunFunctionExtractData {
-    htmlContent: string;
-    functionGenerator: string;
-    mainContentSelector: string;
-    isGetParentElement: boolean;
-}
-
-export interface IRunApiFunctionExtractData {
-    functionGenerator: string;
-    data: Record<string, unknown>;
-}
-
-export interface IRunSearchFunctionExtractData {
-    htmlContent: string;
-    functionGenerator: string;
-    resultSelector?: string;
-    maxResults?: number;
-    mainContentSelector?: string;
-    isGetParentElement?: boolean;
-}
-
-export interface IRunApiSearchFunctionExtractData {
-    functionGenerator: string;
-    data: Record<string, unknown>;
-    maxResults?: number;
-}
-
-export interface ISearchExtractDataResponse {
-    html?: string;
-    error?: string;
-    data?: SearchResultItemDto[];
 }
