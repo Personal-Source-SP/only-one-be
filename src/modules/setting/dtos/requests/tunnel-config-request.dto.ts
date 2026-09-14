@@ -1,10 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { EnumField, StringFieldOptional } from '../../../../decorators';
-
-export enum TunnelModeEnum {
-    QUICK = 'quick',
-    NAMED = 'named',
-}
+import { TunnelModeEnum } from '../../enums';
 
 export class SaveTunnelConfigRequestDto {
     @EnumField(() => TunnelModeEnum, { default: TunnelModeEnum.QUICK })

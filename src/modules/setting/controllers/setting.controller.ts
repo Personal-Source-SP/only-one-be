@@ -9,7 +9,7 @@ import { CLOUDFLARE_TUNNEL_SETTING_KEY } from '../constants/setting-key.constant
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SaveTunnelConfigRequestDto } from '../dtos/requests/tunnel-config-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
-import { TunnelConfigDto } from '../dtos/tunnel-config.dto';
+import { TunnelConfigResponseDto } from '../dtos/responses/tunnel-config-response.dto';
 import { SettingEntity } from '../entities/setting.entity';
 import { SettingService } from '../services/setting.service';
 
@@ -24,11 +24,11 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
     @Get({
         path: 'tunnel/config',
         summary: 'Get user tunnel config',
-        responseDto: TunnelConfigDto,
+        responseDto: TunnelConfigResponseDto,
     })
-    async getTunnelConfig(@User() user: PayloadDto): Promise<TunnelConfigDto | null> {
+    async getTunnelConfig(@User() user: PayloadDto): Promise<TunnelConfigResponseDto | null> {
         const setting = await this.settingService.getUserSetting(user.id, CLOUDFLARE_TUNNEL_SETTING_KEY);
-        return (setting?.value as TunnelConfigDto) || null;
+        return (setting?.value as TunnelConfigResponseDto) || null;
     }
 
     @Get({

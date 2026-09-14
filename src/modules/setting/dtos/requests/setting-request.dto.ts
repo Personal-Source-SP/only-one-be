@@ -10,7 +10,7 @@ export class CreateSettingRequestDto {
 
     @ObjectFieldOptional()
     @AutoMap()
-    value: Record<string, any>;
+    value: Record<string, unknown>;
 
     @EnumFieldOptional(() => SettingType)
     @AutoMap()
@@ -24,7 +24,7 @@ export class CreateSettingRequestDto {
 export class UpdateSettingRequestDto {
     @ObjectFieldOptional()
     @AutoMap()
-    value?: Record<string, any>;
+    value?: Record<string, unknown>;
 
     @EnumFieldOptional(() => SettingType)
     @AutoMap()
