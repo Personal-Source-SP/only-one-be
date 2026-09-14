@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +11,7 @@ import { AppException } from '../../../exceptions/app.exception';
 import { NOTIFICATION_EVENTS } from '../../notification/constants/notification.constant';
 import { NotificationType } from '../../notification/enum/notification.enum';
 import { DataProviderError } from '../constants/data-provider-error';
+import { DATA_PROVIDER_FEATURE_SERVICE_MAP } from '../constants/data-provider-feature-service-map';
 import { DataProviderFeatureDto } from '../dtos/data-provider-feature.dto';
 import {
     CreateDataProviderFeatureRequestDto,
@@ -18,10 +19,9 @@ import {
     UpdateFeatureConfigRequestDto,
 } from '../dtos/requests/data-provider-feature-request.dto';
 import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../enums';
+import { DataProviderFeatureErrorType, DataProviderFeatureStatus, DataProviderFeatureType } from '../enums';
 import { ConfigVersionType } from '../enums/config-version-type.enum';
-import { IExtractDataResponse, ISearchExtractDataResponse } from '../interfaces';
-import { FeatureRunnerRegistry } from '../runners/feature-runner.registry';
+import { IDataProviderFeatureService, IExtractDataResponse, ISearchExtractDataResponse } from '../interfaces';
 import { ConfigVersionService } from './config-version.service';
 
 @Injectable()
@@ -32,8 +32,8 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         private readonly eventEmitter: EventEmitter2,
         private readonly configVersionService: ConfigVersionService,
         @InjectMapper() mapper: Mapper,
-        @Inject(forwardRef(() => FeatureRunnerRegistry))
-        private readonly runnerRegistry: FeatureRunnerRegistry,
+        @Inject(DATA_PROVIDER_FEATURE_SERVICE_MAP)
+        private readonly featureServiceMap: Record<string, IDataProviderFeatureService>,
         @InjectRepository(DataProviderFeatureEntity)
         private readonly dataProviderFeatureRepository: Repository<DataProviderFeatureEntity>,
     ) {
@@ -46,11 +46,12 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         const existing = await this.exists({ dataProviderId, type });
         if (existing) throw new AppException(DataProviderError.FeatureAlreadyExists(type, dataProviderId));
 
-        const runner = this.runnerRegistry.getRunner(type);
-        const validatedConfig = config ? runner.validateConfig(config) : undefined;
+        const featureService = this.featureServiceMap[type];
+        if (!featureService) throw new AppException(DataProviderError.RunnerNotFound(type));
 
+        const validatedConfig = config ? featureService.validateConfig(config) : undefined;
         if (input) {
-            await runner.testStateless(service, validatedConfig, input);
+            await featureService.testStateless(service, validatedConfig, input);
         }
 
         const status = input ? DataProviderFeatureStatus.READY : DataProviderFeatureStatus.UNCONFIGURED;
@@ -70,11 +71,12 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
         const feature = await this.findById(id);
         if (!feature) throw new AppException(DataProviderError.FeatureNotFound(id));
 
-        const runner = this.runnerRegistry.getRunner(feature.type);
-        const validatedConfig = request.config ? runner.validateConfig(request.config) : undefined;
+        const featureService = this.featureServiceMap[feature.type];
+        if (!featureService) throw new AppException(DataProviderError.RunnerNotFound(feature.type));
 
+        const validatedConfig = request.config ? featureService.validateConfig(request.config) : undefined;
         if (request.input) {
-            await runner.testStateless(feature.service, validatedConfig, request.input);
+            await featureService.testStateless(feature.service, validatedConfig, request.input);
         }
 
         // Create version snapshot
@@ -168,8 +170,10 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
                     throw new AppException(DataProviderError.InvalidStatusSwitchReady);
                 }
 
-                const runner = this.runnerRegistry.getRunner(feature.type);
-                await runner.testContextual(feature as DataProviderFeatureEntity);
+                const featureService = this.featureServiceMap[feature.type];
+                if (!featureService) throw new AppException(DataProviderError.RunnerNotFound(feature.type));
+
+                await featureService.testContextual(feature as DataProviderFeatureEntity);
 
                 const result = await super.update(id, {
                     status,
@@ -212,8 +216,10 @@ export class DataProviderFeatureService extends BaseService<DataProviderFeatureE
     }
 
     async testStateless(request: TestFeatureStatelessRequestDto): Promise<IExtractDataResponse | ISearchExtractDataResponse> {
-        const runner = this.runnerRegistry.getRunner(request.type);
-        const result = (await runner.testStateless(request.service, request.config, request.input)) as
+        const featureService = this.featureServiceMap[request.type];
+        if (!featureService) throw new AppException(DataProviderError.RunnerNotFound(request.type));
+
+        const result = (await featureService.testStateless(request.service, request.config, request.input)) as
             | IExtractDataResponse
             | ISearchExtractDataResponse;
 

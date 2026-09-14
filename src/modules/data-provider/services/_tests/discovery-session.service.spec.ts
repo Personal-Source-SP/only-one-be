@@ -9,7 +9,7 @@ describe('DiscoverySessionService', () => {
     let discoveryUrlService: any;
     let mapper: any;
     let queueService: any;
-    let searchFeatureRunner: any;
+    let searchFeatureService: any;
     let validationService: any;
     let searchServiceMap: any;
 
@@ -52,7 +52,7 @@ describe('DiscoverySessionService', () => {
             addJob: jest.fn().mockResolvedValue({ id: 'job-1' }),
         };
 
-        searchFeatureRunner = {
+        searchFeatureService = {
             buildSearchUrl: jest.fn().mockReturnValue('https://amazon.com/s?k=sony'),
         };
 
@@ -70,7 +70,7 @@ describe('DiscoverySessionService', () => {
 
         service = new DiscoverySessionService(
             queueService,
-            searchFeatureRunner,
+            searchFeatureService,
             dataProviderService,
             discoveryUrlService,
             validationService,

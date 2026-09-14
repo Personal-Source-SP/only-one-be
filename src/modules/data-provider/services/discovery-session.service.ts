@@ -31,8 +31,8 @@ import {
 } from '../enums';
 import { DiscoveryValidationHelper } from '../helpers/discovery-validation.helper';
 import { IDataProviderSearchService, ISearchTargetConfig, ISessionWithSearchFeature } from '../interfaces';
-import { SearchFeatureRunner } from '../runners/search-feature.runner';
 import { DataProviderService } from './data-provider.service';
+import { SearchFeatureService } from './data-provider-feature/search-feature.service';
 import { DiscoveryUrlService } from './discovery-url.service';
 import { DiscoveryValidationLogService } from './discovery-validation-log.service';
 
@@ -40,9 +40,9 @@ import { DiscoveryValidationLogService } from './discovery-validation-log.servic
 export class DiscoverySessionService extends BaseService<DiscoverySessionEntity, DiscoverySessionDto> {
     constructor(
         private readonly queueService: QueueService,
-        private readonly searchFeatureRunner: SearchFeatureRunner,
         private readonly dataProviderService: DataProviderService,
         private readonly discoveryUrlService: DiscoveryUrlService,
+        private readonly searchFeatureService: SearchFeatureService,
         private readonly discoveryValidationLogService: DiscoveryValidationLogService,
         @InjectMapper() mapper: Mapper,
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
@@ -246,7 +246,7 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         if (!searchService) throw new AppException(DataProviderError.SearchServiceNotFound(searchFeature.service));
 
         const targetConfig = (searchFeature.config || {}) as ISearchTargetConfig;
-        const searchUrl = this.searchFeatureRunner.buildSearchUrl(targetConfig, { query: keyword }) || session.targetUrl || '';
+        const searchUrl = this.searchFeatureService.buildSearchUrl(targetConfig, { query: keyword }) || session.targetUrl || '';
 
         if (!searchUrl) {
             this.loggerService.warn(`Search URL is empty for keyword "${keyword}" in session ${session.id}`);

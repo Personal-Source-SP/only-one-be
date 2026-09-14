@@ -4,16 +4,16 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AppException } from '../../../../exceptions/app.exception';
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { DataProviderError } from '../../constants/data-provider-error';
+import { DATA_PROVIDER_FEATURE_SERVICE_MAP } from '../../constants/data-provider-feature-service-map';
 import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.entity';
 import { DataProviderFeatureStatus, DataProviderFeatureType, ScraperServiceEnum } from '../../enums';
-import { FeatureRunnerRegistry } from '../../runners/feature-runner.registry';
 import { ConfigVersionService } from '../config-version.service';
 import { DataProviderFeatureService } from '../data-provider-feature.service';
 
 describe('DataProviderFeatureService', () => {
     let service: DataProviderFeatureService;
     let mockRepo: any;
-    let mockRunnerRegistry: any;
+    let mockServiceMap: any;
     let mockRunner: any;
     let mockConfigVersionService: any;
     let mockLogger: any;
@@ -33,8 +33,9 @@ describe('DataProviderFeatureService', () => {
             testContextual: jest.fn().mockResolvedValue({ status: 'success' }),
         };
 
-        mockRunnerRegistry = {
-            getRunner: jest.fn().mockReturnValue(mockRunner),
+        mockServiceMap = {
+            [DataProviderFeatureType.SCRAPING]: mockRunner,
+            [DataProviderFeatureType.SEARCH]: mockRunner,
         };
 
         mockConfigVersionService = {
@@ -55,7 +56,7 @@ describe('DataProviderFeatureService', () => {
             providers: [
                 DataProviderFeatureService,
                 { provide: getRepositoryToken(DataProviderFeatureEntity), useValue: mockRepo },
-                { provide: FeatureRunnerRegistry, useValue: mockRunnerRegistry },
+                { provide: DATA_PROVIDER_FEATURE_SERVICE_MAP, useValue: mockServiceMap },
                 { provide: ConfigVersionService, useValue: mockConfigVersionService },
                 { provide: LoggerService, useValue: mockLogger },
                 { provide: 'EventEmitter2', useValue: mockEventEmitter },
@@ -200,6 +201,18 @@ describe('DataProviderFeatureService', () => {
 
             await expect(service.switchStatus('feat-1', DataProviderFeatureStatus.READY)).rejects.toThrow(AppException);
             expect(mockRepo.update).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('featureServiceMap error handling', () => {
+        it('should throw RunnerNotFound when type is not registered in featureServiceMap', async () => {
+            await expect(
+                service.testStateless({
+                    type: 'UNKNOWN_TYPE' as any,
+                    service: ScraperServiceEnum.GENERIC,
+                    config: {},
+                }),
+            ).rejects.toThrow(AppException);
         });
     });
 });

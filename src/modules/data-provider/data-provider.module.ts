@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserModule } from '../user/user.module';
+import { DATA_PROVIDER_FEATURE_SERVICE_MAP } from './constants/data-provider-feature-service-map';
 import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from './constants/data-provider-scraper-service-map';
 import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from './constants/data-provider-search-service-map';
 import { ConfigVersionController } from './controllers/config-version.controller';
@@ -22,18 +23,17 @@ import { DiscoveryUrlEntity } from './entities/discovery-url.entity';
 import { DiscoveryValidationLogEntity } from './entities/discovery-validation-log.entity';
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
-import { ScraperServiceEnum } from './enums';
+import { DataProviderFeatureType, ScraperServiceEnum } from './enums';
 import { ExtractDataHelper } from './helpers/extract-data.helper';
 import { ExtractSearchDataHelper } from './helpers/extract-search-data.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
-import { IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
+import { IDataProviderFeatureService, IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
 import { ScrapingDataListener } from './listeners/scraping-data.listener';
-import { FeatureRunnerRegistry } from './runners/feature-runner.registry';
-import { ScrapingFeatureRunner } from './runners/scraping-feature.runner';
-import { SearchFeatureRunner } from './runners/search-feature.runner';
 import { ConfigVersionService } from './services/config-version.service';
 import { DataProviderService } from './services/data-provider.service';
 import { DataProviderFeatureService } from './services/data-provider-feature.service';
+import { ScrapingFeatureService } from './services/data-provider-feature/scraping-feature.service';
+import { SearchFeatureService } from './services/data-provider-feature/search-feature.service';
 import { DataProviderItemService } from './services/data-provider-item.service';
 import { DataProviderScraperService } from './services/data-provider-scraper.service';
 import { ApiDataProviderScraperService } from './services/data-provider-scraper/api-data-provider-scraper.service';
@@ -71,25 +71,23 @@ const controllers = [
     DiscoverySessionController,
     DiscoveryUrlController,
 ];
-const runners = [ScrapingFeatureRunner, SearchFeatureRunner, FeatureRunnerRegistry];
+
+const featureServices = [ScrapingFeatureService, SearchFeatureService];
+const scrapingServices = [ApiDataProviderScraperService, LocalDataProviderScraperService, GenericDataProviderScraperService];
+const searchServices = [ApiDataProviderSearchService, LocalDataProviderSearchService, GenericDataProviderSearchService];
+const discoveryServices = [DiscoverySessionService, DiscoveryValidationLogService, DiscoveryUrlService];
 const services = [
     ItemService,
     ScrapingDataService,
-    ConfigVersionService,
     DataProviderService,
+    ConfigVersionService,
     DataProviderFeatureService,
     DataProviderItemService,
     DataProviderScraperService,
-    ApiDataProviderScraperService,
-    LocalDataProviderScraperService,
-    GenericDataProviderScraperService,
-    ApiDataProviderSearchService,
-    LocalDataProviderSearchService,
-    GenericDataProviderSearchService,
-    DiscoverySessionService,
-    DiscoveryValidationLogService,
-    DiscoveryUrlService,
-    ...runners,
+    ...discoveryServices,
+    ...featureServices,
+    ...scrapingServices,
+    ...searchServices,
 ];
 
 @Module({
@@ -126,6 +124,17 @@ const services = [
             }),
             inject: [ApiDataProviderSearchService, LocalDataProviderSearchService, GenericDataProviderSearchService],
         },
+        {
+            provide: DATA_PROVIDER_FEATURE_SERVICE_MAP,
+            useFactory: (
+                scrapingFeatureService: ScrapingFeatureService,
+                searchFeatureService: SearchFeatureService,
+            ): Record<string, IDataProviderFeatureService> => ({
+                [DataProviderFeatureType.SCRAPING]: scrapingFeatureService,
+                [DataProviderFeatureType.SEARCH]: searchFeatureService,
+            }),
+            inject: [ScrapingFeatureService, SearchFeatureService],
+        },
     ],
     exports: [
         ...helpers,
@@ -134,6 +143,7 @@ const services = [
         DataProviderProfile,
         DATA_PROVIDER_SEARCH_SERVICE_MAP,
         DATA_PROVIDER_SCRAPER_SERVICE_MAP,
+        DATA_PROVIDER_FEATURE_SERVICE_MAP,
     ],
 })
 export class DataProviderModule {}

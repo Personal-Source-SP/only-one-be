@@ -1,21 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { AppException } from '../../../exceptions/app.exception';
-import { DataProviderError } from '../constants/data-provider-error';
-import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../constants/data-provider-search-service-map';
-import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { ScraperServiceEnum } from '../enums';
-import { TargetConfigValidatorHelper } from '../helpers/target-config-validator.helper';
+import { AppException } from '../../../../exceptions/app.exception';
+import { DataProviderError } from '../../constants/data-provider-error';
+import { DATA_PROVIDER_SEARCH_SERVICE_MAP } from '../../constants/data-provider-search-service-map';
+import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.entity';
+import { ScraperServiceEnum } from '../../enums';
+import { TargetConfigValidatorHelper } from '../../helpers/target-config-validator.helper';
 import {
     FeatureTestInput,
+    IDataProviderFeatureService,
     IDataProviderSearchService,
-    IFeatureRunner,
     ISearchExtractDataResponse,
     ISearchTargetConfig,
-} from '../interfaces';
+} from '../../interfaces';
 
 @Injectable()
-export class SearchFeatureRunner implements IFeatureRunner<ISearchTargetConfig, FeatureTestInput, ISearchExtractDataResponse> {
+export class SearchFeatureService
+    implements IDataProviderFeatureService<ISearchTargetConfig, FeatureTestInput, ISearchExtractDataResponse>
+{
     constructor(
         @Inject(DATA_PROVIDER_SEARCH_SERVICE_MAP)
         private readonly dataProviderSearchServiceMap: Record<string, IDataProviderSearchService>,

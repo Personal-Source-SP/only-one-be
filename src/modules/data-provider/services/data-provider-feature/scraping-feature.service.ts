@@ -1,24 +1,30 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
-import { AppException } from '../../../exceptions/app.exception';
-import { DataProviderError } from '../constants/data-provider-error';
-import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../constants/data-provider-scraper-service-map';
-import { ValidateParserFunctionResponseDto } from '../dtos/responses';
-import { DataProviderFeatureEntity } from '../entities/data-provider-feature.entity';
-import { ScraperServiceEnum } from '../enums';
-import { TargetConfigValidatorHelper } from '../helpers/target-config-validator.helper';
-import { FeatureTestInput, IDataProviderScraperService, IExtractDataResponse, IFeatureRunner, IScrapingTargetConfig } from '../interfaces';
-import { DataProviderItemService } from '../services/data-provider-item.service';
+import { AppException } from '../../../../exceptions/app.exception';
+import { DataProviderError } from '../../constants/data-provider-error';
+import { DATA_PROVIDER_SCRAPER_SERVICE_MAP } from '../../constants/data-provider-scraper-service-map';
+import { ValidateParserFunctionResponseDto } from '../../dtos/responses';
+import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.entity';
+import { ScraperServiceEnum } from '../../enums';
+import { TargetConfigValidatorHelper } from '../../helpers/target-config-validator.helper';
+import {
+    FeatureTestInput,
+    IDataProviderFeatureService,
+    IDataProviderScraperService,
+    IExtractDataResponse,
+    IScrapingTargetConfig,
+} from '../../interfaces';
+import { DataProviderItemService } from '../data-provider-item.service';
 
 @Injectable()
-export class ScrapingFeatureRunner
-    implements IFeatureRunner<IScrapingTargetConfig, FeatureTestInput, IExtractDataResponse | ValidateParserFunctionResponseDto>
+export class ScrapingFeatureService
+    implements
+        IDataProviderFeatureService<IScrapingTargetConfig, FeatureTestInput, IExtractDataResponse | ValidateParserFunctionResponseDto>
 {
     constructor(
+        private readonly dataProviderItemService: DataProviderItemService,
         @Inject(DATA_PROVIDER_SCRAPER_SERVICE_MAP)
         private readonly dataProviderScraperServiceMap: Record<string, IDataProviderScraperService>,
-        @Inject(forwardRef(() => DataProviderItemService))
-        private readonly dataProviderItemService: DataProviderItemService,
     ) {}
 
     validateConfig(config: unknown): IScrapingTargetConfig {
