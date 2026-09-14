@@ -51,30 +51,28 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
     }
 
     async getUserSetting(userId: string, key: string): Promise<SettingDto | null> {
-        const entity = await this.findOneByFilter({
+        const setting = await this.findOneByFilter({
             key,
             userId,
             type: SettingType.USER,
         });
 
-        if (!entity) {
-            return null;
-        }
-
-        return this.mapper.map(entity, SettingEntity, SettingDto);
+        return setting ?? null;
     }
 
     async saveUserSetting(userId: string, key: string, value: Record<string, any>): Promise<SettingDto> {
-        let entity = await this.findOneByFilter({
-            key,
-            userId,
-            type: SettingType.USER,
+        const existingEntity = await this.repository.findOne({
+            where: {
+                key,
+                userId,
+                type: SettingType.USER,
+            },
         });
 
-        if (entity) {
-            entity.value = value;
+        if (existingEntity) {
+            existingEntity.value = value;
 
-            const updated = await this.create(entity);
+            const updated = await this.repository.save(existingEntity);
             return this.mapper.map(updated, SettingEntity, SettingDto);
         }
 
@@ -86,7 +84,7 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
             type: SettingType.USER,
         });
 
-        const saved = await super.create(newEntity);
+        const saved = await this.repository.save(newEntity);
         return this.mapper.map(saved, SettingEntity, SettingDto);
     }
 
