@@ -2,7 +2,9 @@ import { Body, Controller, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { BaseController } from '../../../common/base.controller';
+import { PayloadDto } from '../../../common/dto/payload.dto';
 import { Auth, Get, Post, Put } from '../../../decorators';
+import { User } from '../../../decorators/user.decorator';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
@@ -14,6 +16,16 @@ import { SettingService } from '../services/setting.service';
 export class SettingController extends BaseController<SettingEntity, SettingDto> {
     constructor(private readonly settingService: SettingService) {
         super(settingService);
+    }
+
+    @Get({
+        path: 'user/:key',
+        summary: 'Get user setting by key',
+        responseDto: SettingDto,
+    })
+    async getUserSetting(@Param('key') key: string, @User() user: PayloadDto): Promise<SettingDto | null> {
+        const result = await this.settingService.getUserSetting(user.id, key);
+        return result;
     }
 
     @Get({
@@ -32,6 +44,20 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
     })
     async create(@Body() request: CreateSettingRequestDto): Promise<SettingDto> {
         const result = await this.settingService.create(request);
+        return result;
+    }
+
+    @Put({
+        path: 'user/:key',
+        summary: 'Save/Update user setting by key',
+        responseDto: SettingDto,
+    })
+    async saveUserSetting(
+        @Param('key') key: string,
+        @Body() request: UpdateSettingRequestDto,
+        @User() user: PayloadDto,
+    ): Promise<SettingDto> {
+        const result = await this.settingService.saveUserSetting(user.id, key, request.value || {});
         return result;
     }
 

@@ -11,3 +11,10 @@
 - **Stateless Sandbox (`testStateless`)**: Kiểm thử cấu hình tức thì với dữ liệu mẫu đầu vào (`input`) mà không làm thay đổi trạng thái của database hay entity.
 - **DiscoverySession (`DiscoverySessionEntity`)**: Phiên khám phá, thu thập danh sách URL sản phẩm/bài viết từ Data Provider dựa trên cấu hình Search Feature và từ khóa tìm kiếm (`targetKeyword`).
 - **DiscoveryRunner (`DiscoveryRunner`)**: Runner nền điều phối tác vụ tìm kiếm, cào dữ liệu URL thông qua Search Feature và khởi chạy quy trình tự động thẩm định (Validation Batch).
+
+## Setting & User Preferences Domain
+
+- **Setting (`SettingEntity`)**: Thực thể lưu trữ cấu hình hệ thống hoặc cấu hình cá nhân dạng JSONB (`key`, `value`, `type`, `isActive`, `userId`).
+- **SettingType (`SettingType`)**: Định danh phạm vi của cấu hình (`GLOBAL` cho toàn hệ thống, `USER` cho từng tài khoản cá nhân).
+- **ThemePalette (`HubThemePalette`)**: Tông màu giao diện được cá nhân hóa cho từng người dùng, hỗ trợ đồng bộ đa thiết bị (multi-device sync) kết hợp SWR caching trên client.
+

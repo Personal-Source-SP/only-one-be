@@ -2,6 +2,7 @@ import { AutoMap } from '@automapper/classes';
 import { ApiResponseProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { UserDto } from '../../user/dtos/user.dto';
 import { SettingType } from '../enums';
 
 export class SettingDto extends AbstractDto {
@@ -20,4 +21,12 @@ export class SettingDto extends AbstractDto {
     @ApiResponseProperty()
     @AutoMap()
     type: SettingType;
+
+    @ApiResponseProperty()
+    @AutoMap()
+    userId?: string | null;
+
+    @ApiResponseProperty({ type: () => UserDto })
+    @AutoMap(() => UserDto)
+    user?: UserDto;
 }

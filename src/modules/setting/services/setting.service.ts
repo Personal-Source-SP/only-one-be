@@ -10,6 +10,7 @@ import { SettingError } from '../constants/setting-error';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
+import { SettingType } from '../enums';
 
 @Injectable()
 export class SettingService extends BaseService<SettingEntity, SettingDto> {
@@ -47,6 +48,46 @@ export class SettingService extends BaseService<SettingEntity, SettingDto> {
         }
 
         return setting;
+    }
+
+    async getUserSetting(userId: string, key: string): Promise<SettingDto | null> {
+        const entity = await this.findOneByFilter({
+            key,
+            userId,
+            type: SettingType.USER,
+        });
+
+        if (!entity) {
+            return null;
+        }
+
+        return this.mapper.map(entity, SettingEntity, SettingDto);
+    }
+
+    async saveUserSetting(userId: string, key: string, value: Record<string, any>): Promise<SettingDto> {
+        let entity = await this.findOneByFilter({
+            key,
+            userId,
+            type: SettingType.USER,
+        });
+
+        if (entity) {
+            entity.value = value;
+
+            const updated = await this.create(entity);
+            return this.mapper.map(updated, SettingEntity, SettingDto);
+        }
+
+        const newEntity = this.repository.create({
+            key,
+            value,
+            userId,
+            isActive: true,
+            type: SettingType.USER,
+        });
+
+        const saved = await super.create(newEntity);
+        return this.mapper.map(saved, SettingEntity, SettingDto);
     }
 
     async deleteByKey(key: string): Promise<boolean> {
