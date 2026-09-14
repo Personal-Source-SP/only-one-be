@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { PayloadDto } from '../../../common/dto/payload.dto';
+import { IFindOptions } from '../../../common/interfaces/base-service.interface';
 import { AppException } from '../../../exceptions/app.exception';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IDiscoverySearchJob, IDiscoveryValidationJob } from '../../queue/interfaces';
@@ -50,6 +51,13 @@ export class DiscoverySessionService extends BaseService<DiscoverySessionEntity,
         private readonly discoverySessionRepository: Repository<DiscoverySessionEntity>,
     ) {
         super(discoverySessionRepository, mapper, DiscoverySessionDto, DiscoverySessionService.name);
+    }
+
+    override async findById(id: string, options?: IFindOptions<DiscoverySessionEntity>): Promise<DiscoverySessionDto> {
+        return super.findById(id, {
+            ...options,
+            relations: options?.relations ?? { dataProvider: true },
+        });
     }
 
     async create(request: CreateDiscoverySessionRequestDto, user?: PayloadDto): Promise<DiscoverySessionDto> {
