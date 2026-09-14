@@ -5,8 +5,11 @@ import { BaseController } from '../../../common/base.controller';
 import { PayloadDto } from '../../../common/dto/payload.dto';
 import { Auth, Get, Post, Put } from '../../../decorators';
 import { User } from '../../../decorators/user.decorator';
+import { CLOUDFLARE_TUNNEL_SETTING_KEY } from '../constants/setting-key.constant';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
+import { SaveTunnelConfigRequestDto } from '../dtos/requests/tunnel-config-request.dto';
 import { SettingDto } from '../dtos/setting.dto';
+import { TunnelConfigDto } from '../dtos/tunnel-config.dto';
 import { SettingEntity } from '../entities/setting.entity';
 import { SettingService } from '../services/setting.service';
 
@@ -16,6 +19,16 @@ import { SettingService } from '../services/setting.service';
 export class SettingController extends BaseController<SettingEntity, SettingDto> {
     constructor(private readonly settingService: SettingService) {
         super(settingService);
+    }
+
+    @Get({
+        path: 'tunnel/config',
+        summary: 'Get user tunnel config',
+        responseDto: TunnelConfigDto,
+    })
+    async getTunnelConfig(@User() user: PayloadDto): Promise<TunnelConfigDto | null> {
+        const setting = await this.settingService.getUserSetting(user.id, CLOUDFLARE_TUNNEL_SETTING_KEY);
+        return (setting?.value as TunnelConfigDto) || null;
     }
 
     @Get({
@@ -45,6 +58,16 @@ export class SettingController extends BaseController<SettingEntity, SettingDto>
     async create(@Body() request: CreateSettingRequestDto): Promise<SettingDto> {
         const result = await this.settingService.create(request);
         return result;
+    }
+
+    @Put({
+        path: 'tunnel/config',
+        summary: 'Save user tunnel config',
+        responseDto: Boolean,
+    })
+    async saveTunnelConfig(@Body() request: SaveTunnelConfigRequestDto, @User() user: PayloadDto): Promise<boolean> {
+        await this.settingService.saveUserSetting(user.id, CLOUDFLARE_TUNNEL_SETTING_KEY, request);
+        return true;
     }
 
     @Put({
