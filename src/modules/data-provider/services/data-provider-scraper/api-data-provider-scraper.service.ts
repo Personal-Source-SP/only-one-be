@@ -4,7 +4,7 @@ import { isEmpty } from 'lodash';
 import { ApiFetcherService } from '../../../../shared/services/api-fetcher.service';
 import { ScrapeItemDataResponseDto, ValidateParserFunctionResponseDto } from '../../dtos/responses';
 import { DataProviderFeatureType } from '../../enums';
-import { ExtractDataHelper } from '../../helpers/extract-data.helper';
+import { ExtractScraperDataHelper } from '../../helpers/extract-scraper-data.helper';
 import {
     IDataProviderScraperService,
     IExtractDataResponse,
@@ -18,7 +18,7 @@ import {
 export class ApiDataProviderScraperService implements IDataProviderScraperService {
     constructor(
         private readonly apiFetcherService: ApiFetcherService,
-        private readonly extractDataHelper: ExtractDataHelper,
+        private readonly extractDataHelper: ExtractScraperDataHelper,
     ) {}
 
     async scrapeItemData(request: IScrapeItemDataRequest): Promise<ScrapeItemDataResponseDto> {

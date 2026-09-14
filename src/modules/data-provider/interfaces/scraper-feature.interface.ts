@@ -1,8 +1,8 @@
 export interface IRunScraperFunctionExtractData {
     htmlContent: string;
     functionGenerator: string;
-    mainContentSelector: string;
-    isGetParentElement: boolean;
+    mainContentSelector?: string;
+    isGetParentElement?: boolean;
 }
 
 export interface IRunApiScraperFunctionExtractData {

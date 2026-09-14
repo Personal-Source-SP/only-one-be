@@ -24,7 +24,7 @@ import { DiscoveryValidationLogEntity } from './entities/discovery-validation-lo
 import { ItemEntity } from './entities/item.entity';
 import { ScrapingDataEntity } from './entities/scraping-data.entity';
 import { DataProviderFeatureType, ScraperServiceEnum } from './enums';
-import { ExtractDataHelper } from './helpers/extract-data.helper';
+import { ExtractScraperDataHelper } from './helpers/extract-scraper-data.helper';
 import { ExtractSearchDataHelper } from './helpers/extract-search-data.helper';
 import { UrlResolverHelper } from './helpers/url-resolver.helper';
 import { IDataProviderFeatureService, IDataProviderScraperService, IDataProviderSearchService } from './interfaces';
@@ -48,7 +48,7 @@ import { DiscoveryValidationLogService } from './services/discovery-validation-l
 import { ItemService } from './services/item.service';
 import { ScrapingDataService } from './services/scraping-data.service';
 
-const helpers = [ExtractDataHelper, ExtractSearchDataHelper, UrlResolverHelper];
+const helpers = [ExtractScraperDataHelper, ExtractSearchDataHelper, UrlResolverHelper];
 const listeners = [ScrapingDataListener];
 const entities = [
     DataProviderEntity,

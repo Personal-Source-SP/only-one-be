@@ -3,19 +3,27 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import { ScrapeItemDataResponseItemDto } from '../dtos/responses/scrape-item-data-response.dto';
-import { IRunApiFunctionExtractData, IRunFunctionExtractData } from '../interfaces/target-config.interface';
+import { IRunApiScraperFunctionExtractData, IRunScraperFunctionExtractData } from '../interfaces';
 
 @Injectable()
-class ExtractDataHelper {
-    async runFunctionExtractData(dto: IRunFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
+export class ExtractScraperDataHelper {
+    async runFunctionExtractData(dto: IRunScraperFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
         const { functionGenerator, htmlContent, mainContentSelector, isGetParentElement } = dto;
 
+        if (!functionGenerator) {
+            throw new Error('Function generator is required');
+        }
+
         try {
-            const extractData = new Function(
+            const transformedFn = this.transformFunction(functionGenerator);
+            const runFn = new Function(
                 'cheerio',
                 `return (html) => {
-                    ${this.transformFunction(functionGenerator)}
-                    return extractData(html);
+                    ${transformedFn}
+                    if (typeof extractData === 'function') {
+                        return extractData(html);
+                    }
+                    throw new Error('extractData function is not defined');
                 }`,
             )(cheerio);
 
@@ -26,7 +34,7 @@ class ExtractDataHelper {
             });
             if (!mainContent) throw new Error(`Main content not found for selector: ${mainContentSelector}`);
 
-            const result = extractData(mainContent);
+            const result = runFn(mainContent);
 
             return result;
         } catch (error) {
@@ -35,7 +43,7 @@ class ExtractDataHelper {
         }
     }
 
-    async runApiFunctionExtractData(dto: IRunApiFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
+    async runApiFunctionExtractData(dto: IRunApiScraperFunctionExtractData): Promise<ScrapeItemDataResponseItemDto[]> {
         const { functionGenerator, data } = dto;
 
         if (!functionGenerator) {
@@ -47,16 +55,20 @@ class ExtractDataHelper {
         }
 
         try {
-            const extractData = new Function(
+            const transformedFn = this.transformFunction(functionGenerator);
+            const runFn = new Function(
                 'data',
                 'axios',
-                `return (data, axios) => {
-                    ${this.transformFunction(functionGenerator)}
-                    return extractData(data, axios);
+                `return async (data, axios) => {
+                    ${transformedFn}
+                    if (typeof extractData === 'function') {
+                        return await extractData(data, axios);
+                    }
+                    throw new Error('extractData function is not defined');
                 }`,
             )(data, axios);
 
-            const result = await extractData(data, axios);
+            const result = await runFn(data, axios);
 
             if (typeof result !== 'object' || result === null) {
                 throw new Error('Function must return an object');
@@ -88,10 +100,14 @@ class ExtractDataHelper {
 
     private transformFunction(functionString: string): string {
         if (!functionString) return '';
-        return functionString.replace('```javascript', '').replace('```', '').trim();
+        return functionString
+            .replace(/```(?:javascript|typescript|js|ts)?/gi, '')
+            .replace(/```/g, '')
+            .trim();
     }
 
     private transformHtmlContent(htmlContent: string): string {
+        if (!htmlContent) return '';
         try {
             const $ = cheerio.load(htmlContent);
             const bodyContent = $('html');
@@ -101,11 +117,9 @@ class ExtractDataHelper {
             bodyContent.find('link[rel="icon"]').remove();
             bodyContent.find('link[rel="stylesheet"]').remove();
 
-            return bodyContent.html().replace(/\n/g, '').trim();
+            return bodyContent.html() ? bodyContent.html().replace(/\n/g, '').trim() : htmlContent;
         } catch (error) {
-            return null;
+            return htmlContent;
         }
     }
 }
-
-export { ExtractDataHelper };
