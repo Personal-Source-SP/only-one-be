@@ -7,6 +7,7 @@
 - **[AVOID]** Monolithic entity versioning — Anchor configuration version snapshots (`ConfigVersionEntity`) to specific feature IDs (`featureId`) rather than root entities, ensuring granular rollback capability per feature.
 - **[AVOID]** Storing configuration rollback snapshots without synchronizing active feature entity config — Whenever a rollback snapshot is persisted, the active feature entity `config` column must be atomically updated in the same database transaction.
 - **[NEVER]** Retain orphaned legacy staging tables or dead entities (`DraftItemEntity`) after replacing them with modular validation and ingestion engines.
+- **[AVOID]** Referencing the users table in PostgreSQL migrations or raw queries as `"users"` without the trailing space — The initial schema defines the table identifier as `"users "` (`@Entity({ name: 'users ', synchronize: false })`), so all raw SQL DDL and foreign keys must explicitly preserve `"users "`.
 - **[AVOID]** Coupling price extraction or detection fields directly to Discovery URL entities — Keep URL discovery strictly focused on link discovery, validation, and product resolution lifecycles.
 
 ## Service & Controller Patterns
