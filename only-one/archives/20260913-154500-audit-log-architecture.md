@@ -58,13 +58,13 @@ flowchart TD
 ---
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [`src/modules/audit-log/enums/audit-log.enum.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/enums/audit-log.enum.ts): `AuditAction`, `AuditStatus`, `AuditResource`, `AUDIT_LOG_EVENTS`.
-- [`src/modules/audit-log/entities/audit-log.entity.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/entities/audit-log.entity.ts): Thực thể `AuditLogEntity` với các trường JSONB (`metadata`, `changes`).
-- [`src/modules/audit-log/dtos/requests/record-audit-log.dto.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/dtos/requests/record-audit-log.dto.ts): DTO với `deduplicationKey?: string`.
-- [`src/modules/audit-log/services/audit-log.service.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/services/audit-log.service.ts): Service quản lý nghiệp vụ và redaction dữ liệu nhạy cảm.
-- [`src/modules/audit-log/listeners/audit-log.listener.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/listeners/audit-log.listener.ts): Listener đẩy job vào Bull Queue kèm `jobId`.
-- [`src/modules/worker/processors/audit-log-worker.processor.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/worker/processors/audit-log-worker.processor.ts): Worker tiêu thụ job và lưu DB.
-- [`src/modules/audit-log/controllers/audit-log.controller.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/audit-log/controllers/audit-log.controller.ts): REST API Controller phân trang.
+- [`src/modules/audit-log/enums/audit-log.enum.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/enums/audit-log.enum.ts): `AuditAction`, `AuditStatus`, `AuditResource`, `AUDIT_LOG_EVENTS`.
+- [`src/modules/audit-log/entities/audit-log.entity.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/entities/audit-log.entity.ts): Thực thể `AuditLogEntity` với các trường JSONB (`metadata`, `changes`).
+- [`src/modules/audit-log/dtos/requests/record-audit-log.dto.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/dtos/requests/record-audit-log.dto.ts): DTO với `deduplicationKey?: string`.
+- [`src/modules/audit-log/services/audit-log.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/services/audit-log.service.ts): Service quản lý nghiệp vụ và redaction dữ liệu nhạy cảm.
+- [`src/modules/audit-log/listeners/audit-log.listener.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/listeners/audit-log.listener.ts): Listener đẩy job vào Bull Queue kèm `jobId`.
+- [`src/modules/worker/processors/audit-log-worker.processor.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/worker/processors/audit-log-worker.processor.ts): Worker tiêu thụ job và lưu DB.
+- [`src/modules/audit-log/controllers/audit-log.controller.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/audit-log/controllers/audit-log.controller.ts): REST API Controller phân trang.
 
 ---
 

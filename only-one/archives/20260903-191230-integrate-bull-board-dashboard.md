@@ -24,7 +24,7 @@ affected_modules:
   - Sử dụng `express-basic-auth` bảo vệ endpoint dashboard độc lập với JWT guard của API.
 
 ## 3. Scope & Key Changes (Phạm vi & Thay đổi Chính)
-- [`src/modules/bull-board/bull-board.module.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/bull-board/bull-board.module.ts): Dynamic module khởi tạo dashboard.
-- [`src/modules/bull-board/create-basic-auth-middleware.ts`](file:///d:/Sources/Personal/only-one-be/src/modules/bull-board/create-basic-auth-middleware.ts): Middleware xác thực Basic Auth.
-- [`src/shared/services/app-config.service.ts`](file:///d:/Sources/Personal/only-one-be/src/shared/services/app-config.service.ts): Getter `bullBoardConfig`.
-- [`src/app.module.ts`](file:///d:/Sources/Personal/only-one-be/src/app.module.ts): Đăng ký `BullBoardAppModule.register()`.
+- [`src/modules/bull-board/bull-board.module.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/bull-board/bull-board.module.ts): Dynamic module khởi tạo dashboard.
+- [`src/modules/bull-board/create-basic-auth-middleware.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/modules/bull-board/create-basic-auth-middleware.ts): Middleware xác thực Basic Auth.
+- [`src/shared/services/app-config.service.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/shared/services/app-config.service.ts): Getter `bullBoardConfig`.
+- [`src/app.module.ts`](file:///Users/kiem/Sources/PERSONAL/only-one-be/src/app.module.ts): Đăng ký `BullBoardAppModule.register()`.
