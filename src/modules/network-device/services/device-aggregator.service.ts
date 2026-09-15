@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { isNil, omitBy, union } from 'lodash';
 
@@ -8,6 +8,7 @@ import { CacheService } from '../../../shared/services/cache.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { WebSocketEvent } from '../../websocket/enums/subscribe-name.enum';
 import {
+    NETWORK_DEVICE_APPROACH_SERVICE_MAP,
     NETWORK_DEVICE_SCAN_LOCK_KEY,
     NETWORK_DEVICE_SCAN_LOCK_TTL_SECONDS,
     NETWORK_DEVICE_SCAN_STATE_ACTIVE_TTL_SECONDS,
@@ -15,23 +16,26 @@ import {
     NETWORK_DEVICE_SCAN_STATE_KEY,
 } from '../constants';
 import { NetworkDeviceDto, TriggerScanRequestDto } from '../dtos';
+import { ExecuteApproachRequestDto } from '../dtos/requests';
 import { ScanStatusResponseDto } from '../dtos/responses';
-import { NetworkDeviceType, NetworkScanStatus } from '../enums';
-import { IDeviceDiscoveredEventPayload, IScanCompletedEventPayload, IScanStartedEventPayload } from '../interfaces';
-import { ArpScanService } from './arp-scan.service';
+import { NetworkDeviceApproachEnum, NetworkDeviceType, NetworkScanStatus } from '../enums';
+import {
+    IDeviceDiscoveredEventPayload,
+    INetworkDeviceApproachResult,
+    INetworkDeviceApproachService,
+    IScanCompletedEventPayload,
+    IScanStartedEventPayload,
+} from '../interfaces';
 import { NetworkDeviceService } from './network-device.service';
-import { OnvifProbeService } from './onvif-probe.service';
-import { TcpPortProbeService } from './tcp-port-probe.service';
 
 @Injectable()
 export class DeviceAggregatorService {
     constructor(
+        private readonly cacheService: CacheService,
         private readonly eventEmitter: EventEmitter2,
         private readonly loggerService: LoggerService,
-        private readonly cacheService: CacheService,
-        private readonly arpScanService: ArpScanService,
-        private readonly onvifProbeService: OnvifProbeService,
-        private readonly tcpPortProbeService: TcpPortProbeService,
+        @Inject(NETWORK_DEVICE_APPROACH_SERVICE_MAP)
+        private readonly approachMap: Record<NetworkDeviceApproachEnum, INetworkDeviceApproachService>,
         private readonly networkDeviceService: NetworkDeviceService,
     ) {}
 
@@ -47,6 +51,13 @@ export class DeviceAggregatorService {
             startedAt: null,
             completedAt: null,
         });
+    }
+
+    async executeApproach(dto: ExecuteApproachRequestDto): Promise<INetworkDeviceApproachResult> {
+        const service = this.approachMap[dto.approach];
+        if (!service) throw new Error(`Approach ${dto.approach} is not supported`);
+
+        return service.execute(dto, { timeoutMs: dto.timeoutMs });
     }
 
     async scanAndAggregate(dto: TriggerScanRequestDto = {}): Promise<void> {
@@ -78,13 +89,22 @@ export class DeviceAggregatorService {
         this.eventEmitter.emit(WebSocketEvent.DEVICE_SCAN_STARTED, startPayload);
 
         try {
-            this.loggerService.log('Starting parallel Network Probing Pipeline (ONVIF, ARP, TCP)...');
+            this.loggerService.log('Starting parallel Network Probing Pipeline (ONVIF, ARP, TCP) via Service Map...');
 
-            const probeResults = await Promise.all([
-                this.onvifProbeService.probe(dto.subnet, dto.probeTimeoutMs ?? 3000),
-                this.arpScanService.scan(),
-                this.tcpPortProbeService.probeSubnet(dto.subnet),
+            const [onvifRes, arpRes, tcpRes] = await Promise.all([
+                this.approachMap[NetworkDeviceApproachEnum.PROTOCOL_AUTH].execute(
+                    { subnet: dto.subnet },
+                    { timeoutMs: dto.probeTimeoutMs ?? 3000 },
+                ),
+                this.approachMap[NetworkDeviceApproachEnum.NETWORK_DISCOVERY].execute({ subnet: dto.subnet }),
+                this.approachMap[NetworkDeviceApproachEnum.PORT_SCAN].execute({ subnet: dto.subnet }),
             ]);
+
+            const probeResults: NetworkDeviceDto[][] = [
+                (onvifRes.data as NetworkDeviceDto[]) || [],
+                (arpRes.data as NetworkDeviceDto[]) || [],
+                (tcpRes.data as NetworkDeviceDto[]) || [],
+            ];
 
             const mergedDevices = this.mergeProbeResults(probeResults);
             discoveredCount = await this.persistAndBroadcastDevices(mergedDevices, startedAt);

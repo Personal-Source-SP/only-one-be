@@ -1,9 +1,8 @@
 import * as net from 'node:net';
-import * as os from 'node:os';
 
 import { Injectable } from '@nestjs/common';
 
-import { LoggerService } from '../../../shared/services/logger.service';
+import { LoggerService } from '../../../../shared/services/logger.service';
 import {
     TCP_CAMERA_PORTS,
     TCP_PRINTER_PORTS,
@@ -11,21 +10,54 @@ import {
     TCP_ROUTER_AP_PORTS,
     TCP_SOCKET_TIMEOUT_MS,
     TCP_TARGET_PORTS,
-} from '../constants';
-import { NetworkDeviceDto } from '../dtos';
-import { NetworkDeviceType } from '../enums';
-import { IProbeService } from '../interfaces';
+} from '../../constants';
+import { NetworkDeviceDto } from '../../dtos';
+import { NetworkDeviceApproachEnum, NetworkDeviceType } from '../../enums';
+import { NetworkSubnetHelper } from '../../helpers';
+import { INetworkDeviceApproachResult, INetworkDeviceApproachService, INetworkDeviceTarget, IProbeService } from '../../interfaces';
 
 @Injectable()
-export class TcpPortProbeService implements IProbeService {
+export class PortScanApproachService implements IProbeService, INetworkDeviceApproachService<any, NetworkDeviceDto[]> {
     constructor(private readonly loggerService: LoggerService) {}
+
+    async execute(target: INetworkDeviceTarget = {}, _options?: any): Promise<INetworkDeviceApproachResult<NetworkDeviceDto[]>> {
+        const startTime = Date.now();
+        try {
+            let devices: NetworkDeviceDto[] = [];
+            if (target.ip) {
+                const result = await this.probeIp(target.ip, target.ports);
+                if (result) {
+                    devices.push(result);
+                }
+            } else {
+                devices = await this.probeSubnet(target.subnet);
+            }
+
+            return {
+                isSuccess: true,
+                approach: NetworkDeviceApproachEnum.PORT_SCAN,
+                target,
+                data: devices,
+                responseTimeMs: Date.now() - startTime,
+            };
+        } catch (error: any) {
+            return {
+                isSuccess: false,
+                approach: NetworkDeviceApproachEnum.PORT_SCAN,
+                target,
+                data: [],
+                responseTimeMs: Date.now() - startTime,
+                errorMessage: error.message || 'Lỗi trong quá trình quét Port Scan',
+            };
+        }
+    }
 
     async probe(subnet?: string): Promise<NetworkDeviceDto[]> {
         return this.probeSubnet(subnet);
     }
 
     async probeSubnet(customSubnet?: string): Promise<NetworkDeviceDto[]> {
-        const subnet = customSubnet || this.detectLocalSubnet();
+        const subnet = customSubnet || NetworkSubnetHelper.detectLocalSubnet();
         if (!subnet) {
             this.loggerService.warn('No active IPv4 subnet detected for TCP probe');
             return [];
@@ -50,11 +82,12 @@ export class TcpPortProbeService implements IProbeService {
         return discoveredDevices;
     }
 
-    private async probeIp(ip: string): Promise<NetworkDeviceDto | null> {
+    async probeIp(ip: string, customPorts?: number[]): Promise<NetworkDeviceDto | null> {
+        const portsToCheck = customPorts && customPorts.length > 0 ? customPorts : TCP_TARGET_PORTS;
         const openPorts: number[] = [];
 
         await Promise.all(
-            TCP_TARGET_PORTS.map(async (port) => {
+            portsToCheck.map(async (port) => {
                 const isOpen = await this.checkPort(ip, port);
                 if (isOpen) openPorts.push(port);
             }),
@@ -104,23 +137,5 @@ export class TcpPortProbeService implements IProbeService {
                 onDone(false);
             }
         });
-    }
-
-    private detectLocalSubnet(): string | null {
-        const interfaces = os.networkInterfaces();
-        for (const name of Object.keys(interfaces)) {
-            const ifaceList = interfaces[name];
-            if (!ifaceList) continue;
-
-            for (const iface of ifaceList) {
-                if (iface.family === 'IPv4' && !iface.internal) {
-                    const parts = iface.address.split('.');
-                    if (parts.length === 4) {
-                        return `${parts[0]}.${parts[1]}.${parts[2]}`;
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

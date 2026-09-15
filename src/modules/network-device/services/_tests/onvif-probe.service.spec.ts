@@ -3,10 +3,10 @@ import { beforeEach, describe, it } from 'node:test';
 
 import { createOnvifProbeMessage, createUniversalProbeMessage } from '../../constants';
 import { NetworkDeviceType } from '../../enums';
-import { OnvifProbeService } from '../onvif-probe.service';
+import { ProtocolAuthApproachService } from '../network-device-approach';
 
-describe('OnvifProbeService', () => {
-    let service: OnvifProbeService;
+describe('ProtocolAuthApproachService (ONVIF Probe & Auth)', () => {
+    let service: ProtocolAuthApproachService;
     const mockLogger: any = {
         log: () => {},
         error: () => {},
@@ -14,7 +14,7 @@ describe('OnvifProbeService', () => {
     };
 
     beforeEach(() => {
-        service = new OnvifProbeService(mockLogger);
+        service = new ProtocolAuthApproachService(mockLogger);
     });
 
     describe('XML Probe Creation', () => {
