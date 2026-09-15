@@ -20,6 +20,7 @@ import { CloudDataModule } from './modules/cloud-data/cloud-data.module';
 import { DataProviderModule } from './modules/data-provider/data-provider.module';
 import { GoogleModule } from './modules/google/google.module';
 import { ImportDataModule } from './modules/import-data/import-data.module';
+import { NetworkDeviceModule } from './modules/network-device/network-device.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { ScheduleExecutorModule } from './modules/schedule/schedule.module';
@@ -78,6 +79,7 @@ import { SharedModule } from './shared/shared.module';
         WebsocketModule,
         AuditLogModule,
         CloudDataModule,
+        NetworkDeviceModule,
     ],
     controllers: [AppController],
     providers: [AppService, JwtService],

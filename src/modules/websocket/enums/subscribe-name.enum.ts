@@ -27,6 +27,11 @@ export enum SubscribeName {
 
     // Notification Events
     NEW_NOTIFICATION = 'newNotification',
+
+    // Network Device Discovery Events
+    DEVICE_DISCOVERED = 'deviceDiscovered',
+    DEVICE_SCAN_STARTED = 'deviceScanStarted',
+    DEVICE_SCAN_COMPLETED = 'deviceScanCompleted',
 }
 
 export enum WebSocketEvent {
@@ -66,4 +71,9 @@ export enum WebSocketEvent {
     NOTIFICATION_CREATED = 'notification.created',
     NOTIFICATION_UPDATED = 'notification.updated',
     NOTIFICATION_DELETED = 'notification.deleted',
+
+    // Network Device Events
+    DEVICE_DISCOVERED = 'device.discovered',
+    DEVICE_SCAN_STARTED = 'device.scan.started',
+    DEVICE_SCAN_COMPLETED = 'device.scan.completed',
 }

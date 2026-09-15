@@ -18,3 +18,14 @@
 - **Setting (`SettingEntity`)**: Thực thể lưu trữ cấu hình hệ thống hoặc cấu hình cá nhân dạng JSONB (`key`, `value`, `type`, `isActive`, `userId`).
 - **SettingType (`SettingType`)**: Định danh phạm vi của cấu hình (`GLOBAL` cho toàn hệ thống, `USER` cho từng tài khoản cá nhân).
 - **ThemePalette (`HubThemePalette`)**: Tông màu giao diện được cá nhân hóa cho từng người dùng, hỗ trợ đồng bộ đa thiết bị (multi-device sync) kết hợp SWR caching trên client.
+
+## Network Device Discovery Domain
+
+- **NetworkDevice (`NetworkDeviceEntity`)**: Thực thể lưu trữ thông tin thiết bị được phát hiện trong mạng LAN/Wi-Fi (`ipAddress`, `macAddress`, `deviceType`, `vendor`, `model`, `firmwareVersion`, `openPorts`, `onvifMetadata`, `isOnline`, `lastSeenAt`).
+- **DeviceType (`DeviceType` enum)**: Phân loại định danh thiết bị (`CAMERA`, `ROUTER_AP`, `COMPUTER_PHONE`, `SMART_IOT`, `PRINTER`, `UNKNOWN`).
+- **ONVIF Probe (`OnvifProbeService`)**: Cơ chế phát hiện camera chuẩn ONVIF qua UDP Multicast SOAP XML (cổng `3702`, multicast IP `239.255.255.250`).
+- **ARP Scanner (`ArpScanService`)**: Quét và trích xuất bảng ARP hệ thống để lấy ánh xạ IP $\leftrightarrow$ MAC trong cùng subnet.
+- **OUI Lookup (`OuiLookupService`)**: Tra cứu 3 bytes đầu (Organizationally Unique Identifier) của địa chỉ MAC để xác định nhà sản xuất thiết bị (Vendor).
+- **TCP Port Probe (`TcpPortProbeService`)**: Quét thử kết nối TCP với timeout ngắn trên các cổng đặc trưng (`554`, `8000`, `37777`, `80`, `443`) để phân loại dịch vụ và thiết bị.
+- **DeviceAggregator (`DeviceAggregatorService`)**: Hợp nhất dữ liệu từ các phương pháp probe theo IP/MAC và tự động phân loại `DeviceType`.
+
