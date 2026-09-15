@@ -61,9 +61,7 @@ export class DataProviderFeatureController {
         summary: 'Create feature for a data provider',
         responseDto: DataProviderFeatureDto,
     })
-    async createFeature(
-        @Body() request: CreateDataProviderFeatureRequestDto,
-    ): Promise<DataProviderFeatureDto> {
+    async createFeature(@Body() request: CreateDataProviderFeatureRequestDto): Promise<DataProviderFeatureDto> {
         return await this.featureService.createFeature(request);
     }
 

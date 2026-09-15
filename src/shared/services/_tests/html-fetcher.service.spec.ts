@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { EventEmitter } from 'events';
+
 import { HtmlFetcherService } from '../html-fetcher.service';
 
 class MockHTTPRequest {

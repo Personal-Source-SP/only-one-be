@@ -33,17 +33,6 @@ const services = [ScheduleService, ScheduleJobService, ScheduleJobEventService, 
         ...executionServices,
         ScheduleProfile,
         {
-            provide: Redis,
-            useFactory: (appConfigService: AppConfigService) => {
-                return new Redis({
-                    host: appConfigService?.redisConfig?.host,
-                    port: appConfigService?.redisConfig?.port,
-                    password: appConfigService?.redisConfig?.password,
-                });
-            },
-            inject: [AppConfigService],
-        },
-        {
             provide: SCHEDULE_EXECUTION_SERVICE_MAP,
             useFactory: (dataProviderScheduleService: DataProviderScheduleService): Record<string, IScheduleExecutionInterface> => ({
                 [ExecutionServiceEnum.DATA_PROVIDER]: dataProviderScheduleService,

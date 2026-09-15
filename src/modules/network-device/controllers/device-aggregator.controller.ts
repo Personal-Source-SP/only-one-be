@@ -34,6 +34,6 @@ export class DeviceAggregatorController {
         responseDto: ScanStatusResponseDto,
     })
     async getScanStatus(): Promise<ScanStatusResponseDto> {
-        return this.deviceAggregatorService.getScanStatus();
+        return await this.deviceAggregatorService.getScanStatus();
     }
 }

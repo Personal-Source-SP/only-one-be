@@ -6,11 +6,7 @@ import { Auth, Get, Post, UUIDParam } from '../../../decorators';
 import { DISCOVERY_URL_PAGINATION_CONFIG } from '../constants/discovery-url-pagination.config';
 import { DiscoveryUrlDto } from '../dtos/discovery-url.dto';
 import { DiscoveryValidationLogDto } from '../dtos/discovery-validation-log.dto';
-import {
-    RevalidateUrlRequestDto,
-    SubmitBulkUserActionRequestDto,
-    SubmitUserActionRequestDto,
-} from '../dtos/requests';
+import { RevalidateUrlRequestDto, SubmitBulkUserActionRequestDto, SubmitUserActionRequestDto } from '../dtos/requests';
 import { DiscoveryUrlEntity } from '../entities/discovery-url.entity';
 import { DiscoveryUrlService } from '../services/discovery-url.service';
 

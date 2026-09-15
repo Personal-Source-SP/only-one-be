@@ -11,12 +11,7 @@ import { DiscoverySearchWorkerProcessor } from './processors/discovery-search-wo
 import { DiscoveryValidationWorkerProcessor } from './processors/discovery-validation-worker.processor';
 import { ScrapingWorkerProcessor } from './processors/scraping-worker.processor';
 
-const processors = [
-    ScrapingWorkerProcessor,
-    DiscoveryValidationWorkerProcessor,
-    AuditLogWorkerProcessor,
-    DiscoverySearchWorkerProcessor,
-];
+const processors = [ScrapingWorkerProcessor, DiscoveryValidationWorkerProcessor, AuditLogWorkerProcessor, DiscoverySearchWorkerProcessor];
 
 @Module({})
 export class WorkerModule {

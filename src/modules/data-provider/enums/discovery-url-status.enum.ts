@@ -46,4 +46,3 @@ export enum ValidationOperationStatus {
     FAILED = 'failed',
     SKIPPED = 'skipped',
 }
-

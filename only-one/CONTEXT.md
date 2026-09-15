@@ -28,4 +28,5 @@
 - **OUI Lookup (`OuiLookupService`)**: Tra cứu 3 bytes đầu (Organizationally Unique Identifier) của địa chỉ MAC để xác định nhà sản xuất thiết bị (Vendor).
 - **TCP Port Probe (`TcpPortProbeService`)**: Quét thử kết nối TCP với timeout ngắn trên các cổng đặc trưng (`554`, `8000`, `37777`, `80`, `443`) để phân loại dịch vụ và thiết bị.
 - **DeviceAggregator (`DeviceAggregatorService`)**: Hợp nhất dữ liệu từ các phương pháp probe theo IP/MAC và tự động phân loại `DeviceType`.
+- **DistributedScanState**: Quản lý trạng thái tiến trình quét mạng (`status`, `devicesDiscoveredCount`, `startedAt`, `completedAt`) và khóa chống quét đồng thời (`Distributed Mutex Lock`) tập trung trên Redis phục vụ kiến trúc multi-node.
 

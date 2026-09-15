@@ -8,10 +8,10 @@ import { DataProviderFeatureEntity } from '../../entities/data-provider-feature.
 import { ScraperServiceEnum } from '../../enums';
 import { TargetConfigValidatorHelper } from '../../helpers/target-config-validator.helper';
 import {
-    IFeatureTestInput,
     IDataProviderFeatureService,
     IDataProviderScraperService,
     IExtractDataResponse,
+    IFeatureTestInput,
     IScrapingTargetConfig,
 } from '../../interfaces';
 import { DataProviderItemService } from '../data-provider-item.service';

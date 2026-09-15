@@ -5,7 +5,7 @@ import { Job } from 'bull';
 
 import { LoggerService } from '../../../shared/services/logger.service';
 import { RecordAuditLogDto } from '../../audit-log/dtos/requests/record-audit-log.dto';
-import { AuditAction, AuditResource, AuditStatus, AUDIT_LOG_EVENTS } from '../../audit-log/enums/audit-log.enum';
+import { AUDIT_LOG_EVENTS, AuditAction, AuditResource, AuditStatus } from '../../audit-log/enums/audit-log.enum';
 import { DiscoveryUrlService } from '../../data-provider/services/discovery-url.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';
 import { IDiscoveryValidationJob } from '../../queue/interfaces';

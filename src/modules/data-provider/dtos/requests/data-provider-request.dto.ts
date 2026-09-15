@@ -44,4 +44,3 @@ export class FindDataProvidersWithFeaturesRequestDto {
     @EnumFieldOptional(() => DataProviderFeatureStatus, { description: 'Filter by feature status' })
     featureStatus?: DataProviderFeatureStatus;
 }
-

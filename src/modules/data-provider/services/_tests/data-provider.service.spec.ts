@@ -5,8 +5,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { DataProviderEntity } from '../../entities/data-provider.entity';
 import { DataProviderFeatureStatus, DataProviderFeatureType } from '../../enums';
-import { DataProviderItemService } from '../data-provider-item.service';
 import { DataProviderService } from '../data-provider.service';
+import { DataProviderItemService } from '../data-provider-item.service';
 
 describe('DataProviderService', () => {
     let service: DataProviderService;

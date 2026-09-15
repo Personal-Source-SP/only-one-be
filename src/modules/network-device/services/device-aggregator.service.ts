@@ -1,9 +1,19 @@
+import { randomUUID } from 'node:crypto';
+
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { isNil, omitBy, union } from 'lodash';
 
+import { CacheService } from '../../../shared/services/cache.service';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { WebSocketEvent } from '../../websocket/enums/subscribe-name.enum';
+import {
+    NETWORK_DEVICE_SCAN_LOCK_KEY,
+    NETWORK_DEVICE_SCAN_LOCK_TTL_SECONDS,
+    NETWORK_DEVICE_SCAN_STATE_ACTIVE_TTL_SECONDS,
+    NETWORK_DEVICE_SCAN_STATE_COMPLETED_TTL_SECONDS,
+    NETWORK_DEVICE_SCAN_STATE_KEY,
+} from '../constants';
 import { NetworkDeviceDto } from '../dtos';
 import { ScanStatusResponseDto } from '../dtos/responses';
 import { NetworkDeviceType, NetworkScanStatus } from '../enums';
@@ -15,36 +25,57 @@ import { TcpPortProbeService } from './tcp-port-probe.service';
 
 @Injectable()
 export class DeviceAggregatorService {
-    private discoveredCount = 0;
-    private startedAt: Date | null = null;
-    private completedAt: Date | null = null;
-    private scanStatus: NetworkScanStatus = NetworkScanStatus.IDLE;
-
     constructor(
         private readonly eventEmitter: EventEmitter2,
         private readonly loggerService: LoggerService,
+        private readonly cacheService: CacheService,
         private readonly arpScanService: ArpScanService,
         private readonly onvifProbeService: OnvifProbeService,
         private readonly tcpPortProbeService: TcpPortProbeService,
         private readonly networkDeviceService: NetworkDeviceService,
     ) {}
 
-    getScanStatus(): ScanStatusResponseDto {
+    async getScanStatus(): Promise<ScanStatusResponseDto> {
+        const cachedState = await this.getCachedScanState();
+        if (cachedState) {
+            return new ScanStatusResponseDto(cachedState);
+        }
+
         return new ScanStatusResponseDto({
-            status: this.scanStatus,
-            devicesDiscoveredCount: this.discoveredCount,
-            startedAt: this.startedAt?.toISOString() || null,
-            completedAt: this.completedAt?.toISOString() || null,
+            status: NetworkScanStatus.IDLE,
+            devicesDiscoveredCount: 0,
+            startedAt: null,
+            completedAt: null,
         });
     }
 
     async scanAndAggregate(subnet?: string, probeTimeoutMs = 3000): Promise<void> {
-        if (this.scanStatus === NetworkScanStatus.SCANNING) {
-            this.loggerService.warn('Scan is already in progress, ignoring duplicate trigger');
+        const lockToken = randomUUID();
+        const acquired = await this.acquireScanLock(lockToken);
+
+        if (!acquired) {
+            this.loggerService.warn('Scan is already in progress on a cluster node, ignoring duplicate trigger');
             return;
         }
 
-        this.initScanState();
+        const startedAt = new Date().toISOString();
+        let discoveredCount = 0;
+
+        await this.saveScanState(
+            {
+                startedAt,
+                completedAt: null,
+                devicesDiscoveredCount: 0,
+                status: NetworkScanStatus.SCANNING,
+            },
+            NETWORK_DEVICE_SCAN_STATE_ACTIVE_TTL_SECONDS,
+        );
+
+        const startPayload: IScanStartedEventPayload = {
+            startedAt,
+            status: NetworkScanStatus.SCANNING,
+        };
+        this.eventEmitter.emit(WebSocketEvent.DEVICE_SCAN_STARTED, startPayload);
 
         try {
             this.loggerService.log('Starting parallel Network Probing Pipeline (ONVIF, ARP, TCP)...');
@@ -56,49 +87,59 @@ export class DeviceAggregatorService {
             ]);
 
             const mergedDevices = this.mergeProbeResults(probeResults);
-            await this.persistAndBroadcastDevices(mergedDevices);
+            discoveredCount = await this.persistAndBroadcastDevices(mergedDevices, startedAt);
 
-            this.scanStatus = NetworkScanStatus.COMPLETED;
-            this.completedAt = new Date();
-            this.loggerService.log(`Network scan completed. Discovered ${this.discoveredCount} devices.`);
+            const completedAt = new Date().toISOString();
+            await this.saveScanState(
+                {
+                    startedAt,
+                    completedAt,
+                    status: NetworkScanStatus.COMPLETED,
+                    devicesDiscoveredCount: discoveredCount,
+                },
+                NETWORK_DEVICE_SCAN_STATE_COMPLETED_TTL_SECONDS,
+            );
+
+            this.loggerService.log(`Network scan completed. Discovered ${discoveredCount} devices.`);
 
             const completedPayload: IScanCompletedEventPayload = {
+                completedAt,
+                totalDiscovered: discoveredCount,
                 status: NetworkScanStatus.COMPLETED,
-                totalDiscovered: this.discoveredCount,
-                completedAt: this.completedAt.toISOString(),
             };
             this.eventEmitter.emit(WebSocketEvent.DEVICE_SCAN_COMPLETED, completedPayload);
         } catch (error) {
-            this.scanStatus = NetworkScanStatus.FAILED;
-            this.completedAt = new Date();
+            const completedAt = new Date().toISOString();
+            await this.saveScanState(
+                {
+                    startedAt,
+                    completedAt,
+                    status: NetworkScanStatus.FAILED,
+                    devicesDiscoveredCount: discoveredCount,
+                },
+                NETWORK_DEVICE_SCAN_STATE_COMPLETED_TTL_SECONDS,
+            );
+
             this.loggerService.error(`Network scan failed: ${error.message}`);
+        } finally {
+            await this.releaseScanLock(lockToken);
         }
     }
 
-    private initScanState(): void {
-        this.discoveredCount = 0;
-        this.startedAt = new Date();
-        this.completedAt = null;
-        this.scanStatus = NetworkScanStatus.SCANNING;
-
-        const startPayload: IScanStartedEventPayload = {
-            status: NetworkScanStatus.SCANNING,
-            startedAt: this.startedAt.toISOString(),
-        };
-        this.eventEmitter.emit(WebSocketEvent.DEVICE_SCAN_STARTED, startPayload);
+    private async acquireScanLock(token: string): Promise<boolean> {
+        return this.cacheService.setIfNotExists(NETWORK_DEVICE_SCAN_LOCK_KEY, token, NETWORK_DEVICE_SCAN_LOCK_TTL_SECONDS);
     }
 
-    private mergeProbeResults(probeResults: NetworkDeviceDto[][]): NetworkDeviceDto[] {
-        const mergedMap = new Map<string, NetworkDeviceDto>();
+    private async releaseScanLock(token: string): Promise<boolean> {
+        return this.cacheService.releaseLock(NETWORK_DEVICE_SCAN_LOCK_KEY, token);
+    }
 
-        // Thứ tự ưu tiên: ONVIF (chính xác nhất) -> ARP -> TCP Port
-        for (const deviceList of probeResults) {
-            for (const item of deviceList) {
-                this.mergeSingleDevice(mergedMap, item);
-            }
-        }
+    private async getCachedScanState(): Promise<ScanStatusResponseDto | null> {
+        return this.cacheService.get<ScanStatusResponseDto>(NETWORK_DEVICE_SCAN_STATE_KEY);
+    }
 
-        return Array.from(mergedMap.values());
+    private async saveScanState(state: Partial<ScanStatusResponseDto>, ttlSeconds: number): Promise<void> {
+        await this.cacheService.set(NETWORK_DEVICE_SCAN_STATE_KEY, state, ttlSeconds);
     }
 
     private mergeSingleDevice(mergedMap: Map<string, NetworkDeviceDto>, item: NetworkDeviceDto): void {
@@ -129,13 +170,38 @@ export class DeviceAggregatorService {
         }
     }
 
-    private async persistAndBroadcastDevices(devices: NetworkDeviceDto[]): Promise<void> {
+    private async persistAndBroadcastDevices(devices: NetworkDeviceDto[], startedAt: string): Promise<number> {
+        let count = 0;
         for (const device of devices) {
             const networkDevice = await this.networkDeviceService.upsertNetworkDevice(device);
-            this.discoveredCount++;
+            count++;
+
+            await this.saveScanState(
+                {
+                    status: NetworkScanStatus.SCANNING,
+                    devicesDiscoveredCount: count,
+                    startedAt,
+                    completedAt: null,
+                },
+                NETWORK_DEVICE_SCAN_STATE_ACTIVE_TTL_SECONDS,
+            );
 
             const discoveredPayload: IDeviceDiscoveredEventPayload = { networkDevice };
             this.eventEmitter.emit(WebSocketEvent.DEVICE_DISCOVERED, discoveredPayload);
         }
+        return count;
+    }
+
+    private mergeProbeResults(probeResults: NetworkDeviceDto[][]): NetworkDeviceDto[] {
+        const mergedMap = new Map<string, NetworkDeviceDto>();
+
+        // Thứ tự ưu tiên: ONVIF (chính xác nhất) -> ARP -> TCP Port
+        for (const deviceList of probeResults) {
+            for (const item of deviceList) {
+                this.mergeSingleDevice(mergedMap, item);
+            }
+        }
+
+        return Array.from(mergedMap.values());
     }
 }

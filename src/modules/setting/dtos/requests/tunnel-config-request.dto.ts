@@ -1,4 +1,5 @@
 import { AutoMap } from '@automapper/classes';
+
 import { EnumField, StringFieldOptional } from '../../../../decorators';
 import { TunnelModeEnum } from '../../enums';
 

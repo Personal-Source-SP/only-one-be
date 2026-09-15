@@ -16,10 +16,7 @@ describe('DiscoveryValidationWorkerProcessor', () => {
             emit: jest.fn(),
         };
 
-        processor = new DiscoveryValidationWorkerProcessor(
-            eventEmitter,
-            discoveryUrlService,
-        );
+        processor = new DiscoveryValidationWorkerProcessor(eventEmitter, discoveryUrlService);
     });
 
     it('should process validation job by delegating to discoveryUrlService', async () => {

@@ -1,4 +1,5 @@
 import { isNil } from 'lodash';
+
 import { AppException } from '../../../exceptions/app.exception';
 import { DataProviderError } from '../constants/data-provider-error';
 import { DataProviderFeatureType } from '../enums';

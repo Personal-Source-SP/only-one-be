@@ -7,7 +7,7 @@ import { CustomError } from '../../../exceptions/custom-error.exception';
 import { LoggerService } from '../../../shared/services/logger.service';
 import { UtilsService } from '../../../shared/services/utils.service';
 import { RecordAuditLogDto } from '../../audit-log/dtos/requests/record-audit-log.dto';
-import { AuditAction, AuditResource, AuditStatus, AUDIT_LOG_EVENTS } from '../../audit-log/enums/audit-log.enum';
+import { AUDIT_LOG_EVENTS, AuditAction, AuditResource, AuditStatus } from '../../audit-log/enums/audit-log.enum';
 import { ProcessScrapeDataResponse } from '../../data-provider/dtos/responses';
 import { ScrapingDataService } from '../../data-provider/services/scraping-data.service';
 import { QUEUE_NAME } from '../../queue/enums/queue-name.enum';

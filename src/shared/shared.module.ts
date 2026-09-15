@@ -3,11 +3,13 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { HttpModule } from '@nestjs/axios';
 import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import Redis from 'ioredis';
 
 import { FileHelper } from './helpers/file-helper';
 import { ApiFetcherService } from './services/api-fetcher.service';
 import { AppConfigService } from './services/app-config.service';
 import { BaseHttpService } from './services/base-http.service';
+import { CacheService } from './services/cache.service';
 import { HtmlFetcherService } from './services/html-fetcher.service';
 import { LocalFileService } from './services/local-file.service';
 import { LoggerService } from './services/logger.service';
@@ -20,6 +22,7 @@ const providers = [
     AppConfigService,
     LoggerService,
     UtilsService,
+    CacheService,
     BaseHttpService,
     ApiFetcherService,
     HtmlFetcherService,
@@ -30,7 +33,21 @@ const providers = [
 
 @Global()
 @Module({
-    providers: [...providers, ...helpers],
+    providers: [
+        ...providers,
+        ...helpers,
+        {
+            provide: Redis,
+            useFactory: (appConfigService: AppConfigService) => {
+                return new Redis({
+                    host: appConfigService?.redisConfig?.host,
+                    port: appConfigService?.redisConfig?.port,
+                    password: appConfigService?.redisConfig?.password,
+                });
+            },
+            inject: [AppConfigService],
+        },
+    ],
     imports: [
         HttpModule.registerAsync({
             useFactory: async (configService: AppConfigService) => ({
@@ -44,6 +61,6 @@ const providers = [
         }),
         PassportModule.register({ defaultStrategy: 'jwt' }),
     ],
-    exports: [...providers, ...helpers, HttpModule, AutomapperModule],
+    exports: [...providers, ...helpers, Redis, HttpModule, AutomapperModule],
 })
 export class SharedModule {}

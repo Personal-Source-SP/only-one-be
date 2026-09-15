@@ -8,8 +8,8 @@ import { User } from '../../../decorators/user.decorator';
 import { CLOUDFLARE_TUNNEL_SETTING_KEY } from '../constants/setting-key.constant';
 import { CreateSettingRequestDto, UpdateSettingRequestDto } from '../dtos/requests/setting-request.dto';
 import { SaveTunnelConfigRequestDto } from '../dtos/requests/tunnel-config-request.dto';
-import { SettingDto } from '../dtos/setting.dto';
 import { TunnelConfigResponseDto } from '../dtos/responses/tunnel-config-response.dto';
+import { SettingDto } from '../dtos/setting.dto';
 import { SettingEntity } from '../entities/setting.entity';
 import { SettingService } from '../services/setting.service';
 

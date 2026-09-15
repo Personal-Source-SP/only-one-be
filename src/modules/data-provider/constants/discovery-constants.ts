@@ -41,4 +41,3 @@ export const PDP_NEGATIVE_KEYWORDS: string[] = [
 ];
 
 export const DISCOVERY_INGESTION_CHUNK_SIZE = 50;
-
