@@ -19,12 +19,12 @@ export class DeviceAggregatorController {
     })
     @HttpCode(HttpStatus.ACCEPTED)
     async triggerScan(@Body() dto: TriggerScanRequestDto): Promise<TriggerScanResponseDto> {
-        this.deviceAggregatorService.scanAndAggregate(dto.subnet, dto.probeTimeoutMs).catch(() => {});
+        this.deviceAggregatorService.scanAndAggregate(dto).catch(() => {});
 
         return {
-            message: 'Tiến trình quét mạng đã được kích hoạt thành công.',
             status: NetworkScanStatus.SCANNING,
             startedAt: new Date().toISOString(),
+            message: 'Tiến trình quét mạng đã được kích hoạt thành công.',
         };
     }
 

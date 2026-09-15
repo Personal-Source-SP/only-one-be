@@ -14,7 +14,7 @@ import {
     NETWORK_DEVICE_SCAN_STATE_COMPLETED_TTL_SECONDS,
     NETWORK_DEVICE_SCAN_STATE_KEY,
 } from '../constants';
-import { NetworkDeviceDto } from '../dtos';
+import { NetworkDeviceDto, TriggerScanRequestDto } from '../dtos';
 import { ScanStatusResponseDto } from '../dtos/responses';
 import { NetworkDeviceType, NetworkScanStatus } from '../enums';
 import { IDeviceDiscoveredEventPayload, IScanCompletedEventPayload, IScanStartedEventPayload } from '../interfaces';
@@ -49,7 +49,7 @@ export class DeviceAggregatorService {
         });
     }
 
-    async scanAndAggregate(subnet?: string, probeTimeoutMs = 3000): Promise<void> {
+    async scanAndAggregate(dto: TriggerScanRequestDto = {}): Promise<void> {
         const lockToken = randomUUID();
         const acquired = await this.acquireScanLock(lockToken);
 
@@ -81,9 +81,9 @@ export class DeviceAggregatorService {
             this.loggerService.log('Starting parallel Network Probing Pipeline (ONVIF, ARP, TCP)...');
 
             const probeResults = await Promise.all([
-                this.onvifProbeService.probe(subnet, probeTimeoutMs),
+                this.onvifProbeService.probe(dto.subnet, dto.probeTimeoutMs ?? 3000),
                 this.arpScanService.scan(),
-                this.tcpPortProbeService.probeSubnet(subnet),
+                this.tcpPortProbeService.probeSubnet(dto.subnet),
             ]);
 
             const mergedDevices = this.mergeProbeResults(probeResults);
