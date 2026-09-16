@@ -41,15 +41,13 @@ export class DeviceAggregatorService {
 
     async getScanStatus(): Promise<ScanStatusResponseDto> {
         const cachedState = await this.getCachedScanState();
-        if (cachedState) {
-            return new ScanStatusResponseDto(cachedState);
-        }
+        if (cachedState) return new ScanStatusResponseDto(cachedState);
 
         return new ScanStatusResponseDto({
-            status: NetworkScanStatus.IDLE,
-            devicesDiscoveredCount: 0,
             startedAt: null,
             completedAt: null,
+            devicesDiscoveredCount: 0,
+            status: NetworkScanStatus.IDLE,
         });
     }
 
@@ -63,17 +61,17 @@ export class DeviceAggregatorService {
 
         const startTime = Date.now();
         const devices = await service.scan({
-            subnet: dto.subnet,
             ip: dto.ip,
             ports: dto.ports,
+            subnet: dto.subnet,
             timeoutMs: dto.timeoutMs,
         });
 
         return {
-            isSuccess: true,
-            approach: dto.approach,
-            target: dto,
             data: devices,
+            isSuccess: true,
+            target: dto,
+            approach: dto.approach,
             responseTimeMs: Date.now() - startTime,
         };
     }
@@ -164,6 +162,19 @@ export class DeviceAggregatorService {
         }
     }
 
+    private mergeProbeResults(probeResults: NetworkDeviceDto[][]): NetworkDeviceDto[] {
+        const mergedMap = new Map<string, NetworkDeviceDto>();
+
+        // Thứ tự ưu tiên: ONVIF (chính xác nhất) -> ARP -> TCP Port
+        for (const deviceList of probeResults) {
+            for (const item of deviceList) {
+                this.mergeSingleDevice(mergedMap, item);
+            }
+        }
+
+        return Array.from(mergedMap.values());
+    }
+
     private async acquireScanLock(token: string): Promise<boolean> {
         return this.cacheService.setIfNotExists(NETWORK_DEVICE_SCAN_LOCK_KEY, token, NETWORK_DEVICE_SCAN_LOCK_TTL_SECONDS);
     }
@@ -228,18 +239,5 @@ export class DeviceAggregatorService {
             this.eventEmitter.emit(WebSocketEvent.DEVICE_DISCOVERED, discoveredPayload);
         }
         return count;
-    }
-
-    private mergeProbeResults(probeResults: NetworkDeviceDto[][]): NetworkDeviceDto[] {
-        const mergedMap = new Map<string, NetworkDeviceDto>();
-
-        // Thứ tự ưu tiên: ONVIF (chính xác nhất) -> ARP -> TCP Port
-        for (const deviceList of probeResults) {
-            for (const item of deviceList) {
-                this.mergeSingleDevice(mergedMap, item);
-            }
-        }
-
-        return Array.from(mergedMap.values());
     }
 }
