@@ -1,11 +1,9 @@
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 
-import { SnakeNamingStrategy } from './src/shared/typeorm/strategies/snake-naming.strategy';
+import { SnakeNamingStrategy } from '../shared/typeorm/strategies/snake-naming.strategy';
 
-dotenv.config({
-    path: `.env`,
-});
+dotenv.config({ path: `.env` });
 
 // Replace \\n with \n to support multiline strings in AWS
 for (const envName of Object.keys(process.env)) {

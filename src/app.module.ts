@@ -1,4 +1,4 @@
-import './boilerplate.polyfill';
+import './database/boilerplate.polyfill';
 
 import { classes } from '@automapper/classes';
 import { AutomapperModule } from '@automapper/nestjs';

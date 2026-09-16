@@ -17,7 +17,7 @@
         "migration:revert": "npm run typeorm -- migration:revert",
         "migration:create": "cross-var ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli migration:create ./src/migrations/$npm_config_name",
         "migration:run": "npm run typeorm -- migration:run",
-        "schema:drop": "ts-node node_modules/typeorm/cli.js schema:drop -f ormconfig",
+        "schema:drop": "ts-node node_modules/typeorm/cli.js schema:drop -f src/database/ormconfig",
         "start": "ts-node -r tsconfig-paths/register src/main.ts",
         "dev": "npm run start:dev",
         "start:dev": "nest start --watch",
@@ -26,7 +26,7 @@
         "lint": "eslint \"{src,test}/**/*.ts\"",
         "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
         "seed": "ts-node -r tsconfig-paths/register src/modules/seeder/seed.ts",
-        "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli -d ormconfig.ts"
+        "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli -d src/database/ormconfig.ts"
     },
     "dependencies": {
         "@automapper/classes": "^8.8.1",

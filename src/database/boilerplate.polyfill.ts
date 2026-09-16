@@ -2,8 +2,8 @@
 
 import _ from 'lodash';
 
-import { AbstractDto } from './common/dto/abstract.dto';
-import { AbstractEntity } from './common/entities';
+import { AbstractDto } from '../common/dto/abstract.dto';
+import { AbstractEntity } from '../common/entities';
 
 declare global {
     interface Array<T> {

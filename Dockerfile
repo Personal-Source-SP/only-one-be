@@ -35,7 +35,6 @@ FROM dependencies AS build
 # Config files first (change less frequently) → better cache hit rate
 COPY --chown=node:node nest-cli.json ./
 COPY --chown=node:node ts*.json ./
-COPY --chown=node:node ormconfig.ts ./
 # Source code last (changes most frequently)
 COPY --chown=node:node ./src ./src
 
@@ -98,4 +97,4 @@ CMD ["/bin/sh", "entrypoint.sh"]
 # ==========================================
 FROM runner AS migration
 # TypeScript source required for TypeORM CLI (ts-node) migration commands
-COPY --from=build --chown=node:node /app/ormconfig.ts ./ormconfig.ts
+COPY --from=build --chown=node:node /app/src/database/ormconfig.ts ./src/database/ormconfig.ts
