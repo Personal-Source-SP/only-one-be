@@ -1,4 +1,4 @@
-import { IDeviceCredential } from '../interfaces/network-device-approach.interface';
+import { IDeviceCredential } from '../interfaces';
 
 export const DEFAULT_CAMERA_CREDENTIALS: IDeviceCredential[] = [
     { username: 'admin', password: '' },
