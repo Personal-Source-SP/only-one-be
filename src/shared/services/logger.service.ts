@@ -89,9 +89,17 @@ export class LoggerService extends ConsoleLogger {
         const nodeEnv = process.env.NODE_ENV || 'development';
         const basePath = `./logs/${nodeEnv}/${contextName}`;
 
-        return {
-            exitOnError: false,
-            transports: [
+        const isFileLoggingEnabled = process.env.LOG_FILE_ENABLE === 'true';
+
+        const transports: winston.transport[] = [
+            new winston.transports.Console({
+                level: 'debug',
+                format: this.getCustomConsoleFormat(contextName),
+            }),
+        ];
+
+        if (isFileLoggingEnabled) {
+            transports.push(
                 new DailyRotateFile({
                     level: 'debug',
                     filename: `${basePath}/debug-%DATE%.log`,
@@ -110,11 +118,12 @@ export class LoggerService extends ConsoleLogger {
                     maxFiles: '14d',
                     format: winston.format.combine(this.getLevelFilter('warn'), winston.format.timestamp(), winston.format.json()),
                 }),
-                new winston.transports.Console({
-                    level: 'debug',
-                    format: this.getCustomConsoleFormat(contextName),
-                }),
-            ],
+            );
+        }
+
+        return {
+            transports,
+            exitOnError: false,
         };
     }
 }

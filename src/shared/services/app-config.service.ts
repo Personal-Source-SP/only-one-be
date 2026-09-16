@@ -51,6 +51,10 @@ export class AppConfigService {
         return this.getBoolean('AUTO_MIGRATION') || false;
     }
 
+    get isFileLoggingEnabled(): boolean {
+        return this.getBoolean('LOG_FILE_ENABLE') || false;
+    }
+
     get swaggerConfig(): ISwaggerConfigInterface {
         return {
             path: this.get('SWAGGER_PATH') || '',
