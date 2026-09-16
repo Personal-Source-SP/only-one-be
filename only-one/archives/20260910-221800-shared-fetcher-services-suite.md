@@ -4,7 +4,7 @@ title: Tách Biệt, Phân Rã Bộ Fetcher Services (HtmlFetcherService & ApiFe
 archived_at: 2026-09-10
 status: active
 references:
-  - only-one/archives/20260913-154500-data-provider-and-discovery-engine.md
+  - only-one/archives/20260915-131744-data-provider-and-discovery-engine.md
 affected_modules:
   - src/shared/services/
   - src/modules/data-provider/
