@@ -5,46 +5,17 @@ import { Injectable } from '@nestjs/common';
 
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { NetworkDeviceDto } from '../../dtos';
-import { NetworkDeviceApproachEnum, NetworkDeviceType } from '../../enums';
+import { NetworkDeviceType } from '../../enums';
 import { ArpParserHelper, OuiLookupHelper } from '../../helpers';
-import { INetworkDeviceApproachResult, INetworkDeviceApproachService, INetworkDeviceTarget, IProbeService } from '../../interfaces';
+import { INetworkDeviceApproachService, INetworkScanOptions } from '../../interfaces';
 
 const execAsync = promisify(exec);
 
 @Injectable()
-export class NetworkDiscoveryApproachService implements IProbeService, INetworkDeviceApproachService<any, NetworkDeviceDto[]> {
+export class NetworkDiscoveryApproachService implements INetworkDeviceApproachService {
     constructor(private readonly loggerService: LoggerService) {}
 
-    async execute(target: INetworkDeviceTarget = {}, _options?: any): Promise<INetworkDeviceApproachResult<NetworkDeviceDto[]>> {
-        const startTime = Date.now();
-        try {
-            const devices = await this.scan();
-            const filteredDevices = target.ip ? devices.filter((d) => d.ipAddress === target.ip) : devices;
-
-            return {
-                isSuccess: true,
-                approach: NetworkDeviceApproachEnum.NETWORK_DISCOVERY,
-                target,
-                data: filteredDevices,
-                responseTimeMs: Date.now() - startTime,
-            };
-        } catch (error: any) {
-            return {
-                isSuccess: false,
-                approach: NetworkDeviceApproachEnum.NETWORK_DISCOVERY,
-                target,
-                data: [],
-                responseTimeMs: Date.now() - startTime,
-                errorMessage: error.message || 'Lỗi trong quá trình quét Network Discovery',
-            };
-        }
-    }
-
-    async scan(): Promise<NetworkDeviceDto[]> {
-        return this.probe();
-    }
-
-    async probe(): Promise<NetworkDeviceDto[]> {
+    async scan(options: INetworkScanOptions = {}): Promise<NetworkDeviceDto[]> {
         const devices: NetworkDeviceDto[] = [];
 
         try {
@@ -55,6 +26,7 @@ export class NetworkDiscoveryApproachService implements IProbeService, INetworkD
                 const parsed = ArpParserHelper.parseArpLine(line);
                 if (parsed) {
                     const { vendor, defaultType } = OuiLookupHelper.lookupVendor(parsed.mac);
+
                     devices.push(
                         new NetworkDeviceDto({
                             openPorts: [],

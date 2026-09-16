@@ -57,7 +57,25 @@ export class DeviceAggregatorService {
         const service = this.approachMap[dto.approach];
         if (!service) throw new Error(`Approach ${dto.approach} is not supported`);
 
-        return service.execute(dto, { timeoutMs: dto.timeoutMs });
+        if (dto.approach === NetworkDeviceApproachEnum.PROTOCOL_AUTH && dto.ip && service.verifyCameraCredentials) {
+            return service.verifyCameraCredentials(dto, dto.credentials);
+        }
+
+        const startTime = Date.now();
+        const devices = await service.scan({
+            subnet: dto.subnet,
+            ip: dto.ip,
+            ports: dto.ports,
+            timeoutMs: dto.timeoutMs,
+        });
+
+        return {
+            isSuccess: true,
+            approach: dto.approach,
+            target: dto,
+            data: devices,
+            responseTimeMs: Date.now() - startTime,
+        };
     }
 
     async scanAndAggregate(dto: TriggerScanRequestDto = {}): Promise<void> {
@@ -91,20 +109,20 @@ export class DeviceAggregatorService {
         try {
             this.loggerService.log('Starting parallel Network Probing Pipeline (ONVIF, ARP, TCP) via Service Map...');
 
-            const [onvifRes, arpRes, tcpRes] = await Promise.all([
-                this.approachMap[NetworkDeviceApproachEnum.PROTOCOL_AUTH].execute(
-                    { subnet: dto.subnet },
-                    { timeoutMs: dto.probeTimeoutMs ?? 3000 },
-                ),
-                this.approachMap[NetworkDeviceApproachEnum.NETWORK_DISCOVERY].execute({ subnet: dto.subnet }),
-                this.approachMap[NetworkDeviceApproachEnum.PORT_SCAN].execute({ subnet: dto.subnet }),
+            const [onvifDevices, arpDevices, tcpDevices] = await Promise.all([
+                this.approachMap[NetworkDeviceApproachEnum.PROTOCOL_AUTH].scan({
+                    subnet: dto.subnet,
+                    timeoutMs: dto.probeTimeoutMs ?? 3000,
+                }),
+                this.approachMap[NetworkDeviceApproachEnum.NETWORK_DISCOVERY].scan({
+                    subnet: dto.subnet,
+                }),
+                this.approachMap[NetworkDeviceApproachEnum.PORT_SCAN].scan({
+                    subnet: dto.subnet,
+                }),
             ]);
 
-            const probeResults: NetworkDeviceDto[][] = [
-                (onvifRes.data as NetworkDeviceDto[]) || [],
-                (arpRes.data as NetworkDeviceDto[]) || [],
-                (tcpRes.data as NetworkDeviceDto[]) || [],
-            ];
+            const probeResults: NetworkDeviceDto[][] = [onvifDevices || [], arpDevices || [], tcpDevices || []];
 
             const mergedDevices = this.mergeProbeResults(probeResults);
             discoveredCount = await this.persistAndBroadcastDevices(mergedDevices, startedAt);

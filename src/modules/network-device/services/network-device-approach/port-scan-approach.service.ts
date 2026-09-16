@@ -12,67 +12,32 @@ import {
     TCP_TARGET_PORTS,
 } from '../../constants';
 import { NetworkDeviceDto } from '../../dtos';
-import { NetworkDeviceApproachEnum, NetworkDeviceType } from '../../enums';
+import { NetworkDeviceType } from '../../enums';
 import { NetworkSubnetHelper } from '../../helpers';
-import { INetworkDeviceApproachResult, INetworkDeviceApproachService, INetworkDeviceTarget, IProbeService } from '../../interfaces';
+import { INetworkDeviceApproachService, INetworkScanOptions } from '../../interfaces';
 
 @Injectable()
-export class PortScanApproachService implements IProbeService, INetworkDeviceApproachService<any, NetworkDeviceDto[]> {
+export class PortScanApproachService implements INetworkDeviceApproachService {
     constructor(private readonly loggerService: LoggerService) {}
 
-    async execute(target: INetworkDeviceTarget = {}, _options?: any): Promise<INetworkDeviceApproachResult<NetworkDeviceDto[]>> {
-        const startTime = Date.now();
-        try {
-            let devices: NetworkDeviceDto[] = [];
-            if (target.ip) {
-                const result = await this.probeIp(target.ip, target.ports);
-                if (result) {
-                    devices.push(result);
-                }
-            } else {
-                devices = await this.probeSubnet(target.subnet);
-            }
-
-            return {
-                isSuccess: true,
-                approach: NetworkDeviceApproachEnum.PORT_SCAN,
-                target,
-                data: devices,
-                responseTimeMs: Date.now() - startTime,
-            };
-        } catch (error: any) {
-            return {
-                isSuccess: false,
-                approach: NetworkDeviceApproachEnum.PORT_SCAN,
-                target,
-                data: [],
-                responseTimeMs: Date.now() - startTime,
-                errorMessage: error.message || 'Lỗi trong quá trình quét Port Scan',
-            };
+    async scan(options: INetworkScanOptions = {}): Promise<NetworkDeviceDto[]> {
+        if (options.ip) {
+            const single = await this.probeIp(options);
+            return single ? [single] : [];
         }
-    }
 
-    async probe(subnet?: string): Promise<NetworkDeviceDto[]> {
-        return this.probeSubnet(subnet);
-    }
-
-    async probeSubnet(customSubnet?: string): Promise<NetworkDeviceDto[]> {
-        const subnet = customSubnet || NetworkSubnetHelper.detectLocalSubnet();
+        const subnet = options.subnet || NetworkSubnetHelper.detectLocalSubnet();
         if (!subnet) {
-            this.loggerService.warn('No active IPv4 subnet detected for TCP probe');
+            this.loggerService.warn('No active IPv4 subnet detected for TCP port scan');
             return [];
         }
 
-        const ipList: string[] = [];
-        for (let i = 1; i <= 254; i++) {
-            ipList.push(`${subnet}.${i}`);
-        }
-
         const discoveredDevices: NetworkDeviceDto[] = [];
+        const ipList = Array.from({ length: 254 }, (_, i) => `${subnet}.${i + 1}`);
 
         for (let i = 0; i < ipList.length; i += TCP_PROBE_BATCH_SIZE) {
             const batch = ipList.slice(i, i + TCP_PROBE_BATCH_SIZE);
-            const batchResults = await Promise.all(batch.map((ip) => this.probeIp(ip)));
+            const batchResults = await Promise.all(batch.map((ip) => this.probeIp({ ...options, ip })));
 
             for (const result of batchResults) {
                 if (result) discoveredDevices.push(result);
@@ -82,13 +47,15 @@ export class PortScanApproachService implements IProbeService, INetworkDeviceApp
         return discoveredDevices;
     }
 
-    async probeIp(ip: string, customPorts?: number[]): Promise<NetworkDeviceDto | null> {
-        const portsToCheck = customPorts && customPorts.length > 0 ? customPorts : TCP_TARGET_PORTS;
+    private async probeIp(options: INetworkScanOptions): Promise<NetworkDeviceDto | null> {
+        const { ip, ports, timeoutMs } = options;
+
         const openPorts: number[] = [];
+        const portsToCheck = ports && ports.length > 0 ? ports : TCP_TARGET_PORTS;
 
         await Promise.all(
             portsToCheck.map(async (port) => {
-                const isOpen = await this.checkPort(ip, port);
+                const isOpen = await this.checkPort(ip, port, timeoutMs);
                 if (isOpen) openPorts.push(port);
             }),
         );
@@ -96,24 +63,28 @@ export class PortScanApproachService implements IProbeService, INetworkDeviceApp
         if (openPorts.length === 0) return null;
 
         let deviceType = NetworkDeviceType.UNKNOWN;
-        if (TCP_CAMERA_PORTS.some((port) => openPorts.includes(port))) {
-            deviceType = NetworkDeviceType.CAMERA;
-        } else if (TCP_PRINTER_PORTS.some((port) => openPorts.includes(port))) {
-            deviceType = NetworkDeviceType.PRINTER;
-        } else if (TCP_ROUTER_AP_PORTS.some((port) => openPorts.includes(port))) {
-            deviceType = NetworkDeviceType.ROUTER_AP;
+        switch (true) {
+            case TCP_CAMERA_PORTS.some((port) => openPorts.includes(port)):
+                deviceType = NetworkDeviceType.CAMERA;
+                break;
+            case TCP_PRINTER_PORTS.some((port) => openPorts.includes(port)):
+                deviceType = NetworkDeviceType.PRINTER;
+                break;
+            case TCP_ROUTER_AP_PORTS.some((port) => openPorts.includes(port)):
+                deviceType = NetworkDeviceType.ROUTER_AP;
+                break;
         }
 
         return new NetworkDeviceDto({
-            ipAddress: ip,
-            deviceType,
             openPorts,
+            deviceType,
+            ipAddress: ip,
             isOnline: true,
             lastSeenAt: new Date(),
         });
     }
 
-    private checkPort(host: string, port: number): Promise<boolean> {
+    private checkPort(host: string, port: number, customTimeoutMs?: number): Promise<boolean> {
         return new Promise((resolve) => {
             const socket = new net.Socket();
             let isResolved = false;
@@ -126,7 +97,7 @@ export class PortScanApproachService implements IProbeService, INetworkDeviceApp
                 }
             };
 
-            socket.setTimeout(TCP_SOCKET_TIMEOUT_MS);
+            socket.setTimeout(customTimeoutMs || TCP_SOCKET_TIMEOUT_MS);
             socket.once('connect', () => onDone(true));
             socket.once('timeout', () => onDone(false));
             socket.once('error', () => onDone(false));

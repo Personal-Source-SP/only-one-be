@@ -20,4 +20,16 @@ export class NetworkDeviceError {
         message: 'Dải mạng (Subnet) không hợp lệ.',
         statusCode: HttpStatus.BAD_REQUEST,
     };
+
+    static readonly TargetIpRequired: IAppError = {
+        code: 'network_device_target_ip_required',
+        message: 'Target IP bắt buộc phải được cung cấp để xác thực thiết bị.',
+        statusCode: HttpStatus.BAD_REQUEST,
+    };
+
+    static readonly CameraAuthFailed: IAppError = {
+        code: 'network_device_camera_auth_failed',
+        message: 'Không có tài khoản / mật khẩu nào xác thực thành công.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+    };
 }

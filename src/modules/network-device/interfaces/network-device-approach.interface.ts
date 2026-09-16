@@ -1,3 +1,4 @@
+import { NetworkDeviceDto } from '../dtos';
 import { NetworkDeviceApproachEnum } from '../enums/network-device-approach.enum';
 
 export interface IDeviceCredential {
@@ -14,33 +15,40 @@ export interface INetworkDeviceTarget {
 }
 
 export interface ICameraDeviceInfo {
-    manufacturer?: string;
     model?: string;
-    firmwareVersion?: string;
-    serialNumber?: string;
     hardwareId?: string;
+    manufacturer?: string;
+    serialNumber?: string;
+    firmwareVersion?: string;
 }
 
 export interface ICameraVerificationData {
-    deviceInfo?: ICameraDeviceInfo;
     snapshotUri?: string;
-    snapshotBase64?: string;
     rtspStreamUri?: string;
+    snapshotBase64?: string;
     liveViewSupported?: boolean;
+    deviceInfo?: ICameraDeviceInfo;
 }
 
 export interface INetworkDeviceApproachResult<TData = any> {
     isSuccess: boolean;
-    approach: NetworkDeviceApproachEnum;
-    target: INetworkDeviceTarget;
-    matchedCredential?: IDeviceCredential;
-    data?: TData;
     responseTimeMs: number;
+    target: INetworkDeviceTarget;
+    approach: NetworkDeviceApproachEnum;
+    data?: TData;
     errorMessage?: string;
+    matchedCredential?: IDeviceCredential;
 }
 
-export interface INetworkDeviceApproachService<TOptions = any, TResult = any> {
-    execute(target: INetworkDeviceTarget, options?: TOptions): Promise<INetworkDeviceApproachResult<TResult>>;
+export interface INetworkScanOptions {
+    ip?: string;
+    subnet?: string;
+    ports?: number[];
+    timeoutMs?: number;
+}
+
+export interface INetworkDeviceApproachService {
+    scan(options?: INetworkScanOptions): Promise<NetworkDeviceDto[]>;
 
     verifyCameraCredentials?(
         target: INetworkDeviceTarget,
@@ -48,8 +56,6 @@ export interface INetworkDeviceApproachService<TOptions = any, TResult = any> {
     ): Promise<INetworkDeviceApproachResult<ICameraVerificationData>>;
 
     fetchSnapshot?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<string | null>;
-
     fetchStreamUri?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<string | null>;
-
     fetchDeviceInfo?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<ICameraDeviceInfo | null>;
 }

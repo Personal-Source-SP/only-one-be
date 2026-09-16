@@ -1,3 +1,6 @@
+import * as assert from 'node:assert';
+import { describe, it } from 'node:test';
+
 import { NetworkDeviceType } from '../../enums';
 import { OnvifXmlParserHelper } from '../onvif-xml-parser.helper';
 
@@ -19,13 +22,13 @@ describe('OnvifXmlParserHelper', () => {
     describe('parseOnvifXml', () => {
         it('should extract types, scopes, and xAddrs', () => {
             const metadata = OnvifXmlParserHelper.parseOnvifXml(sampleXml);
-            expect(metadata.types).toBe('dn:NetworkVideoTransmitter tds:Device');
-            expect(metadata.scopes).toEqual([
+            assert.strictEqual(metadata.types, 'dn:NetworkVideoTransmitter tds:Device');
+            assert.deepStrictEqual(metadata.scopes, [
                 'onvif://www.onvif.org/type/video_encoder',
                 'onvif://www.onvif.org/name/Hikvision',
                 'onvif://www.onvif.org/model/DS-2CD2043G2-I',
             ]);
-            expect(metadata.xAddrs).toEqual([
+            assert.deepStrictEqual(metadata.xAddrs, [
                 'http://192.168.1.64:80/onvif/device_service',
                 'https://192.168.1.64:443/onvif/device_service',
             ]);
@@ -36,20 +39,20 @@ describe('OnvifXmlParserHelper', () => {
         it('should classify as CAMERA when types contain NetworkVideoTransmitter', () => {
             const metadata = OnvifXmlParserHelper.parseOnvifXml(sampleXml);
             const type = OnvifXmlParserHelper.inferDeviceType(metadata);
-            expect(type).toBe(NetworkDeviceType.CAMERA);
+            assert.strictEqual(type, NetworkDeviceType.CAMERA);
         });
 
         it('should classify as PRINTER when scopes contain printer', () => {
             const metadata = { rawXml: '', types: 'PrintDeviceType', scopes: ['printer'] };
-            expect(OnvifXmlParserHelper.inferDeviceType(metadata)).toBe(NetworkDeviceType.PRINTER);
+            assert.strictEqual(OnvifXmlParserHelper.inferDeviceType(metadata), NetworkDeviceType.PRINTER);
         });
     });
 
     describe('extractVendorFromScopes and extractModelFromScopes', () => {
         it('should extract vendor and model correctly', () => {
             const metadata = OnvifXmlParserHelper.parseOnvifXml(sampleXml);
-            expect(OnvifXmlParserHelper.extractVendorFromScopes(metadata.scopes)).toBe('Hikvision');
-            expect(OnvifXmlParserHelper.extractModelFromScopes(metadata.scopes)).toBe('DS-2CD2043G2-I');
+            assert.strictEqual(OnvifXmlParserHelper.extractVendorFromScopes(metadata.scopes), 'Hikvision');
+            assert.strictEqual(OnvifXmlParserHelper.extractModelFromScopes(metadata.scopes), 'DS-2CD2043G2-I');
         });
     });
 
@@ -57,7 +60,7 @@ describe('OnvifXmlParserHelper', () => {
         it('should extract ports from xAddrs and default port', () => {
             const metadata = OnvifXmlParserHelper.parseOnvifXml(sampleXml);
             const ports = OnvifXmlParserHelper.extractOpenPorts(metadata, 3702);
-            expect(ports).toEqual([3702, 80, 443]);
+            assert.deepStrictEqual(ports, [3702, 80, 443]);
         });
     });
 });
