@@ -4,8 +4,8 @@ import { OUI_DATABASE } from '../constants';
 import { IOuiLookupResult } from '../interfaces';
 
 @Injectable()
-export class OuiLookupService {
-    lookupVendor(macAddress?: string | null): IOuiLookupResult {
+export class OuiLookupHelper {
+    static lookupVendor(macAddress?: string | null): IOuiLookupResult {
         if (!macAddress) return {};
 
         const normalized = macAddress.toUpperCase().replace(/[:-]/g, '');
@@ -15,10 +15,12 @@ export class OuiLookupService {
         const match = OUI_DATABASE[prefix];
 
         if (match) {
-            return {
+            const result: IOuiLookupResult = {
                 vendor: match.vendor,
                 defaultType: match.defaultType,
             };
+
+            return result;
         }
 
         return {};

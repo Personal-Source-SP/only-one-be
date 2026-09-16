@@ -40,28 +40,16 @@ export interface INetworkDeviceApproachResult<TData = any> {
 }
 
 export interface INetworkDeviceApproachService<TOptions = any, TResult = any> {
-    execute(
-        target: INetworkDeviceTarget,
-        options?: TOptions,
-    ): Promise<INetworkDeviceApproachResult<TResult>>;
+    execute(target: INetworkDeviceTarget, options?: TOptions): Promise<INetworkDeviceApproachResult<TResult>>;
 
     verifyCameraCredentials?(
         target: INetworkDeviceTarget,
         credentials?: IDeviceCredential[],
     ): Promise<INetworkDeviceApproachResult<ICameraVerificationData>>;
 
-    fetchSnapshot?(
-        target: INetworkDeviceTarget,
-        credential?: IDeviceCredential,
-    ): Promise<string | null>;
+    fetchSnapshot?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<string | null>;
 
-    fetchStreamUri?(
-        target: INetworkDeviceTarget,
-        credential?: IDeviceCredential,
-    ): Promise<string | null>;
+    fetchStreamUri?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<string | null>;
 
-    fetchDeviceInfo?(
-        target: INetworkDeviceTarget,
-        credential?: IDeviceCredential,
-    ): Promise<ICameraDeviceInfo | null>;
+    fetchDeviceInfo?(target: INetworkDeviceTarget, credential?: IDeviceCredential): Promise<ICameraDeviceInfo | null>;
 }

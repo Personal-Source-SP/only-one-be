@@ -1,16 +1,6 @@
-import {
-    BooleanField,
-    ClassFieldOptional,
-    EnumField,
-    NumberField,
-    StringFieldOptional,
-} from '../../../../decorators';
+import { BooleanField, ClassFieldOptional, EnumField, NumberField, StringFieldOptional } from '../../../../decorators';
 import { NetworkDeviceApproachEnum } from '../../enums/network-device-approach.enum';
-import {
-    IDeviceCredential,
-    INetworkDeviceApproachResult,
-    INetworkDeviceTarget,
-} from '../../interfaces/network-device-approach.interface';
+import { IDeviceCredential, INetworkDeviceApproachResult, INetworkDeviceTarget } from '../../interfaces/network-device-approach.interface';
 import { DeviceCredentialDto } from '../requests/device-credential.dto';
 
 export class ApproachResultResponseDto<TData = any> implements INetworkDeviceApproachResult<TData> {

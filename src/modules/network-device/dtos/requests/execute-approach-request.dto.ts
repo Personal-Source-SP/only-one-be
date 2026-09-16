@@ -1,9 +1,4 @@
-import {
-    ClassFieldOptional,
-    EnumField,
-    NumberFieldOptional,
-    StringFieldOptional,
-} from '../../../../decorators';
+import { ClassFieldOptional, EnumField, NumberFieldOptional, StringFieldOptional } from '../../../../decorators';
 import { NetworkDeviceApproachEnum } from '../../enums/network-device-approach.enum';
 import { INetworkDeviceTarget } from '../../interfaces/network-device-approach.interface';
 import { DeviceCredentialDto } from './device-credential.dto';
@@ -41,7 +36,8 @@ export class ExecuteApproachRequestDto implements INetworkDeviceTarget {
     ports?: number[];
 
     @ClassFieldOptional(() => DeviceCredentialDto, {
-        description: 'Danh sách credentials tùy chỉnh để xác thực (áp dụng cho PROTOCOL_AUTH). Nếu không truyền sẽ dùng default dictionary.',
+        description:
+            'Danh sách credentials tùy chỉnh để xác thực (áp dụng cho PROTOCOL_AUTH). Nếu không truyền sẽ dùng default dictionary.',
         isArray: true,
     })
     credentials?: DeviceCredentialDto[];

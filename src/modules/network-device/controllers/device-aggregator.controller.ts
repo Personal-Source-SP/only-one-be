@@ -48,4 +48,3 @@ export class DeviceAggregatorController {
         return new ApproachResultResponseDto(result);
     }
 }
-

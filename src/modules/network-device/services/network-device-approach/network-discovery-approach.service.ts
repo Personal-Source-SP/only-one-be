@@ -6,18 +6,14 @@ import { Injectable } from '@nestjs/common';
 import { LoggerService } from '../../../../shared/services/logger.service';
 import { NetworkDeviceDto } from '../../dtos';
 import { NetworkDeviceApproachEnum, NetworkDeviceType } from '../../enums';
-import { ArpParserHelper } from '../../helpers';
+import { ArpParserHelper, OuiLookupHelper } from '../../helpers';
 import { INetworkDeviceApproachResult, INetworkDeviceApproachService, INetworkDeviceTarget, IProbeService } from '../../interfaces';
-import { OuiLookupService } from '../oui-lookup.service';
 
 const execAsync = promisify(exec);
 
 @Injectable()
 export class NetworkDiscoveryApproachService implements IProbeService, INetworkDeviceApproachService<any, NetworkDeviceDto[]> {
-    constructor(
-        private readonly loggerService: LoggerService,
-        private readonly ouiLookupService: OuiLookupService,
-    ) {}
+    constructor(private readonly loggerService: LoggerService) {}
 
     async execute(target: INetworkDeviceTarget = {}, _options?: any): Promise<INetworkDeviceApproachResult<NetworkDeviceDto[]>> {
         const startTime = Date.now();
@@ -58,7 +54,7 @@ export class NetworkDiscoveryApproachService implements IProbeService, INetworkD
             for (const line of lines) {
                 const parsed = ArpParserHelper.parseArpLine(line);
                 if (parsed) {
-                    const { vendor, defaultType } = this.ouiLookupService.lookupVendor(parsed.mac);
+                    const { vendor, defaultType } = OuiLookupHelper.lookupVendor(parsed.mac);
                     devices.push(
                         new NetworkDeviceDto({
                             openPorts: [],
