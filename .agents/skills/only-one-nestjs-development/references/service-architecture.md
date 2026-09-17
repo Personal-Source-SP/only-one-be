@@ -70,7 +70,62 @@ export class FeatureService extends BaseService<FeatureEntity> {
   - Perform not-found, conflict, and foreign-key relation guard checks prior to executing destructive writes.
 - ✅ **Parameters & Type Contracts**:
   - Complex object parameters containing **3 or more properties** MUST be modeled as dedicated interfaces inside the `types/` folder, avoiding inline object types or ambiguous `Record<string, unknown>`.
-  - Do not define `interface` or `type` declarations directly inside the service file.
+  - ❌ **NEVER** declare `interface` or `type` definitions directly inside the `.service.ts` file.
+  - ❌ **NEVER** return anonymous inline object types (e.g., `Promise<{ order: OrderEntity; payment: PaymentTransactionEntity } | null>`) from any method (`public`, `protected`, `private`, or internal helper).
+  - ALL method return types, complex parameters, and intermediate structures MUST be explicitly modeled as Named Types / Interfaces inside `src/modules/<feature>/types/` and exported via `types/index.ts`.
+
+  ```typescript
+  // ❌ ANTI-PATTERN (DON'T): Anonymous inline return shape or declaring type in service file
+  // File: src/modules/order/services/guest-order.service.ts
+
+  // ❌ NEVER declare types inside service files!
+  type OpenCheckoutResult = { order: OrderEntity; payment: PaymentTransactionEntity };
+
+  @Injectable()
+  export class GuestOrderService extends BaseService<OrderEntity> {
+    // ❌ NEVER use anonymous inline object return shapes!
+    private async _findOwnOpenCheckout(deviceId: string): Promise<{
+      order: OrderEntity;
+      payment: PaymentTransactionEntity;
+    } | null> {
+      // ...
+    }
+  }
+  ```
+
+  ```typescript
+  // ✅ STANDARD MULTI-FILE ARCHITECTURE PATTERN (DO):
+
+  // 1. File: src/modules/order/types/checkout-result.type.ts
+  import type { OrderEntity } from "../entities/order.entity";
+  import type { PaymentTransactionEntity } from "../entities/payment-transaction.entity";
+
+  export type OpenCheckoutResult = {
+    order: OrderEntity;
+    payment: PaymentTransactionEntity;
+  };
+
+  // 2. File: src/modules/order/types/index.ts
+  export * from "./checkout-result.type";
+
+  // 3. File: src/modules/order/services/guest-order.service.ts
+  import { Injectable } from "@nestjs/common";
+  import { BaseService } from "@/common/base.service";
+  import { OrderEntity } from "../entities";
+  import type { OpenCheckoutResult } from "../types";
+
+  @Injectable()
+  export class GuestOrderService extends BaseService<OrderEntity> {
+    private async _findOwnOpenCheckout(deviceId: string): Promise<OpenCheckoutResult | null> {
+      const result = await this._orderRepository.findOne({ deviceId, status: OrderStatus.OPEN });
+      if (!result) {
+        return null;
+      }
+      return { order: result, payment: result.paymentTransaction };
+    }
+  }
+  ```
+
 - ✅ **Utility Libraries (Lodash & Dayjs)**:
   - For date operations, use **`dayjs`** instead of native `Date` comparison operators (`<`, `>`, `>=`). Use `dayjs.isBefore`, `dayjs.isAfter`, `dayjs.isSame`.
   - **Timezone Accuracy**: When handling timezone-dependent dates (schedules, reporting intervals, countdowns), ensure dayjs timezone plugins (`dayjs.extend(utc)`, `dayjs.extend(timezone)`) are active.

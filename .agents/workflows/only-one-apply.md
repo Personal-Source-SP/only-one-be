@@ -1,28 +1,35 @@
 ---
-description: "Implement tasks from a plan.md file by parsing the Machine-Readable Task Matrix in Section 3 and applying changes in dependency order."
+description: "Implement tasks from an approved plan.md or debug.md file by parsing the Machine-Readable Task Matrix in Section 3 and applying changes in dependency order."
 ---
 
 ## Input
 
 ```text
-/only-one-apply [<task-folder> | <plan-path>]
+/only-one-apply [<task-folder> | <plan-path> | <debug-path>]
 ```
 
-- **With `<task-folder>` or `<plan-path>`**: use the given task folder (e.g., `only-one/tasks/20260819-142500-soft-delete-machine/plan.md`) directly.
-- **Without path**: search `only-one/tasks/` for plans with `status: in-progress`, then `status: planned`. If multiple found, list them and ask the user to select one.
+- **With `<task-folder>`, `<plan-path>`, or `<debug-path>`**: use the given plan/debug file (e.g., `only-one/tasks/20260819-142500-soft-delete/plan.md` or `only-one/tasks/20260917-100000-debug-bug/debug.md`) directly. If a task folder is given, locate `plan.md` or `debug.md` within it (prefer `in-progress` > `planned`/`planning`).
+- **Without path**: search `only-one/tasks/` for active tasks:
+  ```bash
+  grep -rlE "status: in-progress" only-one/tasks/ --include="plan.md" --include="debug.md" 2>/dev/null
+  grep -rlE "status: (planned|planning)" only-one/tasks/ --include="plan.md" --include="debug.md" 2>/dev/null
+  ```
+  - Prefer `in-progress` over `planned`/`planning`.
+  - If multiple found, display the list and ask the user to select.
+  - If none found, report: "No active plan or debug task found in only-one/tasks/." and stop.
 
 ## Role
 
 You are a **Senior Software Engineer**. Your core responsibilities:
-- Fast-path ingest the **Section 3.1 Machine-Readable Task Matrix** from `plan.md` in sub-second time.
-- Implement the changes described in `plan.md`, one file at a time, strictly following Section 4 blueprint guidance and respecting `Depends On` ordering.
+- Fast-path ingest the **Section 3 Machine-Readable Task Matrix** from `plan.md` or `debug.md` in sub-second time.
+- Implement the changes described in `plan.md` or `debug.md`, one file at a time, strictly following Section 4 blueprint guidance and respecting `Depends On` ordering.
 - Apply execution and quality disciplines (`incremental-implementation`, `test-driven-development`, `code-simplification`, `diagnosing-bugs`).
 - Run the targeted `Fast Test Command` immediately after modifying each file to maintain rapid feedback loops.
-- Record verification evidence directly into Section 5 of `plan.md` and report a concise walkthrough summary in the chat turn.
+- Record verification evidence directly into Section 5 of `plan.md` or `debug.md` and report a concise walkthrough summary in the chat turn.
 
 ## Purpose
 
-Execute an approved plan with maximum machine efficiency and human clarity, verifying every file change against targeted test cases.
+Execute an approved plan or debug document with maximum machine efficiency and human clarity, verifying every file change against targeted test cases.
 
 ---
 
@@ -40,20 +47,21 @@ Execute an approved plan with maximum machine efficiency and human clarity, veri
 
 ## 2. Step-by-Step Execution Protocol
 
-### Step 1 — Locate and read the plan
+### Step 1 — Locate and read the plan or debug document
 
 **If a path or task folder is provided:**
-1. Read the `plan.md` file at the given path/folder.
-2. If the file does not exist, report error and stop.
+1. If target is a file path (`plan.md` or `debug.md`), read it directly.
+2. If target is a task folder, check for `plan.md` or `debug.md`. If both exist, prioritize `in-progress` $\rightarrow$ `planned`/`planning`.
+3. If neither exists, report error and stop.
 
 **If no path is provided:**
 ```bash
-grep -rl "status: in-progress" only-one/tasks/ --include="plan.md" 2>/dev/null
-grep -rl "status: planned" only-one/tasks/ --include="plan.md" 2>/dev/null
+grep -rlE "status: in-progress" only-one/tasks/ --include="plan.md" --include="debug.md" 2>/dev/null
+grep -rlE "status: (planned|planning)" only-one/tasks/ --include="plan.md" --include="debug.md" 2>/dev/null
 ```
-- Prefer `in-progress` over `planned`.
+- Prefer `in-progress` over `planned`/`planning`.
 - If multiple found, display the list and ask the user to select.
-- If none found, report: "No active plan found in only-one/tasks/." and stop.
+- If none found, report: "No active plan or debug task found in only-one/tasks/." and stop.
 
 ---
 
@@ -67,20 +75,20 @@ grep -rl "status: planned" only-one/tasks/ --include="plan.md" 2>/dev/null
 
 ---
 
-### Step 2 — Validate plan is approved & Set status to in-progress
+### Step 2 — Validate document & Set status to in-progress
 
 Check the frontmatter `status` field:
-- `planned` $\rightarrow$ update `plan.md` frontmatter to `status: in-progress`.
+- `planned` / `planning` $\rightarrow$ update frontmatter to `status: in-progress`.
 - `in-progress` $\rightarrow$ proceed immediately, resuming from where work left off.
-- `done` $\rightarrow$ report: "This plan is already marked done." and stop.
+- `done` / `fixed` $\rightarrow$ report: "This task is already marked done/fixed." and stop.
 
 ---
 
-### Step 3 — Ingest Directory Structure & Parse Task Matrix
+### Step 3 — Ingest Source Structure & Parse Task Matrix
 
-1. **Review Section 3.1 Directory Structure Changes**: Ingest the ASCII directory tree to establish an immediate mental model of all touched files (`[NEW]`, `[MODIFY]`, `[DELETE]`, `[RENAME]`).
-2. **Parse Section 3.2 Task Matrix & Dependency Graph**:
-   - Jump to **Section 3.2 Task Matrix & Dependency Graph** in `plan.md`.
+1. **Review Source Structure Changes**: Ingest the ASCII directory tree (Section 3.1 in `plan.md` or Section 2.2 in `debug.md`) to establish an immediate mental model of all touched files (`[NEW]`, `[MODIFY]`, `[DELETE]`, `[RENAME]`).
+2. **Parse Section 3 Task Matrix & Dependency Graph**:
+   - Jump to **Section 3 Task Matrix & Dependency Graph** in `plan.md` or `debug.md`.
    - Extract the ordered sequence: `Order`, `Status`, `Action`, `File Path`, `Target Symbols`, `Depends On`, `Fast Test Command`.
    - Skip rows already marked `[x]` (Done), identify the first pending row `[ ]` or in-progress row `[/]`.
 
@@ -90,7 +98,7 @@ Check the frontmatter `status` field:
 
 For each pending row in the Task Matrix:
 1. Verify that all prerequisite files (`Depends On`) have been successfully applied and verified (`[x]`).
-2. Mark the row's `Status` as `[/]` (in-progress) in `plan.md`.
+2. Mark the row's `Status` as `[/]` (in-progress) in the active document (`plan.md` or `debug.md`).
 3. **Step 4a — Pre-apply Context, Existing Imports & Language Skill Compliance Gate**:
    - Read the target file (`view_file`) to inspect its current imports, shared utilities, and surrounding code patterns.
    - Verify that existing project helpers/hooks are properly imported and utilized (Reuse-First Invariant).
@@ -103,7 +111,7 @@ For each pending row in the Task Matrix:
    - Apply the modification precisely by replacing the deleted lines (`-`) with added lines (`+`).
 5. **Step 4c — Run Fast Test Command**:
    - Run the row's **`Fast Test Command`** immediately:
-     - If test passes: mark row `Status` as `[x]` (done) in `plan.md` and proceed to next row.
+     - If test passes: mark row `Status` as `[x]` (done) in the document and proceed to next row.
      - If test fails: activate `diagnosing-bugs` (Red Feedback Loop $\rightarrow$ Instrument $\rightarrow$ Fix).
 
 ---
@@ -115,11 +123,11 @@ For each pending row in the Task Matrix:
    npm test
    npm run lint
    ```
-2. **Update `plan.md` Verification Evidence & Completion**:
-   - Update Section 5 of `plan.md` by marking verified test items with `[x]` and appending concrete test execution evidence (e.g., `PASS - X tests passed`).
-   - Update `plan.md` frontmatter:
+2. **Update Document Verification Evidence & Completion**:
+   - Update Section 5 of `plan.md` or `debug.md` by marking verified test items with `[x]` and appending concrete test execution evidence (e.g., `PASS - X tests passed`).
+   - Update document frontmatter:
    ```yaml
-   status: done
+   status: done   # (hoặc status: fixed cho debug.md)
    completed_at: <YYYY-MM-DD>
    ```
 3. **In-Chat Walkthrough Presentation (Zero walkthrough.md File Creation)**:
@@ -130,7 +138,7 @@ For each pending row in the Task Matrix:
 
 ## Guardrails
 
-- **🛑 Strict Two-File Task Invariant (Zero walkthrough.md Creation)**: Each task folder must contain ONLY `concept.md` and `plan.md`. Never generate a separate `walkthrough.md` file on disk. Present walkthrough results directly in the conversation response.
+- **🛑 Strict Task Document Invariant (Zero walkthrough.md Creation)**: Each task folder must contain ONLY `concept.md` and `plan.md` (or `debug.md`). Never generate a separate `walkthrough.md` file on disk. Present walkthrough results directly in the conversation response.
 - **🛑 Strict Tech Skill & Rule Adherence**: Applied code must strictly adhere to active language/tech skills and repository rules. Agent MUST NOT write arbitrary code based on personal assumptions.
 - **Enforce Reuse-First Verification**: Always inspect target file imports and utilize project shared utilities; never duplicate existing code.
 - Prioritize parsing Section 3 Task Matrix for sub-second ingestion.

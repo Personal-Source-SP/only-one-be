@@ -8,6 +8,10 @@ description: MUST use when creating, modifying, reviewing, or refactoring NestJS
 ## 0. Mandatory Reuse-First Invariant (Anti-Reinvention Rules)
 
 > [!IMPORTANT]
+> **MANDATORY SKILL READING & COMPLIANCE GATE**:
+> Before writing, generating, or modifying any NestJS backend code (Controllers, Services, DTOs, Entities, Mappers, Tests), the Agent MUST inspect this skill file and selectively read (`view_file`) the dedicated reference doc (`references/*.md`) corresponding to the active task. Writing backend code without checking the matching architectural reference is STRICTLY PROHIBITED.
+
+> [!IMPORTANT]
 > **MANDATORY AUDIT BEFORE WRITING NEW CODE**:
 > 1. **Pre-Implementation Codebase Audit**:
 >    - Before creating any Helper, Utility, Custom Decorator, DTO, Mapper, Exception Class, or Service Method, the Agent MUST audit (`grep_search` or `list_dir`) the following directories:
