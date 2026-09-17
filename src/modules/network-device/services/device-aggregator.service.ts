@@ -34,9 +34,9 @@ export class DeviceAggregatorService {
         private readonly cacheService: CacheService,
         private readonly eventEmitter: EventEmitter2,
         private readonly loggerService: LoggerService,
+        private readonly networkDeviceService: NetworkDeviceService,
         @Inject(NETWORK_DEVICE_APPROACH_SERVICE_MAP)
         private readonly approachMap: Record<NetworkDeviceApproachEnum, INetworkDeviceApproachService>,
-        private readonly networkDeviceService: NetworkDeviceService,
     ) {}
 
     async getScanStatus(): Promise<ScanStatusResponseDto> {
