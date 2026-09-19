@@ -142,7 +142,7 @@ export class BaseService<T extends AbstractEntity, D> implements IBaseService<T,
         };
 
         const result = await paginate(query, this.repository, defaultConfig);
-        if (!result?.data?.length) return defaultResult;
+        if (!result?.data) return defaultResult;
 
         const mappedData = this.mapEntityToDto(result.data) as D[];
 
