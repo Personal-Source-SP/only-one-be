@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 
 import { BaseService } from '../../../common/base.service';
 import { NetworkDeviceDto } from '../dtos';
+import { NetworkDeviceStatsResponseDto } from '../dtos/responses';
 import { NetworkDeviceEntity } from '../entities';
 import { NetworkDeviceType } from '../enums';
 
@@ -18,6 +19,24 @@ export class NetworkDeviceService extends BaseService<NetworkDeviceEntity, Netwo
         private readonly networkDeviceRepo: Repository<NetworkDeviceEntity>,
     ) {
         super(networkDeviceRepo, mapper, NetworkDeviceDto, NetworkDeviceService.name);
+    }
+
+    async getStats(): Promise<NetworkDeviceStatsResponseDto> {
+        const [total, onlineCount, cameraCount, routerCount, iotCount] = await Promise.all([
+            this.networkDeviceRepo.count(),
+            this.networkDeviceRepo.count({ where: { isOnline: true } }),
+            this.networkDeviceRepo.count({ where: { deviceType: NetworkDeviceType.CAMERA } }),
+            this.networkDeviceRepo.count({ where: { deviceType: NetworkDeviceType.ROUTER_AP } }),
+            this.networkDeviceRepo.count({ where: { deviceType: NetworkDeviceType.SMART_IOT } }),
+        ]);
+
+        return new NetworkDeviceStatsResponseDto({
+            total,
+            onlineCount,
+            cameraCount,
+            routerCount,
+            iotCount,
+        });
     }
 
     async upsertNetworkDevice(data: Partial<NetworkDeviceDto>): Promise<NetworkDeviceDto> {
