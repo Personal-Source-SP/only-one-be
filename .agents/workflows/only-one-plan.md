@@ -64,20 +64,33 @@ Do NOT bulk-load all rules, skills, and archives blindly (avoids context polluti
 
 3. **Step 3 — Mandatory Pre-Diff Blueprint Compliance Gate**:
    - Before authoring Section 4 (Code Changes Unified Diff), cross-check every planned modification against the rules and framework skills loaded in Step 2.
+   - Run `ponytail` for every target file after reading current flow and shared helpers.
+   - Record the first sufficient decision rung, reuse target, or evidence-backed reason for new code.
+   - Safety and acceptance criteria override minimization.
    - 🛑 **Zero-Tolerance Anti-Agent-Drift**: All proposed code changes in `plan.md` must be 100% compliant with the project's loaded skills and repository negative rules.
 
 ---
 
-## 2. Optional Skills Catalog
+## Mandatory Output Skill
 
-Activate these skills during research or planning when their trigger conditions are met. Read the skill's `SKILL.md` before invoking it:
+Before the first user-visible response, read and activate `i-have-adhd`; keep it active throughout this workflow.
+
+`i-have-adhd` is a presentation adapter, not an execution policy. Priority: safety → workflow lifecycle, gates, artifacts, and order → domain-skill completeness and evidence → ADHD-friendly formatting → generic style. Preserve domain-skill completeness, source evidence, all canonical `plan.md` sections, Task Matrix, Unified Diffs, and verification rigor. Structured tables, sources, and diffs are exempt from prose list limits.
+
+## 1. Skills Catalog
+
+### Mandatory
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`i-have-adhd`** | Every user-visible turn | Action-first progress output without changing planning logic or artifacts. |
+
+### Optional Skills Catalog
 | **`to-tickets`** | Decomposing the plan into orderly file changes with dependencies | Establish tracer bullets and explicit dependency blocking edges (`depends_on`) in Section 3. |
 | **`codebase-design`** | Designing new modules, refactoring core abstractions | Design deep modules with small interfaces at clean seams, testable through that interface. |
 | **`grill-me`** | User requests interactive stress-testing of the plan / design | Conduct a relentless interview to uncover hidden assumptions with zero file footprint. |
 | **`doubt-driven-development`** | High-stakes architectural decisions, critical transactional flows, or unfamiliar complex code | Perform an adversarial Red-Team sanity check (`CLAIM` $\rightarrow$ `DOUBT` $\rightarrow$ `RECONCILE`) on critical design points in Section 2. |
+| **`ponytail`** | Before each file-level design or unified diff | Select first sufficient solution rung and record reuse/new-code evidence beside each file. |
 | **`api-and-interface-design`** | Designing or modifying REST/GraphQL APIs, DTOs, or module boundaries | Enforce Contract-first design, Hyrum's Law (hide internal details), error semantics, and boundary validation in Section 2 & 4. |
 | **`c4-diagrams`** | Section 2 architecture involves multiple components, modules, or complex data flows | Produce clean Mermaid or ASCII C4 / Sequence diagrams directly inside Section 2. |
 | **`frontend-ui-engineering`** | Building or modifying user-facing frontend components | Design component architecture, state management, 5-state matrix, and accessibility in Section 2. |
@@ -144,19 +157,26 @@ src/modules/order/
 | **1** | `[ ]` | `[NEW]` | `path/to/file.ts` | `Class.methodName` | `None` | `npm test path/to/file.test.ts` |
 | **2** | `[ ]` | `[MODIFY]` | `path/to/caller.ts` | `Caller.handler` | `Order 1` | `npm test path/to/caller.test.ts` |
 
-## Section 4. Code Changes (Unified Diff)
-Mô tả từng file trong Section 3 theo thứ tự thực thi bằng block diff chuẩn Git:
-
 ### 1. `[MODIFY]` `path/to/file.ts`
 > **Action**: <Mô tả ngắn gọn 1 câu về mục đích thay đổi>.
+
+**Ponytail checklist**
+- [ ] Required by acceptance criteria.
+- [ ] Existing implementation searched; stdlib, platform/framework, and installed dependencies considered.
+- [ ] No duplicate logic or speculative extension point.
+- [ ] Minimum diff preserves correctness and safety.
+- **Decision**: <reuse target or evidence-backed reason for new code>.
+- **Rejected alternative**: <larger solution rejected and reason>.
 
 ```diff
 @@ line N @@
 - const oldCode = true;
-++ const newCode = true;
++ const newCode = true;
 ```
-*(Đối với file `[NEW]`: hiển thị trọn vẹn source code khởi tạo)*
-*(Đối với file `[DELETE]`: nêu rõ lý do xoá và các references đã verify)*
+*(Đối với file `[NEW]`: hiển thị trọn vẹn source code khởi tạo.)
+*(Đối với file `[DELETE]`: nêu rõ lý do xoá và references đã verify.)
+
+For test files, use **Test checklist** covering fixture/helper reuse, no duplicate setup, changed behavior only, existing toolchain, Decision, and Rejected alternative.
 
 ## Section 5. Test Cases & Verification
 - **Automated Tests**:

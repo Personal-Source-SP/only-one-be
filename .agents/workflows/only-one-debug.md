@@ -32,16 +32,24 @@ Systematically isolate, diagnose, instrument, document in `debug.md`, formulate 
 
 ---
 
+## Mandatory Output Skill
+
+Before the first user-visible response, read and activate `i-have-adhd`; keep it active throughout this workflow.
+
+`i-have-adhd` is a presentation adapter, not an execution policy. Priority: safety → workflow lifecycle, gates, artifacts, and order → domain-skill completeness and evidence → ADHD-friendly formatting → generic style. Preserve domain-skill completeness, reproduction evidence, violated invariants, regression tests, RCA phases, and `debug.md`. Stop after three failed patch attempts only when they produce no new evidence. Structured evidence, tables, and diffs are exempt from prose list limits.
+
 ## 1. Skills Catalog (Debugging & Investigation Disciplines)
 
 Activate and apply these skills throughout the debugging lifecycle:
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`i-have-adhd`** | Every user-visible turn | Evidence-first output without changing RCA phases, reproduction, or debug artifacts. |
 | **`diagnosing-bugs`** | Investigation & Diagnosis | Build a feedback loop that goes red on this bug $\rightarrow$ minimise $\rightarrow$ hypothesise $\rightarrow$ instrument $\rightarrow$ fix $\rightarrow$ regression-test. |
 | **`doubt-driven-development`** | Step 3 (Root cause hypothesis) | Challenge implicit assumptions in code (e.g., nullability, race conditions, async timing, third-party availability). |
 | **`test-driven-development`** | Step 1 & Step 5 (Reproduction & Regression) | Enforce the **Beyoncé Rule**: write a failing reproduction test before patching, and verify it turns green after the fix. |
 | **`code-simplification`** | Step 4 & Step 5 (Deliver Minimal Fix) | Keep fixes strictly focused as a **Surgical Minimal Patch**, rejecting premature abstractions or unrelated refactoring. |
+| **`ponytail`** | After root cause is proven | Select smallest root-cause fix and record per-file reuse/new-code evidence without weakening reproduction. |
 
 ---
 
@@ -201,4 +209,3 @@ Display a concise markdown summary in Vietnamese narrative with English technica
 - Never perform unrelated refactoring during a bug fix.
 - Always include an automated regression test.
 - Keep the fix minimal, surgical, and scoped directly to the defect.
-

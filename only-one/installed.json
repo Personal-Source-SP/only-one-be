@@ -1,151 +1,161 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-17T10:06:18.625Z",
+  "updatedAt": "2026-09-21T08:12:22.384Z",
   "installed": {
     "rules": {
       "nest-architecture-stack": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:16.753Z",
-        "updatedAt": "2026-09-17T10:06:16.753Z"
+        "installedAt": "2026-09-21T08:12:16.837Z",
+        "updatedAt": "2026-09-21T08:12:16.837Z"
       },
       "context-and-tools": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:16.753Z",
-        "updatedAt": "2026-09-17T10:06:16.753Z"
+        "installedAt": "2026-09-21T08:12:16.837Z",
+        "updatedAt": "2026-09-21T08:12:16.837Z"
       }
     },
     "skills": {
+      "i-have-adhd": {
+        "version": "0.0.1",
+        "installedAt": "2026-09-21T08:12:17.423Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
+      },
       "grill-with-docs": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:16.986Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:17.799Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "grill-me": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.048Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:17.850Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "interview-me": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.111Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:18.224Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "idea-refine": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.175Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:18.584Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "to-tickets": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.237Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:18.930Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "codebase-design": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.300Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:19.288Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "api-and-interface-design": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:17.701Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:19.674Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "security-and-hardening": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.069Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:20.027Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "code-simplification": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.137Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:20.371Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "incremental-implementation": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.259Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:20.659Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "test-driven-development": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.336Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:20.937Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "diagnosing-bugs": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.407Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:21.323Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "doubt-driven-development": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.480Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:21.676Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
+      },
+      "ponytail": {
+        "version": "0.0.1",
+        "installedAt": "2026-09-21T08:12:21.730Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "source-driven-development": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.548Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:22.083Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "resolving-merge-conflicts": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.609Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:22.365Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "c4-diagrams": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.613Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:22.370Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "gherkin-authoring": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.613Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:22.370Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       },
       "only-one-nestjs-development": {
         "version": "0.0.2",
-        "installedAt": "2026-09-17T10:06:18.613Z",
-        "updatedAt": "2026-09-17T10:06:18.613Z"
+        "installedAt": "2026-09-21T08:12:22.370Z",
+        "updatedAt": "2026-09-21T08:12:22.370Z"
       }
     },
     "workflows": {
       "only-one-idea": {
-        "version": "0.0.4",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "version": "0.0.6",
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-plan": {
-        "version": "0.0.5",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "version": "0.0.7",
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-apply": {
-        "version": "0.0.5",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "version": "0.0.7",
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-flash": {
-        "version": "0.0.3",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "version": "0.0.5",
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-debug": {
-        "version": "0.0.4",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "version": "0.0.6",
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-review": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-conflict": {
         "version": "0.0.1",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       },
       "only-one-clean": {
         "version": "0.0.4",
-        "installedAt": "2026-09-17T10:06:18.625Z",
-        "updatedAt": "2026-09-17T10:06:18.625Z"
+        "installedAt": "2026-09-21T08:12:22.384Z",
+        "updatedAt": "2026-09-21T08:12:22.384Z"
       }
     }
   }

@@ -33,15 +33,23 @@ Execute an approved plan or debug document with maximum machine efficiency and h
 
 ---
 
+## Mandatory Output Skill
+
+Before the first user-visible response, read and activate `i-have-adhd`; keep it active throughout this workflow.
+
+`i-have-adhd` is a presentation adapter, not an execution policy. Priority: safety → workflow lifecycle, gates, artifacts, and order → domain-skill completeness and evidence → ADHD-friendly formatting → generic style. Preserve domain-skill completeness, Task Matrix order, Depends On transitions, Fast Test Commands, final verification, and evidence. Structured tables, code blocks, and diffs are exempt from prose list limits.
+
 ## 1. Skills Catalog (Build & Execution Disciplines)
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`i-have-adhd`** | Every user-visible turn | Action-first progress output without changing Task Matrix execution or test evidence. |
 | **`context-engineering`** | Step 1b (Loading rules and skills) | Feed only the necessary, high-signal context into working memory (Negative Rules in `rules.md` and Tech Skills) before modifying code. |
 | **`incremental-implementation`** | Step 4 (Applying file changes) | Apply changes in **thin vertical slices** (file-by-file), enforcing safe parameter defaults, dependency order, and rollback-friendly modifications. |
 | **`code-simplification`** | Step 4 (Quality Gate) | Audit new/modified code against YAGNI: eliminate dead code, remove orphan imports, avoid speculative wrappers, and keep cognitive load low. |
 | **`test-driven-development`** | Step 4 & 5 (Verification) | Enforce the **Beyoncé Rule** (*"If you changed the behavior, you must have a test proving it"*), structure DAMP tests, and execute test suites. |
 | **`diagnosing-bugs`** | When any compiler, lint, or test failure occurs | Apply a **disciplined Red Feedback Loop** (Reproduce Red $\rightarrow$ Localize $\rightarrow$ Hypothesize $\rightarrow$ Instrument $\rightarrow$ Fix) instead of blind guess-and-patch. |
+| **`ponytail`** | Preflight and before each edit | Validate approved reuse/new-code decisions and stop execution on material plan conflict. |
 
 ---
 
@@ -84,6 +92,14 @@ Check the frontmatter `status` field:
 
 ---
 
+### Step 1c — Ponytail Plan Preflight (Before Status Mutation)
+1. Read `ponytail`; locate each pending file checklist.
+2. Cross-check each `Decision`, diff, current repository state, and safety rules.
+3. On contradiction, ignored sufficient reuse, unapproved design change, missing material decision, or safety violation: do not change status or source.
+4. Emit `Ponytail Plan Conflict` with task/file, violated policy, conflicting blueprint, minimal proposal, acceptance impact, and required revision/re-approval. Stop whole execution.
+
+---
+
 ### Step 3 — Ingest Source Structure & Parse Task Matrix
 
 1. **Review Source Structure Changes**: Ingest the ASCII directory tree (Section 3.1 in `plan.md` or Section 2.2 in `debug.md`) to establish an immediate mental model of all touched files (`[NEW]`, `[MODIFY]`, `[DELETE]`, `[RENAME]`).
@@ -106,10 +122,13 @@ For each pending row in the Task Matrix:
    - 🛑 **Strict Language Skill & Rule Adherence Gate**:
      - Code modification MUST strictly follow conventions defined in active language/tech skills (Step 1b) and `only-one/rules.md`.
      - ❌ **Anti-Agent-Drift**: DO NOT code arbitrarily based on agent habits or unverified training defaults. Adhere 100% to project typing, naming, and error handling standards.
-4. **Step 4b — Apply Code Modification (Diff Application)**:
+4. **Step 4b — Ponytail Revalidation Before Edit**:
+   - Re-run the checklist against the current file for stale-plan drift.
+   - On material conflict, do not edit. Emit `Ponytail Plan Conflict`, report completed rows, and stop before edit.
+5. **Step 4c — Apply Code Modification (Diff Application)**:
    - Locate the corresponding file in **Section 4. Code Changes (Unified Diff)**.
    - Apply the modification precisely by replacing the deleted lines (`-`) with added lines (`+`).
-5. **Step 4c — Run Fast Test Command**:
+6. **Step 4d — Fast Test Command**:
    - Run the row's **`Fast Test Command`** immediately:
      - If test passes: mark row `Status` as `[x]` (done) in the document and proceed to next row.
      - If test fails: activate `diagnosing-bugs` (Red Feedback Loop $\rightarrow$ Instrument $\rightarrow$ Fix).

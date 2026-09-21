@@ -21,6 +21,15 @@ If input does not describe the idea or problem, ask a focused question before pr
   - Conduct interactive Q&A, solution sparring, and interview turns in Vietnamese (or user's preferred language).
   - Author `concept.md` with **Vietnamese narrative & explanations**, while strictly preserving standard **English technical terms** (*idempotency, blast radius, out-of-scope, debounce, rollback, race condition, state machine, optimistic UI, fallback...*).
 - Activate and follow the Define skills (`grill-with-docs`, `grill-me`, `domain-modeling`, `interview-me`, `idea-refine`, `wait-what`).
+- Before the first user-visible response, read and activate `i-have-adhd`; keep it active throughout this workflow.
+
+## Output Skill Compatibility Contract
+
+`i-have-adhd` is a presentation adapter, not an execution policy.
+
+Priority: safety and destructive confirmations → workflow lifecycle, gates, artifacts, and order → domain-skill completeness and evidence → ADHD-friendly formatting → generic style.
+
+Preserve domain-skill completeness, sources, tests, `concept.md` schema, Phase 1 exit gate, and terminal handoff. Ask one question per turn, but keep full interview coverage. Structured tables, sources, and code blocks are exempt from prose list limits.
 - Maintain the project's Living Domain Glossary (`CONTEXT.md`) and record Architecture Decision Records (`only-one/adrs/`) for hard-to-reverse decisions.
 - **Do not perform deep codebase tracing, line-by-line file inspections, or low-level implementation code** (those strictly belong to `/only-one-plan`).
 
@@ -30,12 +39,14 @@ If input does not describe the idea or problem, ask a focused question before pr
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`i-have-adhd`** | Every user-visible turn | Action-first progress output without changing discovery gates or concept artifacts. |
 | **`interview-me`** | Requirements are underspecified or ambiguous | Conduct a disciplined **one-question-at-a-time interview** (as BA) extracting root needs vs prescribed solutions until **~95% problem confidence**. |
 | **`idea-refine`** | A rough concept needs scoping and stress-testing | Define measurable success metrics and establish strict `In-Scope` vs `Explicit Out-of-Scope` boundaries. |
 | **`domain-modeling`** | Ambiguous domain terms arise | Challenge fuzzy terms, maintain project glossary (`CONTEXT.md`), and record ADRs for hard-to-reverse decisions. |
 | **`grill-with-docs`** | User wants an intensive design grilling session with permanent docs | Conduct an interview that sharpens domain terminology and records `CONTEXT.md` and ADRs inline. |
 | **`grill-me`** | User requests fast brainstorming without creating files on disk | Conduct a relentless interview to uncover hidden assumptions with zero file footprint. |
 | **`wait-what`** | Agent explanation is unclear or drifting | Stop immediately and re-pitch the explanation in plain, concise English using domain vocabulary. |
+| **`ponytail`** | After Phase 1 problem clarity | Remove unnecessary scope without shortening discovery or introducing code-level design. |
 
 ---
 
@@ -50,6 +61,7 @@ If input does not describe the idea or problem, ask a focused question before pr
    - Define **Measurable Success Metrics / Definition of Done** (e.g., latency < 200ms, zero data loss, 100% test pass).
    - Capture domain terminology into `only-one/CONTEXT.md` (`domain-modeling`).
 2. **Exit Gate Phase 1**: Do NOT propose solutions prematurely until problem context and scope boundaries reach **~95% clarity**.
+3. **Ponytail Scope Gate**: After clarity, remove unnecessary scope. Do not use minimization to shorten discovery or acceptance criteria.
 
 ---
 
@@ -61,10 +73,11 @@ If input does not describe the idea or problem, ask a focused question before pr
 2. **Draft UI Wireframes & State Mockups (For UI/UX features)**:
    - Provide clear **ASCII / Markdown Wireframes** showing layout hierarchy, components, and user actions.
    - Specify the **UI State Handling Matrix**: Empty State, Loading State, Error/Validation State, Populated State.
-3. **Analyze Edge Cases & Core Data/Logic Flow**:
-   - Step-by-step processing flow (Input $\rightarrow$ State Transition $\rightarrow$ Output/Side Effects).
+4. **Analyze Edge Cases & Core Domain Flow**:
+   - Describe business/domain flow and state transitions conceptually.
    - Key failure modes, concurrency, timeouts, and rollback/fallback strategies.
-4. **Decision Alignment with User (Role: User as PM)**:
+5. **Concept Boundary**: Keep all options, models, and flows conceptual. Do not emit source code, pseudocode, unified diffs, symbol signatures, file paths, or file-level implementation instructions.
+6. **Decision Alignment with User (Role: User as PM)**:
    - Present the options and mockups to the user (as PM) for review, discussion, and selection of the final approach.
 
 ---
@@ -97,8 +110,8 @@ If input does not describe the idea or problem, ask a focused question before pr
 - **Explicit Out-of-Scope**: <Các hạng mục hoãn lại hoặc chủ đích không làm để tránh phình scope>.
 
 ## 3. Proposed Solution & Core Mechanism (Giải pháp Đề xuất & Cơ chế)
-- **Core Mechanism**: <Mô tả giải pháp cốt lõi và cơ chế vận hành bằng thuật ngữ dev>.
-- **Workflow / Logic Flow**: <Các bước luồng dữ liệu chính hoặc sơ đồ Mermaid ngắn gọn nếu cần>.
+- **Core Mechanism**: <Conceptual solution and operating model; no source code, pseudocode, symbol signatures, file paths, or file-level implementation instructions>.
+- **Conceptual Flow / Domain Model**: <Business/domain flow and state transitions conceptually; no code-level implementation details>.
 - *(Tùy chọn)* **UI Wireframe**: <ASCII wireframe nếu tính năng có giao diện>.
 
 ## 4. Critical Risks & Edge Cases (Rủi ro & Kịch bản Biên)
@@ -123,5 +136,5 @@ If input does not describe the idea or problem, ask a focused question before pr
 - **Enforce Bilingual Hybrid Documentation**: Write narrative and descriptions in Vietnamese, preserving standard English technical terms.
 - **Do not skip Phase 1 discovery**: Clarify problem and scope boundaries thoroughly before proposing solution options.
 - **Always explore and present at least 2 solution options with trade-offs** before finalizing the chosen strategy.
-- **Always provide ASCII / Markdown UI mockups** when the task has frontend/UI components.
-- Always save `concept.md` inside its dedicated task folder (`only-one/tasks/<YYYYMMDD-HHmmss>-<slug>/concept.md`) and stop immediately.
+- **Strict Concept Boundary**: Never include source code, pseudocode, unified diffs, symbol signatures, file paths, or file-level implementation instructions.
+- Always save `concept.md` inside its dedicated task folder (`only-one/tasks/<YYYYMMDD-HHmmss>-<kebab-case-slug>/concept.md`) and stop immediately.

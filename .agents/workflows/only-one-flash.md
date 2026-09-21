@@ -25,15 +25,23 @@ Provide a rapid fast-track lane for micro-tasks and hotfixes, combining the rese
 
 ---
 
+## Mandatory Output Skill
+
+Before emitting the Flash Plan, read and activate `i-have-adhd`; keep it active throughout this workflow.
+
+`i-have-adhd` is a presentation adapter, not an execution policy. Priority: safety → workflow lifecycle, gates, artifacts, and order → domain-skill completeness and evidence → ADHD-friendly formatting → generic style. Preserve domain-skill completeness, Zero Disk Plan Footprint, mandatory Review Gate, source evidence, and verification. Structured plans, tables, and code blocks are exempt from prose list limits.
+
 ## 1. Skills Catalog (Fast-Track Execution Disciplines)
 
 | Skill | Trigger condition (Use When) | Core Purpose (What It Does) |
 | :--- | :--- | :--- |
+| **`i-have-adhd`** | Every user-visible turn | Action-first progress output without changing review gates, execution, or verification. |
 | **`context-engineering`** | Step 1 (Ingesting rules & skills) | Load only the essential negative rules in `only-one/rules.md`, relevant `archives/`, and framework skills into working memory. |
 | **`incremental-implementation`** | Step 3 (Applying file changes) | Apply precise code edits adhering to type contracts, safe defaults, and clean diffs. |
 | **`code-simplification`** | Step 3 (Quality Gate) | Eliminate dead code, unused imports, speculative abstractions, and keep cognitive complexity low (YAGNI). |
 | **`test-driven-development`** | Step 4 (Verification) | Enforce the Beyoncé Rule (*"If you changed behavior, you must verify it with a test"*), running fast targeted test commands. |
 | **`diagnosing-bugs`** | When any test or compiler error occurs | Execute disciplined Red Feedback Loops (Reproduce $\rightarrow$ Localize $\rightarrow$ Hypothesize $\rightarrow$ Fix) without guessing. |
+| **`ponytail`** | Step 1 research and before approved edits | Make concise per-file reuse/new-code decisions and revalidate them before editing. |
 
 ---
 
